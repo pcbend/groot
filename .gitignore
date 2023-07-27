@@ -1,0 +1,12 @@
+
+build/
+
+bin/
+
+*.o
+*.so
+*.pcm
+a.out
+
+.gint_history
+

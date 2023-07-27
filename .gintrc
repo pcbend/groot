@@ -1,0 +1,31 @@
+Unix.*.Root.MacroPath: .:$(GRUTSYS)/util:$(ROOTSYS)/macros
+
+#default MakeHistos library
+
+#files to load at log in:
+#Rint.Logon: $(GSYS)/.gint_logon
+Rint.History $(GSYS)/.gint_history
+Rint.HistSize: 1000000
+
+Rint.PromptColor:  bold yellow
+Rint.BracketColor: bold green
+Rint.BadBracketColor: bold red underlined
+Rint.TabComColor: magenta
+
+#default root variables form the grsi enviorment
+Canvas.MoveOpaque: false
+Canvas.ResizeOpaque: false
+Canvas.ShowEventStatus: true
+Canvas.ShowToolBar: true
+Canvas.UseScreenFactor: true
+Canvas.ShowGuideLines: false
+
+Root.Fitter: Fumili2
+#Root.Fitter: Minuit
+
+
+#Gui.Backend: qt
+#Gui.Factory: qt
+Gui.IconPath:      $(GSYS)/icons:$(ROOTSYS)/icons
+#$(ROOTSYS)/etc/root.mimes
+Gui.MimeTypeFile:  $(GSYS)/.gint.mimes

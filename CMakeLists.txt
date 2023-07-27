@@ -7,6 +7,14 @@ project(rootGUI
         HOMEPAGE_URL "i am a github page"
         LANGUAGES CXX)
 
+if(APPLE) 
+  message("Building for Darwin")
+  add_compile_definitions(__darwin__=TRUE)
+elseif(LINUX) 
+  message("Building for Linux")
+  add_compile_definitions(__linux__=TRUE)
+endif()
+
 #find the root, set the various cmake variables.
 find_package(ROOT REQUIRED) 
 
