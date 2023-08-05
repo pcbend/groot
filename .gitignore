@@ -7,6 +7,8 @@ bin/
 *.so
 *.pcm
 a.out
+*.root
 
+.DS_Store
 .gint_history
 

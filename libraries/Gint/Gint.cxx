@@ -1,13 +1,20 @@
 #include <iostream>
 
+#include <TFile.h>
+
 #include <Gint.h>
 #include <Gtypes.h>
 #include <argParser.h>
+#include <Histomatic.h>
+
+#include <globals.h>
 
 Gint *Gint::fGint = 0;
 
+extern Histomatic *gHistomatic;
+
 //Gint::Gint(int argc, char **argv) : TRint("gint",&argc,argv,0,0,true,false) {
-Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false) {
+Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false), fRootFilesOpened(0)  {
   LoadOptions(argc,argv);
 
   SetPrompt("gint [%d] ");
@@ -25,8 +32,7 @@ Gint::~Gint() { }
 
 void Gint::LoadOptions(int argc, char **argv) {
   //check the grutrc file for set preset optrions....
-
-  printf("in load optrions: %i\n",argc);
+  
 
   argParser parser;
 
@@ -69,12 +75,33 @@ void Gint::LoadOptions(int argc, char **argv) {
   }
   if(doGui) {
     printf("starting gui...\n"); 
+    gHistomatic = new Histomatic;
+  }
+
+  
+  for(auto& file : input_files){
+    switch(DetermineFileType(file)){
+      case kFileType::CALIBRATION:
+        break;
+      case kFileType::ROOTFILE:
+        {
+          TFile *rfile = OpenRootFile(file);
+          if(doGui && gHistomatic) 
+            gHistomatic->AddRootFile(rfile);
+        }
+        break;
+      case kFileType::MACRO:
+        break;
+      case kFileType::CUTS:
+        break;
+      default:
+        printf("\tDiscarding unknown file: %s\n",file.c_str());
+      break;
+    };
   }
 
 
- for(auto& file : input_files){
-    FileAutoDetect(file);
-  }
+
 }
 
 kFileType Gint::DetermineFileType(const std::string& filename) const {
@@ -101,11 +128,13 @@ kFileType Gint::DetermineFileType(const std::string& filename) const {
   }
 };
 
+/*
 bool Gint::FileAutoDetect(const std::string& filename) {
   switch(DetermineFileType(filename)){
     case kFileType::CALIBRATION:
       break;
     case kFileType::ROOTFILE:
+      OpenRootFile(filename);
       break;
     case kFileType::MACRO:
       break;
@@ -117,4 +146,42 @@ bool Gint::FileAutoDetect(const std::string& filename) {
   };
   return true;
 }
+*/
+
+TFile *Gint::OpenRootFile(const std::string& filename, Option_t* opt) {
+  TString sopt(opt);
+  sopt.ToLower();
+
+  TFile *file = NULL;
+  if(sopt.Contains("recreate") || sopt.Contains("new")) {
+    file = new TFile(filename.c_str(),"recreate");
+    if(file) {
+      const char* command = Form("TFile* _file%i = (TFile*)%luL",
+                                 fRootFilesOpened,
+                                 (unsigned long)file);
+      TRint::ProcessLine(command);
+      fRootFilesOpened++;
+    } else {
+      std::cout << "Could not create " << filename << std::endl;
+    }
+  } else {
+    //file = TFile::Open(filename.c_str(),opt);
+    file = new TFile(filename.c_str(),opt);
+    if(file) {
+      const char* command = Form("TFile* _file%i = (TFile*)%luL",
+                                 fRootFilesOpened,
+                                 (unsigned long)file);
+      TRint::ProcessLine(command);
+      std::cout << "\tfile " << BLUE << file->GetName() << RESET_COLOR
+                <<  " opened as " << BLUE <<  "_file" << fRootFilesOpened << RESET_COLOR <<  std::endl;
+
+      fRootFilesOpened++;
+    } else {
+      std::cout << "Could not create " << filename << std::endl;
+    }
+  }
+
+  return file;
+}
+
 
