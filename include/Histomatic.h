@@ -23,13 +23,12 @@ class Histomatic;
 
 extern Histomatic *gHistomatic;
 
-class HistList : public TGCanvas {
+class GListTree : public TGListTree {
   public: 
-    HistList(TGWindow *parent=0,UInt_t w=1,UInt_t h=1, UInt_t options=kSunkenFrame|kDoubleBorder,Pixel_t back=GetDefaultFrameBackground());
-    ~HistList();
+    //GListTree(TGWindow *parent=0,UInt_t w=1,UInt_t h=1, UInt_t options=kSunkenFrame|kDoubleBorder,Pixel_t back=GetDefaultFrameBackground());
+    GListTree(TGCanvas *parent=0);
+    ~GListTree();
 
-  TGListTree *GetListTree();
-  
   TList *GetAllActive(TGListTreeItem *item=0);  
   void ClearActive();
 
@@ -38,12 +37,13 @@ class HistList : public TGCanvas {
   void OnDoubleClicked(TGListTreeItem *item, Int_t btn); 
 
   private:
-    TGListTree *fListTree;
+    TGCanvas   *fCanvas;
+    //TGListTree *fListTree;
     TList      *fActive;
 
 
   
-  ClassDef(HistList,0)
+  ClassDef(GListTree,0)
 };
 
 class Histomatic { //: public TGMainFrame {
@@ -55,7 +55,7 @@ class Histomatic { //: public TGMainFrame {
     Histomatic();
     virtual ~Histomatic();    
 
-    TGListTree *GetListTree() { return fHistList->GetListTree(); }
+    TGListTree *GetListTree() { return fGListTree; }
 
     void buttonAction();
 
@@ -86,8 +86,9 @@ class Histomatic { //: public TGMainFrame {
 
     //TGCanvas          *fListTreeCanvas;
     //TGListTree        *fListTree;
-    HistList          *fHistList;
-
+    TGCanvas           *fGListTreeCanvas;
+    GListTree          *fGListTree;
+    
   public:
     enum EHistMessages {
       kThing1,
@@ -99,7 +100,7 @@ class Histomatic { //: public TGMainFrame {
     void CreateWindow();
     void CloseWindow();
 
-    void AddRootFile(TFile *file) { fHistList->InsertObject(file); }
+    void AddRootFile(TFile *file) { fGListTree->InsertObject(file); }
     TList *GetAllActive();
 
   private:

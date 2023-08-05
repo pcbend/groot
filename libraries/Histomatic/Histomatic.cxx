@@ -6,27 +6,24 @@
 #include <TH1.h>
 #include <TH2.h>
 
-ClassImp(HistList);
+ClassImp(GListTree);
 
 Histomatic *gHistomatic=0;
 
-HistList::HistList(TGWindow *parent,UInt_t w,UInt_t h, UInt_t options,Pixel_t back) : TGCanvas(parent,w,h,options,back) { 
-  fListTree = new TGListTree(this,kHorizontalFrame);
-  fListTree->Connect("DoubleClicked(TGListTreeItem*,Int_t)","HistList",this,"OnDoubleClicked(TGListTreeItem*,Int_t)");
+GListTree::GListTree(TGCanvas *parent) : TGListTree(parent, kHorizontalFrame) {
+  Connect("DoubleClicked(TGListTreeItem*,Int_t)","GListTree",this,"OnDoubleClicked(TGListTreeItem*,Int_t)");
 }
 
-HistList::~HistList() {
-  delete fListTree;
+GListTree::~GListTree() {
+  //delete fListTree;
   if(fActive) {
     ClearActive();
     delete fActive;
   }
 }
 
-TGListTree *HistList::GetListTree() { return fListTree; }
-
-void HistList::InsertObject(TObject *obj,TGListTreeItem *parent) {
-  TGListTreeItem *item = fListTree->AddItem(parent,obj->GetName(),GetIcon(obj->IsA()),GetIcon(obj->IsA()));
+void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
+  TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(obj->IsA()),GetIcon(obj->IsA()));
   if(obj->IsFolder()) {
     TIter iter(((TDirectory*)obj)->GetListOfKeys());
     while(TKey *key = (TKey*)iter.Next()) { 
@@ -42,7 +39,7 @@ void HistList::InsertObject(TObject *obj,TGListTreeItem *parent) {
   }
 }
 
-const TGPicture *HistList::GetIcon(TClass *cls) {
+const TGPicture *GListTree::GetIcon(TClass *cls) {
   std::string path = programPath();
   path+="/../icons";
   if(cls->InheritsFrom(TFile::Class())) {
@@ -63,12 +60,12 @@ const TGPicture *HistList::GetIcon(TClass *cls) {
 }
 
 
-void HistList::OnDoubleClicked(TGListTreeItem *item, Int_t btn) { 
+void GListTree::OnDoubleClicked(TGListTreeItem *item, Int_t btn) { 
   printf("%s\n",programPath().c_str()); 
 } 
 
-TList *HistList::GetAllActive(TGListTreeItem *item) {
-  if(!item) item = fListTree->GetFirstItem();
+TList *GListTree::GetAllActive(TGListTreeItem *item) {
+  if(!item) item = GetFirstItem();
   while(item) { 
     if(item->IsActive()) 
       std::cout << item->GetText() << std::endl;
@@ -78,7 +75,7 @@ TList *HistList::GetAllActive(TGListTreeItem *item) {
   return 0;
 }
 
-void HistList::ClearActive() {
+void GListTree::ClearActive() {
   //unhighlight??
   TIter iter(fActive);
   while(TObject *obj = iter.Next()) 
@@ -86,6 +83,8 @@ void HistList::ClearActive() {
   fActive->Clear();
 }
 
+
+////////////////////
 
 ClassImp(Histomatic);
 
@@ -146,7 +145,8 @@ Histomatic::~Histomatic() {
   delete fButton7; 
   delete fButton8; 
 
-  delete fHistList;
+  delete fGListTree;
+  delete fGListTreeCanvas;
 
   delete fButtonRow1;
   delete fButtonRow2;
@@ -210,10 +210,11 @@ void Histomatic::CreateWindow() {
   fButtonContainer->AddFrame(fButtonRow1,fLH1);  
   fButtonContainer->AddFrame(fButtonRow2,fLH1);  
 
-  fHistList = new HistList(fVf,10,10); 
+  fGListTreeCanvas = new TGCanvas(fVf,10,10);
+  fGListTree = new GListTree(fGListTreeCanvas); 
 
   fVf->AddFrame(fButtonContainer,fLH0);
-  fVf->AddFrame(fHistList,fLH1);
+  fVf->AddFrame(fGListTreeCanvas,fLH1);
 
   fMainWindow->AddFrame(fVf,fLH1);
   fMainWindow->MapSubwindows();
@@ -236,4 +237,4 @@ void Histomatic::buttonAction() {
 
 }
 
-TList *Histomatic::GetAllActive() { return fHistList->GetAllActive(); } 
+TList *Histomatic::GetAllActive() { return fGListTree->GetAllActive(); } 
