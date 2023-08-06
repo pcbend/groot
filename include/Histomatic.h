@@ -39,7 +39,7 @@ class GListTreeCanvas : public TGCanvas {
 class GListTree : public TGListTree {
   public: 
     //GListTree(TGWindow *parent=0,UInt_t w=1,UInt_t h=1, UInt_t options=kSunkenFrame|kDoubleBorder,Pixel_t back=GetDefaultFrameBackground());
-    GListTree(TGCanvas *parent=0);
+    GListTree(TGCanvas *parent=0,Histomatic *hist=0);
     ~GListTree();
 
   TList *GetAllActive(TGListTreeItem *item=0);  
@@ -49,6 +49,9 @@ class GListTree : public TGListTree {
   const TGPicture *GetIcon(TClass *cls);
   void OnDoubleClicked(TGListTreeItem *item, Int_t btn); 
 
+  std::string GetFullPath(TGListTreeItem *item) const;
+  TObject*    GetObject(TGListTreeItem *item) const;
+
   bool HandleButton(Event_t *event);
 
   private:
@@ -56,8 +59,8 @@ class GListTree : public TGListTree {
     //TGListTree *fListTree;
     TGListTreeItem *fLastSelected;
     TList      *fActive;
-
-
+  
+    Histomatic *fHistomatic;
   
   ClassDef(GListTree,0)
 };
@@ -74,6 +77,10 @@ class Histomatic { //: public TGMainFrame {
     TGListTree *GetListTree() { return fGListTree; }
 
     void buttonAction();
+
+  //private:
+    void doUpdate();
+    void doDraw(TObject*);
 
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;

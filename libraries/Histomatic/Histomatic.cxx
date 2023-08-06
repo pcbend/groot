@@ -2,6 +2,8 @@
 #include <Histomatic.h>
 #include <utils.h>
 
+#include <TROOT.h>
+#include <TVirtualPad.h>
 #include <TObjString.h>
 #include <TH1.h>
 #include <TH2.h>
@@ -17,12 +19,6 @@ GListTreeCanvas::~GListTreeCanvas() { }
 
 
 bool GListTreeCanvas::HandleButton(Event_t *event) {
-  if(event->fType == EGEventType::kButtonPress) {
-    std::cout << "from canvas" << std::endl;
-    std::cout << "fcode:  " << event->fCode  << std::endl;
-    std::cout << "fstate: " << event->fState << std::endl;
-  
-  }
   return TGCanvas::HandleButton(event);
 }
 
@@ -30,9 +26,11 @@ bool GListTreeCanvas::HandleButton(Event_t *event) {
 
 ClassImp(GListTree);
 
-GListTree::GListTree(TGCanvas *parent) : TGListTree(parent, kHorizontalFrame) {
+GListTree::GListTree(TGCanvas *parent, Histomatic *hist) : TGListTree(parent, kHorizontalFrame) {
 
   fLastSelected = 0;
+
+  fHistomatic  = hist;
 
   Connect("DoubleClicked(TGListTreeItem*,Int_t)","GListTree",this,"OnDoubleClicked(TGListTreeItem*,Int_t)");
 
@@ -86,7 +84,40 @@ const TGPicture *GListTree::GetIcon(TClass *cls) {
 
 void GListTree::OnDoubleClicked(TGListTreeItem *item, Int_t btn) { 
   printf("%s\n",programPath().c_str()); 
+  printf("%s\n",GetFullPath(item).c_str()); 
+  TObject *obj = GetObject(item);
+  if(fHistomatic) fHistomatic->doDraw(obj);
 } 
+
+std::string GListTree::GetFullPath(TGListTreeItem *item) const {
+  if(!item) return "";
+  std::vector<std::string> path;
+  while(item) {
+    path.push_back(item->GetText());
+    item = item->GetParent();
+  }
+  std::string fullPath = path.back();
+  std::vector<std::string>::reverse_iterator it;
+  for(it=path.rbegin()+1;it!=path.rend();++it) {
+    fullPath += "/";
+    fullPath += *it;
+  } 
+  return fullPath;    
+}
+
+TObject *GListTree::GetObject(TGListTreeItem *item) const {
+  TObject *obj=0;
+  std::string   path = GetFullPath(item);
+  std::string   file = path.substr(0,path.find_first_of("/"));
+  path = path.substr(path.find_first_of("/")+1);
+  TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(file.c_str());
+  printf("file: %s\n",file.c_str());
+  printf("path: %s\n",path.c_str());
+  if(f) obj = f->Get(path.c_str());
+  printf("obj: 0x%p\n",obj);
+  return obj;
+}
+
 
 TList *GListTree::GetAllActive(TGListTreeItem *item) {
   if(!item) item = GetFirstItem();
@@ -257,7 +288,7 @@ void Histomatic::CreateWindow() {
   fButtonContainer->AddFrame(fButtonRow2,fLH1);  
 
   fGListTreeCanvas = new GListTreeCanvas(fVf,10,10);
-  fGListTree = new GListTree(fGListTreeCanvas); 
+  fGListTree = new GListTree(fGListTreeCanvas,this); 
 
   fVf->AddFrame(fButtonContainer,fLH0);
   fVf->AddFrame(fGListTreeCanvas,fLH1);
@@ -282,5 +313,28 @@ void Histomatic::buttonAction() {
 
 
 }
+
+void Histomatic::doDraw(TObject *obj) {
+
+  printf("obj: 0x%p\n",obj);
+  if(obj) {
+    obj->Print();
+    if(obj->InheritsFrom(TH1::Class()))
+      ((TH1*)obj)->Draw(); 
+    if(obj->InheritsFrom(TH2::Class()))
+      ((TH2*)obj)->Draw();
+
+    doUpdate(); 
+  }
+}
+
+void Histomatic::doUpdate() {
+  if(gPad) {
+    gPad->Modified();
+    gPad->Update();
+  }
+
+}
+
 
 TList *Histomatic::GetAllActive() { return fGListTree->GetAllActive(); } 

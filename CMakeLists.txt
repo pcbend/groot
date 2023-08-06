@@ -4,9 +4,9 @@ cmake_minimum_required(VERSION 3.13)
 
 #project information
 project(groot 
-        VERSION 0.1.0 
-        DESCRIPTION "i am a description"
-        HOMEPAGE_URL "i am a github page"
+        VERSION 0.1.1 
+        DESCRIPTION "adroit aardvark"
+        HOMEPAGE_URL "https://github.com/pcbend/groot"
         LANGUAGES CXX)
 
 if(APPLE) 

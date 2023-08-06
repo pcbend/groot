@@ -1,5 +1,5 @@
 
-#groot 
+# GROOT 
 
 ## gamma-root
 
