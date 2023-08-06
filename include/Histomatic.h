@@ -23,6 +23,19 @@ class Histomatic;
 
 extern Histomatic *gHistomatic;
 
+class GListTreeCanvas : public TGCanvas {
+  public:
+    GListTreeCanvas(const TGWindow *p=nullptr, UInt_t w=10, UInt_t h=10, UInt_t options=kSunkenFrame|kDoubleBorder, Pixel_t back=GetDefaultFrameBackground());
+    ~GListTreeCanvas();
+
+    bool HandleButton(Event_t *event);
+
+  private:
+
+  ClassDef(GListTreeCanvas,0)
+};
+
+
 class GListTree : public TGListTree {
   public: 
     //GListTree(TGWindow *parent=0,UInt_t w=1,UInt_t h=1, UInt_t options=kSunkenFrame|kDoubleBorder,Pixel_t back=GetDefaultFrameBackground());
@@ -36,9 +49,12 @@ class GListTree : public TGListTree {
   const TGPicture *GetIcon(TClass *cls);
   void OnDoubleClicked(TGListTreeItem *item, Int_t btn); 
 
+  bool HandleButton(Event_t *event);
+
   private:
     TGCanvas   *fCanvas;
     //TGListTree *fListTree;
+    TGListTreeItem *fLastSelected;
     TList      *fActive;
 
 
@@ -86,7 +102,7 @@ class Histomatic { //: public TGMainFrame {
 
     //TGCanvas          *fListTreeCanvas;
     //TGListTree        *fListTree;
-    TGCanvas           *fGListTreeCanvas;
+    GListTreeCanvas    *fGListTreeCanvas;
     GListTree          *fGListTree;
     
   public:

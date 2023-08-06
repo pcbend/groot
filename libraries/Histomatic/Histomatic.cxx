@@ -6,12 +6,36 @@
 #include <TH1.h>
 #include <TH2.h>
 
-ClassImp(GListTree);
-
 Histomatic *gHistomatic=0;
 
+
+ClassImp(GListTreeCanvas);
+
+GListTreeCanvas::GListTreeCanvas(const TGWindow *p, UInt_t w, UInt_t h, UInt_t options, Pixel_t back) : TGCanvas(p,w,h,options,back) { }
+
+GListTreeCanvas::~GListTreeCanvas() { } 
+
+
+bool GListTreeCanvas::HandleButton(Event_t *event) {
+  if(event->fType == EGEventType::kButtonPress) {
+    std::cout << "from canvas" << std::endl;
+    std::cout << "fcode:  " << event->fCode  << std::endl;
+    std::cout << "fstate: " << event->fState << std::endl;
+  
+  }
+  return TGCanvas::HandleButton(event);
+}
+
+
+
+ClassImp(GListTree);
+
 GListTree::GListTree(TGCanvas *parent) : TGListTree(parent, kHorizontalFrame) {
+
+  fLastSelected = 0;
+
   Connect("DoubleClicked(TGListTreeItem*,Int_t)","GListTree",this,"OnDoubleClicked(TGListTreeItem*,Int_t)");
+
 }
 
 GListTree::~GListTree() {
@@ -83,6 +107,28 @@ void GListTree::ClearActive() {
   fActive->Clear();
 }
 
+
+
+bool GListTree::HandleButton(Event_t *event) {
+  bool handled = false;
+  if(event->fType == EGEventType::kButtonPress) {
+    std::cout << "fcode:  " << event->fCode  << std::endl;
+    std::cout << "fstate: " << event->fState << std::endl;
+  
+    TGListTreeItem *item = 0;
+    item = FindItem(event->fY);
+    if(GetSelected()!=0) {
+      std::cout<< "old: " << GetSelected()->GetText() << std::endl; 
+    }
+    if(item!=0) {
+      std::cout<< "new: " << item->GetText() << std::endl; 
+    }
+  }  
+  if(handled) SetUserControl(true);
+  bool temp =  TGListTree::HandleButton(event);
+  if(handled) SetUserControl(false);
+  return temp;
+}
 
 ////////////////////
 
@@ -210,7 +256,7 @@ void Histomatic::CreateWindow() {
   fButtonContainer->AddFrame(fButtonRow1,fLH1);  
   fButtonContainer->AddFrame(fButtonRow2,fLH1);  
 
-  fGListTreeCanvas = new TGCanvas(fVf,10,10);
+  fGListTreeCanvas = new GListTreeCanvas(fVf,10,10);
   fGListTree = new GListTree(fGListTreeCanvas); 
 
   fVf->AddFrame(fButtonContainer,fLH0);

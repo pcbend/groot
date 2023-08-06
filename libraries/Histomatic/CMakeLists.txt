@@ -5,5 +5,5 @@ root_generate_dictionary(G__Histomatic Histomatic.h MODULE Histomatic LINKDEF Li
 target_link_libraries(Histomatic ${ROOT_LIBRARIES} ROOT::Gui)
 
 #link the compiled libraries above to the final executable.
-target_link_libraries(rootGUI Histomatic)        
+target_link_libraries(groot Histomatic)        
 

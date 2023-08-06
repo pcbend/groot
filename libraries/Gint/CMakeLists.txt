@@ -5,5 +5,5 @@ root_generate_dictionary(G__Gint Gint.h MODULE Gint LINKDEF Linkdef.h)
 target_link_libraries(Gint ${ROOT_LIBRARIES} Histomatic)
 
 #link the compiled libraries above to the final executable.
-target_link_libraries(rootGUI Gint)        
+target_link_libraries(groot Gint)        
 

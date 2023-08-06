@@ -5,5 +5,5 @@ root_generate_dictionary(G__myClass myClass.h MODULE myClass LINKDEF myClassLink
 target_link_libraries(myClass ROOT::Core)
 
 #link the compiled libraries above to the final executable.
-target_link_libraries(rootGUI myClass)        
+target_link_libraries(groot myClass)        
 

@@ -17,7 +17,7 @@ extern Histomatic *gHistomatic;
 Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false), fRootFilesOpened(0)  {
   LoadOptions(argc,argv);
 
-  SetPrompt("gint [%d] ");
+  SetPrompt("groot [%d] ");
 
 }
 

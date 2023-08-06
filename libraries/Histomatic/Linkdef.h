@@ -7,5 +7,6 @@
 #pragma link C++ global gHistomatic;
 
 #pragma link C++ class Histomatic+;
+#pragma link C++ class GListTreeCanvas+;
 #pragma link C++ class GListTree+;
 #endif
