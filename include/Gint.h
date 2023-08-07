@@ -5,6 +5,8 @@
 
 #include <TRint.h>
 
+#include <GFunctions.h>
+
 class TFile;
 
 class Gint : public TRint {
