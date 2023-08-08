@@ -80,7 +80,7 @@ class Histomatic { //: public TGMainFrame {
 
   //private:
     void doUpdate();
-    void doDraw(TObject*);
+    void doDraw(TObject*,Option_t *opt="");
 
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;
@@ -129,6 +129,8 @@ class Histomatic { //: public TGMainFrame {
   private:
     TGMainFrame *fMainWindow;
     //TGVerticalFrame   *fVf;
+
+    bool fDrawNew;
 
   //ClassDefOverride(Histomatic,0)
   ClassDef(Histomatic,0)

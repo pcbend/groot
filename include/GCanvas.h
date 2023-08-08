@@ -14,11 +14,15 @@ class GCanvas : public TCanvas {
 
     void HandleInput(EEventType event, int px, int py) override; 
 
+  //private:
+    void Init(const char* name="",const char* title="");
 
   private:
     EEventType fEvent;
     int        fEventX;
     int        fEventy;
+
+    static int fCanvasNumber;
 
 
   ClassDefOverride(GCanvas,0)

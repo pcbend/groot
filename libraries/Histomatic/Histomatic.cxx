@@ -8,6 +8,8 @@
 #include <TH1.h>
 #include <TH2.h>
 
+#include <GCanvas.h>
+
 Histomatic *gHistomatic=0;
 
 
@@ -111,10 +113,10 @@ TObject *GListTree::GetObject(TGListTreeItem *item) const {
   std::string   file = path.substr(0,path.find_first_of("/"));
   path = path.substr(path.find_first_of("/")+1);
   TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(file.c_str());
-  printf("file: %s\n",file.c_str());
-  printf("path: %s\n",path.c_str());
+  //printf("file: %s\n",file.c_str());
+  //printf("path: %s\n",path.c_str());
   if(f) obj = f->Get(path.c_str());
-  printf("obj: 0x%p\n",obj);
+  //printf("obj: 0x%p\n",obj);
   return obj;
 }
 
@@ -143,17 +145,17 @@ void GListTree::ClearActive() {
 bool GListTree::HandleButton(Event_t *event) {
   bool handled = false;
   if(event->fType == EGEventType::kButtonPress) {
-    std::cout << "fcode:  " << event->fCode  << std::endl;
-    std::cout << "fstate: " << event->fState << std::endl;
+    //std::cout << "fcode:  " << event->fCode  << std::endl;
+    //std::cout << "fstate: " << event->fState << std::endl;
   
     TGListTreeItem *item = 0;
     item = FindItem(event->fY);
-    if(GetSelected()!=0) {
-      std::cout<< "old: " << GetSelected()->GetText() << std::endl; 
-    }
-    if(item!=0) {
-      std::cout<< "new: " << item->GetText() << std::endl; 
-    }
+    //if(GetSelected()!=0) {
+      //std::cout<< "old: " << GetSelected()->GetText() << std::endl; 
+    //}
+    //if(item!=0) {
+      //std::cout<< "new: " << item->GetText() << std::endl; 
+    //}
   }  
   if(handled) SetUserControl(true);
   bool temp =  TGListTree::HandleButton(event);
@@ -314,18 +316,28 @@ void Histomatic::buttonAction() {
 
 }
 
-void Histomatic::doDraw(TObject *obj) {
-
-  printf("obj: 0x%p\n",obj);
+void Histomatic::doDraw(TObject *obj,Option_t *opt) {
+  TString sopt(opt);
+  //printf("obj: 0x%p\n",obj);
+  bool canDraw = false;
   if(obj) {
-    obj->Print();
-    if(obj->InheritsFrom(TH1::Class()))
-      ((TH1*)obj)->Draw(); 
-    if(obj->InheritsFrom(TH2::Class()))
-      ((TH2*)obj)->Draw();
-
+    //obj->Print();
+    if(obj->InheritsFrom(TH2::Class())) { 
+      //((TH1*)obj)->Draw();
+      canDraw=true; 
+      sopt.Append("colz");
+    } else if(obj->InheritsFrom(TH1::Class())){
+      //((TH2*)obj)->Draw();
+      canDraw=true;
+    }
+  }
+  if(canDraw) {
+    GCanvas *g = new GCanvas;
+    printf("sopt:   %s\n",sopt.Data());
+    obj->Draw(sopt.Data());
     doUpdate(); 
   }
+
 }
 
 void Histomatic::doUpdate() {

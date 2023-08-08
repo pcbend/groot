@@ -86,7 +86,7 @@ void Gint::LoadOptions(int argc, char **argv) {
       case kFileType::ROOTFILE:
         {
           TFile *rfile = OpenRootFile(file);
-          if(doGui && gHistomatic) 
+          if(rfile && doGui && gHistomatic) 
             gHistomatic->AddRootFile(rfile);
         }
         break;
@@ -155,6 +155,7 @@ TFile *Gint::OpenRootFile(const std::string& filename, Option_t* opt) {
   TFile *file = NULL;
   if(sopt.Contains("recreate") || sopt.Contains("new")) {
     file = new TFile(filename.c_str(),"recreate");
+    if(!file->IsOpen()) file = NULL;
     if(file) {
       const char* command = Form("TFile* _file%i = (TFile*)%luL",
                                  fRootFilesOpened,
@@ -167,6 +168,7 @@ TFile *Gint::OpenRootFile(const std::string& filename, Option_t* opt) {
   } else {
     //file = TFile::Open(filename.c_str(),opt);
     file = new TFile(filename.c_str(),opt);
+    if(!file->IsOpen()) file = NULL;
     if(file) {
       const char* command = Form("TFile* _file%i = (TFile*)%luL",
                                  fRootFilesOpened,
