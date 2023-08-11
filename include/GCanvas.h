@@ -13,6 +13,7 @@ class GCanvas : public TCanvas {
     virtual ~GCanvas(); 
 
     void HandleInput(EEventType event, int px, int py) override; 
+    bool HandleKeyPress(EEventType event, int px, int py);
 
   //private:
     void Init(const char* name="",const char* title="");

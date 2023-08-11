@@ -6,7 +6,17 @@ if [ ! -d "./build" ]; then
 fi
 cd build
 cmake ..
-make 
+
+if [ $# -gt 0 ]; then   
+  re='^[0-9]+$'
+  if [[ $1 =~ $re ]]; then
+    make -j $1
+  else 
+  make
+  fi
+else 
+  make
+fi
 if [ -d "./bin" ]; then 
   mv ./bin .. 
 fi

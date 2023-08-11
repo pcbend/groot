@@ -1,8 +1,16 @@
 
+
+#include <GCanvas.h>
+
 #include <string>
 
 #include <globals.h>
-#include <GCanvas.h>
+#include <GCommands.h>
+
+#include <KeySymbols.h>
+#include <TH1.h>
+#include <TH2.h>
+
 
 int GCanvas::fCanvasNumber = 0;
 
@@ -39,11 +47,14 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
 
   //check the event,
   switch(event) {
+    case kKeyPress:
+      handled = HandleKeyPress(event,px,py);
     case kArrowKeyPress:
     case kArrowKeyRelease:
+      //bool = HandleArrow();
     case kButton1Motion:
     case kButton1ShiftMotion: 
-      handled = true;
+      //handled = true;
       break;
     default:
       break;
@@ -52,12 +63,35 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   //printf(RED "handled = %i" RESET_COLOR  "\n",handled);
 
 
-//  if(!handled) 
-//    TCanvas::HandleInput(event,px,py);
+  if(!handled) 
+    TCanvas::HandleInput(event,px,py);
 
 }
 
-
+bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
+  //printf("key: %i  %i  %i\n",event,px,py);
+  bool handled = false;
+  TH1 *gHist = 0;
+  switch(py) {
+    case kKey_o:
+      //printf("\tkey: %i  %i  %i\n",event,px,py);
+      gHist = GrabHist();
+      if(gHist && gHist->GetDimension()==1) {    
+        gHist->GetXaxis()->UnZoom();
+      } else if(gHist && gHist->GetDimension()==2) {  
+        ((TH2*)gHist)->GetXaxis()->UnZoom();
+        ((TH2*)gHist)->GetYaxis()->UnZoom();
+      }
+      if(gPad) { 
+        gPad->Modified();
+        gPad->Update();
+      }
+      handled = true;
+    default:
+      break;
+  }
+  return handled;
+}
 
 
 

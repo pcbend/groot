@@ -9,6 +9,7 @@
 #include <TH2.h>
 
 #include <GCanvas.h>
+#include <GH1D.h>
 
 Histomatic *gHistomatic=0;
 
@@ -327,6 +328,10 @@ void Histomatic::doDraw(TObject *obj,Option_t *opt) {
       canDraw=true; 
       sopt.Append("colz");
     } else if(obj->InheritsFrom(TH1::Class())){
+      if(obj->InheritsFrom(TH1D::Class()) &&
+        !obj->InheritsFrom(GH1D::Class())) {
+        obj = new GH1D(*((TH1D*)obj));
+      }
       //((TH2*)obj)->Draw();
       canDraw=true;
     }

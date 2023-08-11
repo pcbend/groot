@@ -7,7 +7,11 @@
 
 #pragma link C++ namespace GFunctions;
 
-#pragma link C++ class GCanvas;
+#pragma link C++ function GrabHist;
+#pragma link C++ function GrabFit;
 
+#pragma link C++ class GCanvas+;
+#pragma link C++ class GH1D+;
+//#pragma link C++ class GH2D+;
 
 #endif
