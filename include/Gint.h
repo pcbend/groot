@@ -16,8 +16,8 @@ class Gint : public TRint {
   public:
     static Gint *Get(int argc=0,char **argv=0);
     virtual ~Gint();
-
-
+  
+    void Terminate(int status) override;
 
   public:
     void      LoadOptions(int argc, char **argv);
@@ -25,11 +25,14 @@ class Gint : public TRint {
     //bool      FileAutoDetect(const std::string& filename);
     TFile*    OpenRootFile(const std::string& filename, Option_t *opt="");
 
+    
+
   private:
     int fRootFilesOpened;
 
+    
 
-  ClassDef(Gint,0)
+  ClassDefOverride(Gint,0)
 };
 
 

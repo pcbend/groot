@@ -4,8 +4,9 @@
 #include<string>
 
 #include<TH1D.h>
+#include<TQObject.h>
 
-class GH1D : public TH1D {
+class GH1D : public TH1D, public TQObject {
   public:
     GH1D();
     GH1D(std::string name,int nbinsx,const double *xbins);
@@ -22,10 +23,13 @@ class GH1D : public TH1D {
     
     virtual ~GH1D(); 
 
+    void Draw(Option_t *opt="") override;
+    TH1* DrawCopy(Option_t *opt="", const char *name_postfix="_copy") const override; 
+    TH1* DrawNormalized(Option_t *opt="", double norm=1) const override; 
 
   private:
 
-  ClassDef(GH1D,100)
+  ClassDefOverride(GH1D,100)
 };
 
 #endif

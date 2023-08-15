@@ -11,7 +11,9 @@
 #pragma link C++ function GrabFit;
 
 #pragma link C++ class GCanvas+;
+#pragma link C++ class GMarker+;
 #pragma link C++ class GH1D+;
-//#pragma link C++ class GH2D+;
+#pragma link C++ class GH2D+;
+
 
 #endif

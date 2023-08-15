@@ -132,6 +132,9 @@ class Histomatic { //: public TGMainFrame {
 
     bool fDrawNew;
 
+    TList *fTrash;
+
+
   //ClassDefOverride(Histomatic,0)
   ClassDef(Histomatic,0)
 };

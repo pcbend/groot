@@ -7,9 +7,11 @@
 #include <TObjString.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TFrame.h>
 
 #include <GCanvas.h>
 #include <GH1D.h>
+#include <GH2D.h>
 
 Histomatic *gHistomatic=0;
 
@@ -323,26 +325,25 @@ void Histomatic::doDraw(TObject *obj,Option_t *opt) {
   bool canDraw = false;
   if(obj) {
     //obj->Print();
-    if(obj->InheritsFrom(TH2::Class())) { 
-      //((TH1*)obj)->Draw();
+    if(obj->InheritsFrom(TH1::Class())) { 
       canDraw=true; 
-      sopt.Append("colz");
-    } else if(obj->InheritsFrom(TH1::Class())){
-      if(obj->InheritsFrom(TH1D::Class()) &&
-        !obj->InheritsFrom(GH1D::Class())) {
-        obj = new GH1D(*((TH1D*)obj));
+      if(obj->InheritsFrom(TH1::Class())){
+        if(obj->InheritsFrom(TH1D::Class()) &&
+           !obj->InheritsFrom(GH1D::Class())) {
+          obj = new GH1D(*((TH1D*)obj));
+        } else if(obj->InheritsFrom(TH2D::Class()) && 
+                 !obj->InheritsFrom(GH1D::Class())) {
+          obj = new GH2D(*((TH2D*)obj));
+          sopt.Append("colz");
+        }
       }
-      //((TH2*)obj)->Draw();
-      canDraw=true;
     }
   }
   if(canDraw) {
     GCanvas *g = new GCanvas;
-    printf("sopt:   %s\n",sopt.Data());
     obj->Draw(sopt.Data());
     doUpdate(); 
   }
-
 }
 
 void Histomatic::doUpdate() {

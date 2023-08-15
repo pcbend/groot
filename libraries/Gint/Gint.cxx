@@ -29,6 +29,13 @@ Gint *Gint::Get(int argc,char **argv) {
 
 Gint::~Gint() { }
 
+void Gint::Terminate(int status) {
+  printf("\nbye,bye\n\n");
+  SetPrompt("");
+  TRint::Terminate(status);
+
+}
+
 
 void Gint::LoadOptions(int argc, char **argv) {
   //check the grutrc file for set preset optrions....

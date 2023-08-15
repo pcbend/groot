@@ -6,11 +6,13 @@
 
 #include <globals.h>
 #include <GCommands.h>
+#include <GMarker.h>
 
 #include <KeySymbols.h>
 #include <TH1.h>
 #include <TH2.h>
-
+#include <TClass.h>
+#include <TFrame.h>
 
 int GCanvas::fCanvasNumber = 0;
 
@@ -49,9 +51,20 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   switch(event) {
     case kKeyPress:
       handled = HandleKeyPress(event,px,py);
+      break;
     case kArrowKeyPress:
     case kArrowKeyRelease:
       //bool = HandleArrow();
+      break;
+    case kButton1Down:
+    case kButton1Shift:
+    case kButton1Up:
+    case kButton1Double:
+      printf("clicked on %s\n",GetSelected()->IsA()->GetName());
+      if(GetSelected()->InheritsFrom(TH1::Class()) ||
+         GetSelected()->InheritsFrom(TFrame::Class()) )
+        handled = HandleMouseButton1(event,px,py);
+      break;
     case kButton1Motion:
     case kButton1ShiftMotion: 
       //handled = true;
@@ -59,13 +72,42 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     default:
       break;
   }
-
   //printf(RED "handled = %i" RESET_COLOR  "\n",handled);
-
-
   if(!handled) 
     TCanvas::HandleInput(event,px,py);
+}
 
+bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) { 
+  bool handled = false;
+  TH1 *gHist = 0;
+  switch(event) {
+    case kButton1Down:
+      gHist = GrabHist();
+      if(gHist && gPad) {
+        GMarker *m = new GMarker();
+        printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
+        double xx = gPad->AbsPixeltoX(px);
+        double x  = gPad->PadtoX(xx);
+        //int  binx = h->GetXaxis()->FindBin(x);
+        m->AddTo(gHist,x);
+        m->Update();
+        handled = true;
+        
+        gPad->Modified();
+        gPad->Update();
+      }
+      break;
+    case kButton1Shift:
+      break;
+    case kButton1Up:
+      break;
+    case kButton1Double:
+      break;
+    default:
+      break; 
+  }
+
+  return handled;
 }
 
 bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
