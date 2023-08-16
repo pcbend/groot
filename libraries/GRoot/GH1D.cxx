@@ -36,9 +36,14 @@ GH1D::~GH1D() {
   //printf("GH1D deleted\n"); fflush(stdout);  
 } 
 
+void GH1D::Paint(Option_t *opt) {
+  //printf("\t-in gh1d paint.\n");
+  //fflush(stdout);
+  TH1D::Paint(opt);
+}
 
 void GH1D::Draw(Option_t *opt) {
-  printf("GH1D Draw!\n"); fflush(stdout);
+  //printf("GH1D Draw!\n"); fflush(stdout);
   TH1D::Draw(opt);
   if(gPad) {
     //gPad->Modified(); 
@@ -51,12 +56,12 @@ void GH1D::Draw(Option_t *opt) {
 }
 
 TH1* GH1D::DrawCopy(Option_t *opt, const char *name_postfix) const {
-  printf("GH1D Draw!\n"); fflush(stdout);
+  //printf("GH1D Draw!\n"); fflush(stdout);
   return TH1D::DrawCopy(opt,name_postfix);
 }
 
 TH1* GH1D::DrawNormalized(Option_t *opt, double norm) const {
-  printf("GH1D Draw!\n"); fflush(stdout);
+  //printf("GH1D Draw!\n"); fflush(stdout);
   return TH1D::DrawNormalized(opt,norm);
 } 
 

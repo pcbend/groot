@@ -13,6 +13,8 @@
 #include <TH2.h>
 #include <TClass.h>
 #include <TFrame.h>
+#include <TAxis.h>
+
 
 int GCanvas::fCanvasNumber = 0;
 
@@ -41,6 +43,9 @@ void GCanvas::Init(const char* name, const char* title) {
 
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
+
+
+  //TQObject::Connect("TCanvas","Selected(TVirtualPad*,TObject*,Int_t)","GCanvas",this,"doSelected(TVirtualPad*,TObject*,Int_t)"); // this would connect all TPad::RangeChangeds
 
 }
 
@@ -83,14 +88,17 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
   switch(event) {
     case kButton1Down:
       gHist = GrabHist();
-      if(gHist && gPad) {
+      //TVirtualPad *sPad = TCanvas::GetSelectedPad();
+      if(gPad != TCanvas::GetSelectedPad()) {
+        //switch the gPad to the clicked pad... 
+        TCanvas::HandleInput(kButton2Down,px,py);
+      } else if(gHist && gPad) {
         GMarker *m = new GMarker();
         printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
         double xx = gPad->AbsPixeltoX(px);
         double x  = gPad->PadtoX(xx);
         //int  binx = h->GetXaxis()->FindBin(x);
         m->AddTo(gHist,x);
-        m->Update();
         handled = true;
         
         gPad->Modified();
@@ -112,9 +120,28 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
 
 bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
   //printf("key: %i  %i  %i\n",event,px,py);
-  bool handled = false;
+  bool handled  = false;
+  bool doUpdate = false;
   TH1 *gHist = 0;
   switch(py) {
+    case kKey_Space:
+      printf("--space--\n");
+      //printf("this->GetName() = %s\n",this->GetName());
+      TCanvas::HandleInput(kButton2Down,px,py);
+      handled = true;
+      break;
+    case kKey_n:
+      gHist=GrabHist();
+      if(gHist) {
+        TListIter iter(gHist->GetListOfFunctions());
+        while(TObject *obj=iter.Next()) {
+          if(obj->InheritsFrom(GMarker::Class()))
+            ((GMarker*)obj)->Remove();
+        }
+      }
+      doUpdate = true;
+      handled  = true;
+      break;
     case kKey_o:
       //printf("\tkey: %i  %i  %i\n",event,px,py);
       gHist = GrabHist();
@@ -124,16 +151,41 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         ((TH2*)gHist)->GetXaxis()->UnZoom();
         ((TH2*)gHist)->GetYaxis()->UnZoom();
       }
-      if(gPad) { 
-        gPad->Modified();
-        gPad->Update();
-      }
-      handled = true;
+      doUpdate = true;
+      handled  = true;
     default:
       break;
+  }
+  if(gPad && doUpdate) {
+    gPad->Modified();
+    gPad->Update();
   }
   return handled;
 }
 
 
+TVirtualPad* GCanvas::GetSelectedPad() const {
+  TVirtualPad *sPad = TCanvas::GetSelectedPad();
+  //printf("gPad = 0x%p\n",gPad);
+  //printf("sPad = 0x%p\n",sPad);
+  return sPad;
+}
 
+
+
+
+
+/*
+void GCanvas::doSelected(TVirtualPad *pad, TObject *obj, Int_t event) {
+  printf("--------------\n");
+  printf("gPad    = 0x%p\n",gPad);
+  printf("pad     = 0x%p\n",pad);
+  printf("obj     = 0x%p\n",obj);
+  if(obj) 
+  printf("name    = %s\n",obj->GetName());
+  if(obj->InheritsFrom(TAxis::Class())) 
+  printf("parent  = %s\n",((TAxis*)obj)->GetParent()->GetName());
+  printf("event   = %i\n",event);
+  printf("\n\n");
+}
+*/

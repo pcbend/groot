@@ -14,18 +14,16 @@ GMarker::GMarker() : fX(sqrt(-1)), fY(sqrt(-1)) {
   SetLineColor(kRed);
 }
 
-GMarker::~GMarker() { } 
+GMarker::~GMarker() {
+  printf("gmarker deleted\n");
+} 
 
 void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   if(!h) return;
   fHist = h;
-  //SetX1(fHist->GetXaxis()
   SetX1(x);
   SetX2(x);
-  //SetY1(fHist->GetMinimum());
-  //SetY2(fHist->GetMaximum());
   fX =x;  
-  Update();
   SetVertical();
   
   fHist->GetListOfFunctions()->Add(this);
@@ -36,49 +34,25 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
     TQObject::Connect(gPad,"RangeChanged()","GMarker",this,"Update()");
   }
   */
-
-return;
+  return;
 } 
 
-void GMarker::Update() { 
-  //std::cout << "tpad range changed called!\n" << std::endl;
- 
-  //if(!gPad || fX!=fX) return;
-  
-  //TTimer *t = new TTimer();
-  //t->Connect("Timeout()","GMarker",this,"doUpdate()");
-  //t->Start(1,true);
-
-  //gPad->Modified();
-  //gPad->Update();
-  //double ymin = gPad->GetUymin();
-  //double ymax = gPad->GetUymax();
-  //std::cout << "ymin: " << ymin << std::endl;
-  //std::cout << "ymax: " << ymax << std::endl;
-  //SetY1(ymin) ; 
-  //SetY2(ymax);
-  //Paint();
-  //DrawLine(fX,ymin,fX,ymax);
-  return;
+void GMarker::Remove() {
+  if(!fHist) return;
+  fHist->GetListOfFunctions()->Remove(this);
+  this->Delete();
 }
 
-/*
-void GMarker::doUpdate() {
-  double ymin = gPad->GetUymin();
-  double ymax = gPad->GetUymax();
-  std::cout << "ymin: " << ymin << std::endl;
-  std::cout << "ymax: " << ymax << std::endl;
-  SetY1(ymin) ; 
-  SetY2(ymax);
-  gPad->Modified();
-  gPad->Update();
 
-  return;
+void GMarker::Paint(Option_t *opt) {
+  //printf("\t-in gmaker paint.\n");
+  //fflush(stdout);
+  if(fHist && fHist->GetDimension()==1) {
+    SetY1(gPad->GetUymin());
+    SetY2(gPad->GetUymax());
+    //std::cout<<"\t\tuymin: " << gPad->GetUymin() << std::endl;
+    //std::cout<<"\t\tuymax: " << gPad->GetUymax() << std::endl;
+  }
+  TLine::Paint(opt);
 }
-*/
 
-//  1d
-//  h->GetXaxis()->First() h->GetXaxis()->Last() h->GetMaximum() h->GetMinimum() 
-//
-//
-//

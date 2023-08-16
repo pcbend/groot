@@ -27,6 +27,9 @@ class GH1D : public TH1D, public TQObject {
     TH1* DrawCopy(Option_t *opt="", const char *name_postfix="_copy") const override; 
     TH1* DrawNormalized(Option_t *opt="", double norm=1) const override; 
 
+    void Paint(Option_t *opt="") override;
+
+
   private:
 
   ClassDefOverride(GH1D,100)

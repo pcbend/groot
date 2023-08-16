@@ -19,6 +19,11 @@ class GCanvas : public TCanvas {
   //private:
     void Init(const char* name="",const char* title="");
 
+    TVirtualPad* GetSelectedPad() const override;
+
+
+    //void doSelected(TVirtualPad *pad, TObject *obj, Int_t event);
+
   private:
     EEventType fEvent;
     int        fEventX;
