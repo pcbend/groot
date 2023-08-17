@@ -7,6 +7,9 @@
 
 #pragma link C++ namespace GFunctions;
 
+
+#pragma link C++ function GausFit;
+#pragma link C++ function PhotoPeakFit;
 #pragma link C++ function GrabHist;
 #pragma link C++ function GrabFit;
 
@@ -15,5 +18,7 @@
 #pragma link C++ class GH1D+;
 #pragma link C++ class GH2D+;
 
+#pragma link C++ class GGaus+;
+#pragma link C++ class GPeak+;
 
 #endif

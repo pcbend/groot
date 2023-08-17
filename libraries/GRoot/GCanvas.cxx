@@ -11,6 +11,7 @@
 #include <KeySymbols.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TF1.h>
 #include <TClass.h>
 #include <TFrame.h>
 #include <TAxis.h>
@@ -130,14 +131,33 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       TCanvas::HandleInput(kButton2Down,px,py);
       handled = true;
       break;
+    case kKey_g:
+      gHist=GrabHist();
+      if(gHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+        if(markers.size()>1) {
+          if(GausFit(gHist,markers.at(0)->GetX1(),markers.at(1)->GetX1())) {
+            doUpdate=true;
+            handled=true;
+            GMarker::RemoveAll(gHist);
+          }
+        }
+      }
+      break;
     case kKey_n:
       gHist=GrabHist();
       if(gHist) {
         TListIter iter(gHist->GetListOfFunctions());
+        std::vector<TF1*> funcs;
         while(TObject *obj=iter.Next()) {
-          if(obj->InheritsFrom(GMarker::Class()))
-            ((GMarker*)obj)->Remove();
+          if(obj->InheritsFrom(TF1::Class()))
+            funcs.push_back(((TF1*)obj));
         }
+        for(auto i=funcs.begin();i!=funcs.end();i++)
+          gHist->GetListOfFunctions()->Remove(*i);
+        GMarker::RemoveAll(gHist);
+        gHist->Sumw2(false);
+
       }
       doUpdate = true;
       handled  = true;

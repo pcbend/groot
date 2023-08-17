@@ -6,6 +6,44 @@
 #include<TH1.h>
 #include<TF1.h>
 
+#include<GGaus.h>
+#include<GPeak.h>
+
+
+GGaus *GausFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
+  if(!hist)
+    return 0;
+  if(xlow>xhigh)
+    std::swap(xlow,xhigh);
+
+  GGaus *mypeak= new GGaus(xlow,xhigh);
+  std::string options = opt;
+  options.append("Q+");
+  mypeak->Fit(hist,options.c_str());
+  //mypeak->Background()->Draw("SAME");
+  TF1 *bg = new TF1(*mypeak->Background());
+  hist->GetListOfFunctions()->Add(bg);
+
+  return mypeak;
+}
+
+GPeak *PhotoPeakFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
+  if(!hist)
+    return 0;
+  if(xlow>xhigh)
+    std::swap(xlow,xhigh);
+
+  GPeak *mypeak= new GPeak((xlow+xhigh)/2.0,xlow,xhigh);
+  std::string options = opt;
+  options.append("Q+");
+  mypeak->Fit(hist,options.c_str());
+  //mypeak->Background()->Draw("SAME");
+  TF1 *bg = new TF1(*mypeak->Background());
+  hist->GetListOfFunctions()->Add(bg);
+
+  return mypeak;
+}
+
 
 TH1 *GrabHist(int i)  {
   //return the histogram from the current canvas, pad i.

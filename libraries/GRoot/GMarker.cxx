@@ -25,8 +25,25 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   SetX2(x);
   fX =x;  
   SetVertical();
+
+  //we want to limit how many marks are on the histogram.  
+  //lets start with two....
+  int fMaxMarkers=2;
+  int markerCount = 0;
+  TIter iter(fHist->GetListOfFunctions(),kIterBackward);
+  while(TObject *obj=iter.Next()) {
+    if(obj->InheritsFrom(GMarker::Class())) {
+      markerCount++;
+      if(markerCount>=fMaxMarkers)
+        ((GMarker*)obj)->Remove();
+    }
+  }
+    
+
   
   fHist->GetListOfFunctions()->Add(this);
+
+
 
   /*   this doesn't work.  One can change the range without setting the gPad...
   if(gPad && gPad->GetPrimitive(fHist->GetName())) { // the histogram is active and drawn to the screen
@@ -54,5 +71,25 @@ void GMarker::Paint(Option_t *opt) {
     //std::cout<<"\t\tuymax: " << gPad->GetUymax() << std::endl;
   }
   TLine::Paint(opt);
+}
+
+void GMarker::RemoveAll(TH1 *h) {
+  //remove all markers from h
+  TIter iter(h->GetListOfFunctions(),kIterBackward);
+  while(TObject *obj = iter.Next())
+    if(obj->InheritsFrom(GMarker::Class()))
+      ((GMarker*)obj)->Remove();
+
+}
+
+std::vector<GMarker*> GMarker::GetAll(TH1 *h) {
+  //return all markers in h
+  std::vector<GMarker*> toReturn;
+  TIter iter(h->GetListOfFunctions());
+  while(TObject *obj = iter.Next())
+    if(obj->InheritsFrom(GMarker::Class()))
+      toReturn.push_back(((GMarker*)obj));
+
+  return toReturn;
 }
 

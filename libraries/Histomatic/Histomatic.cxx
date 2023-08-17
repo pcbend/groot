@@ -230,6 +230,8 @@ Histomatic::~Histomatic() {
   delete fGListTree;
   delete fGListTreeCanvas;
 
+  delete fStatusBar;
+
   delete fButtonRow1;
   delete fButtonRow2;
   delete fButtonContainer;
@@ -295,8 +297,16 @@ void Histomatic::CreateWindow() {
   fGListTreeCanvas = new GListTreeCanvas(fVf,10,10);
   fGListTree = new GListTree(fGListTreeCanvas,this); 
 
+  fStatusBar = new TGStatusBar(fVf,100,50);
+  {
+    fStatusBar->SetText("I AM A STATUS BAR");
+    fStatusBar->SetBackgroundColor(fStatusBar->GetBlackPixel());
+    fStatusBar->SetForegroundColor(fStatusBar->GetWhitePixel());
+  }
+
   fVf->AddFrame(fButtonContainer,fLH0);
   fVf->AddFrame(fGListTreeCanvas,fLH1);
+  fVf->AddFrame(fStatusBar,fLH0);
 
   fMainWindow->AddFrame(fVf,fLH1);
   fMainWindow->MapSubwindows();

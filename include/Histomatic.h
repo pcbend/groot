@@ -11,6 +11,7 @@
 #include "TGStatusBar.h"
 #include "TGButton.h"
 #include "TGListTree.h"
+#include "TGStatusBar.h"
 
 #include "TFile.h"
 #include "TKey.h"
@@ -112,6 +113,8 @@ class Histomatic { //: public TGMainFrame {
     GListTreeCanvas    *fGListTreeCanvas;
     GListTree          *fGListTree;
     
+    TGStatusBar        *fStatusBar;
+
   public:
     enum EHistMessages {
       kThing1,
@@ -122,9 +125,11 @@ class Histomatic { //: public TGMainFrame {
 
     void CreateWindow();
     void CloseWindow();
-
+    
     void AddRootFile(TFile *file) { fGListTree->InsertObject(file); }
     TList *GetAllActive();
+
+    TGStatusBar *GetStatusBar() { return fStatusBar; } 
 
   private:
     TGMainFrame *fMainWindow;
