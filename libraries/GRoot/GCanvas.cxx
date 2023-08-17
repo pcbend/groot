@@ -166,6 +166,19 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         }
       }
       break;
+    case kKey_f:
+      gHist=GrabHist();
+      if(gHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+        if(markers.size()>1) {
+          if(PhotoPeakFit(gHist,markers.at(0)->X(),markers.at(1)->X())) {
+            doUpdate=true;
+            handled=true;
+            GMarker::RemoveAll(gHist);
+          }
+        }
+      }
+      break;
     case kKey_g:
       gHist=GrabHist();
       if(gHist) {
