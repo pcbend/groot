@@ -2,6 +2,8 @@
 
 #include<cstdio>
 
+
+#include<TString.h>
 #include<TVirtualPad.h>
 #include<TBox.h>
 
@@ -39,7 +41,23 @@ GH1D::~GH1D() {
 void GH1D::Paint(Option_t *opt) {
   //printf("\t-in gh1d paint.\n");
   //fflush(stdout);
-  TH1D::Paint(opt);
+  TString sopt(opt);
+  bool drawFunctions=false;
+  if(!sopt.Length()) {
+    if(this->GetSumw2()->GetSize()) {
+      sopt.Append("hist");
+      drawFunctions=true;
+    }
+  }
+  TH1D::Paint(sopt.Data());
+  if(drawFunctions) {
+    TIter iter(this->GetListOfFunctions());
+    while(TObject *obj = iter.Next()) {
+      //if(obj->InheritsFrom(TF1::Class() || TLine::Class())
+      if((obj->InheritsFrom("TF1")) || (obj->InheritsFrom("TLine")))
+        obj->Paint("lsame");
+    }
+  }
 }
 
 void GH1D::Draw(Option_t *opt) {

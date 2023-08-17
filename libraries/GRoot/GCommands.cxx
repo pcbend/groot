@@ -21,8 +21,8 @@ GGaus *GausFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
   options.append("Q+");
   mypeak->Fit(hist,options.c_str());
   //mypeak->Background()->Draw("SAME");
-  TF1 *bg = new TF1(*mypeak->Background());
-  hist->GetListOfFunctions()->Add(bg);
+  //TF1 *bg = new TF1(*mypeak->Background());
+  //hist->GetListOfFunctions()->Add(bg);
 
   return mypeak;
 }

@@ -60,7 +60,7 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
       break;
     case kArrowKeyPress:
     case kArrowKeyRelease:
-      //bool = HandleArrow();
+      handled = HandleArrowPress(event,px,py);
       break;
     case kButton1Down:
     case kButton1Shift:
@@ -95,7 +95,7 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
         TCanvas::HandleInput(kButton2Down,px,py);
       } else if(gHist && gPad) {
         GMarker *m = new GMarker();
-        printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
+        //printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
         double xx = gPad->AbsPixeltoX(px);
         double x  = gPad->PadtoX(xx);
         //int  binx = h->GetXaxis()->FindBin(x);
@@ -119,11 +119,31 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
   return handled;
 }
 
-bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
-  //printf("key: %i  %i  %i\n",event,px,py);
+bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
   bool handled  = false;
   bool doUpdate = false;
   TH1 *gHist = 0;
+  printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
+  switch(py) {
+    case kKey_Left:
+    case kKey_Up:
+    case kKey_Right:
+    case kKey_Down:
+      printf("ARROW!!\n"); fflush(stdout);
+      break;
+    default:
+      break;
+  }
+  return handled;
+}
+
+
+bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
+  bool handled  = false;
+  bool doUpdate = false;
+  TH1 *gHist = 0;
+  //printf("HandleKey()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
+  //printf("key: %i  %i  %i\n",event,px,py);
   switch(py) {
     case kKey_Space:
       printf("--space--\n");
@@ -131,12 +151,27 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       TCanvas::HandleInput(kButton2Down,px,py);
       handled = true;
       break;
+    case kKey_e:
+      gHist = GrabHist();
+      if(gHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+        if(markers.size()>1) {
+          double xlow  = markers.at(0)->X();
+          double xhigh = markers.at(1)->X();
+          if(xlow>xhigh) std::swap(xlow,xhigh);
+          gHist->GetXaxis()->SetRangeUser(xlow,xhigh);
+          GMarker::RemoveAll(gHist);
+          doUpdate=true;
+          handled=true;
+        }
+      }
+      break;
     case kKey_g:
       gHist=GrabHist();
       if(gHist) {
         std::vector<GMarker*> markers = GMarker::GetAll(gHist);
         if(markers.size()>1) {
-          if(GausFit(gHist,markers.at(0)->GetX1(),markers.at(1)->GetX1())) {
+          if(GausFit(gHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
             handled=true;
             GMarker::RemoveAll(gHist);
@@ -173,8 +208,42 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       }
       doUpdate = true;
       handled  = true;
+      break;
+    case kKey_l:
+    case kKey_z:
+      gHist = GrabHist();
+      if(gHist && gHist->GetDimension()==1) {
+        if(GetLogy()){
+          // Show full y range, not restricted to positive values.
+          gHist->GetYaxis()->UnZoom();
+          SetLogy(0);
+        } else {
+          // Only show plot from 0 up when in log scale.
+          if(gPad->GetUymin()<0) {
+            gHist->GetYaxis()->SetRangeUser(0,gPad->GetUymax());
+          }
+          SetLogy(1);
+        }
+      } else if(gHist && gHist->GetDimension()==2) {
+        if(GetLogz()){
+          // Show full y range, not restricted to positive values.
+          gHist->GetZaxis()->UnZoom();
+          SetLogz(0);
+        } else {
+          // Only show plot from 0 up when in log scale.
+          if(gHist->GetMinimum()<0) {
+            gHist->GetZaxis()->SetRangeUser(0,gHist->GetMaximum());
+          }
+          SetLogz(1);
+        }
+      }
+      doUpdate = true;
+      handled  = true;
+      break;
     default:
       break;
+
+
   }
   if(gPad && doUpdate) {
     gPad->Modified();

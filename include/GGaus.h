@@ -25,7 +25,7 @@ class GGaus : public TF1 {
     void DrawResiduals(TH1*) const;
     //void DrawResiduals(); // *MENU*
 
-    TF1  *Background(Option_t *opt="TF1") { return &fBGFit; }
+    //TF1  *Background(Option_t *opt="TF1") { return &fBGFit; }
     //void DrawBackground(Option_t* opt = "SAME") const; // *MENU*
 
     Double_t GetCentroid() const     { return GetParameter("centroid"); }
@@ -71,8 +71,8 @@ class GGaus : public TF1 {
     void SetInitialized(Bool_t flag = true) {init_flag = flag;}
     bool init_flag;
 
-    TF1 fBGFit;
-    TF1 fBGHist;
+    //TF1 fBGFit;
+    //TF1 fBGHist;
 
   ClassDef(GGaus,2)
 };

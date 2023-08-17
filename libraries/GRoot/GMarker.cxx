@@ -15,7 +15,7 @@ GMarker::GMarker() : fX(sqrt(-1)), fY(sqrt(-1)) {
 }
 
 GMarker::~GMarker() {
-  printf("gmarker deleted\n");
+  //printf("gmarker deleted\n");
 } 
 
 void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
@@ -64,9 +64,42 @@ void GMarker::Remove() {
 void GMarker::Paint(Option_t *opt) {
   //printf("\t-in gmaker paint.\n");
   //fflush(stdout);
-  if(fHist && fHist->GetDimension()==1) {
-    SetY1(gPad->GetUymin());
-    SetY2(gPad->GetUymax());
+  if(gPad && fHist && fHist->GetDimension()==1) {
+   if(!gPad->GetLogy()) {
+      if(TestBit(kLineNDC))
+        SetBit(kLineNDC,false);
+      else
+        if(fX != GetX1()) {
+          //someone has moved the marker...
+          //printf("GMarker X: %.02f\n",GetX1());
+          fX = GetX1();
+        }
+      SetX1(fX);
+      SetX2(fX);
+      SetY1(gPad->GetUymin());
+      SetY2(gPad->GetUymax());
+    } else {
+      double lm = gPad->GetLeftMargin();
+      double rm = 1.-gPad->GetRightMargin();
+      double tm = 1.-gPad->GetTopMargin();
+      double bm = gPad->GetBottomMargin();
+      if(!TestBit(kLineNDC)) {
+        double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(gPad->GetUxmax()-gPad->GetUxmin()))+lm;
+        SetX1(xndc);
+        SetX2(xndc);
+      }
+      SetBit(kLineNDC,true);
+      double xuser = ((GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
+      if(fX !=xuser) {
+        fX= xuser;
+      }
+      SetX1(GetX1());    
+      SetX2(GetX1());    
+      SetY1(bm);    
+      SetY2(tm);    
+      SetBit(kLineNDC,true);
+    }  
+  
     //std::cout<<"\t\tuymin: " << gPad->GetUymin() << std::endl;
     //std::cout<<"\t\tuymax: " << gPad->GetUymax() << std::endl;
   }
@@ -92,4 +125,13 @@ std::vector<GMarker*> GMarker::GetAll(TH1 *h) {
 
   return toReturn;
 }
+
+void GMarker::ExecuteEvent(int event, int px, int py) {
+  TLine::ExecuteEvent(event,px,py);
+  //printf("GMarker X: %.02f\n",GetX1());
+  return;
+}
+
+
+
 

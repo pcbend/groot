@@ -13,17 +13,17 @@
 ClassImp(GGaus)
 
 GGaus::GGaus(Double_t xlow,Double_t xhigh,Option_t *opt)
-  : TF1("gausbg","gaus(0)+pol1(3)",xlow,xhigh,TF1::EAddToList::kNo),
-    fBGFit("background","pol1",xlow,xhigh,TF1::EAddToList::kNo)  {
+  : TF1("gausbg","gaus(0)+pol1(3)",xlow,xhigh,TF1::EAddToList::kNo) { //,
+    //fBGFit("background","pol1",xlow,xhigh,TF1::EAddToList::kNo)  {
   Clear("");
   if(xlow>xhigh)
     std::swap(xlow,xhigh);
 
   TF1::SetRange(xlow,xhigh);
 
-  fBGFit.SetNpx(1000);
-  fBGFit.SetLineStyle(2);
-  fBGFit.SetLineColor(kBlack);
+  //fBGFit.SetNpx(1000);
+  //fBGFit.SetLineStyle(2);
+  //fBGFit.SetLineColor(kBlack);
 
   // Changing the name here causes an infinite loop when starting the FitEditor
   //SetName(Form("gaus_%d_to_%d",(Int_t)(xlow),(Int_t)(xhigh)));
@@ -42,28 +42,28 @@ GGaus::GGaus(Double_t xlow,Double_t xhigh,TF1 *bg,Option_t *opt)
   //SetName(Form("gaus_%d_to_%d",(Int_t)(xlow),(Int_t)(xhigh)));
   InitNames();
 
-  if(bg) {
-    fBGFit.Clear();
-    fBGFit.Copy(*bg);
-  } else {
-    fBGFit = TF1("BGFit","pol1",xlow,xhigh);
-  }
+  //if(bg) {
+  //  fBGFit.Clear();
+  //  fBGFit.Copy(*bg);
+  //} else {
+    //fBGFit = TF1("BGFit","pol1",xlow,xhigh);
+  //}
 
-  fBGFit.SetNpx(1000);
-  fBGFit.SetLineStyle(2);
-  fBGFit.SetLineColor(kBlack);
+  //fBGFit.SetNpx(1000);
+  //fBGFit.SetLineStyle(2);
+  //fBGFit.SetLineColor(kBlack);
 }
 
 
 GGaus::GGaus()
-      : TF1("gausbg","gaus(0)+pol1(3)",0,1000),
-        fBGFit("background","pol1",0,1000) {
+      : TF1("gausbg","gaus(0)+pol1(3)",0,1000) { //,
+        //fBGFit("background","pol1",0,1000) {
 
   Clear();
   InitNames();
-  fBGFit.SetNpx(1000);
-  fBGFit.SetLineStyle(2);
-  fBGFit.SetLineColor(kBlack);
+  //fBGFit.SetNpx(1000);
+  //fBGFit.SetLineStyle(2);
+  //fBGFit.SetLineColor(kBlack);
 }
 
 GGaus::GGaus(const GGaus &peak)
@@ -114,7 +114,7 @@ void GGaus::Copy(TObject &obj) const {
   ((GGaus&)obj).fChi2     = fChi2;
   ((GGaus&)obj).fNdf      = fNdf;
 
-  fBGFit.Copy((((GGaus&)obj).fBGFit));
+  //fBGFit.Copy((((GGaus&)obj).fBGFit));
 }
 
 bool GGaus::InitParams(TH1 *fithist){
@@ -268,6 +268,14 @@ Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
   bgpars[0] = TF1::GetParameters()[3];
   bgpars[1] = TF1::GetParameters()[4];
   //bgpars[5] = TF1::GetParameters()[7];
+
+ 
+  TF1 fBGFit("background","pol1",xlow,xhigh);
+ 
+  fBGFit.SetNpx(1000);
+  fBGFit.SetLineStyle(2);
+  fBGFit.SetLineColor(kBlack);
+
 
   fBGFit.SetParameters(bgpars);
   //fithist->GetListOfFunctions()->Print();

@@ -18,9 +18,14 @@ class GMarker : public TLine { //, public TQObject {
     //void doUpdate();
 
     void Paint(Option_t *opt="") override;
+    void ExecuteEvent(int event, int px, int py) override;
 
     static void                  RemoveAll(TH1 *h);  //remove all markers from h
     static std::vector<GMarker*> GetAll(TH1 *h); //return all markers in h
+    
+  public:
+    double X() const { return fX; }
+    double Y() const { return fY; }
 
   private:
     TH1 *fHist;
