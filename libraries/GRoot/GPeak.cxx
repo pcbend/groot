@@ -14,8 +14,8 @@
 ClassImp(GPeak)
 
 GPeak::GPeak(Double_t cent,Double_t xlow,Double_t xhigh,Option_t *opt)
-      : TF1("photopeakbg",GFunctions::PhotoPeakBG,xlow,xhigh,7),
-        fBGFit("background",GFunctions::StepBG,xlow,xhigh,6)  {
+      : TF1("photopeakbg",GFunctions::PhotoPeakBG,xlow,xhigh,7) { ///,
+        //fBGFit("background",GFunctions::StepBG,xlow,xhigh,6)  {
   Clear("");
   if(cent>xhigh || cent<xlow) {
     //out of range...
@@ -30,9 +30,9 @@ GPeak::GPeak(Double_t cent,Double_t xlow,Double_t xhigh,Option_t *opt)
   TF1::SetRange(xlow,xhigh);
 
 
-  fBGFit.SetNpx(1000);
-  fBGFit.SetLineStyle(2);
-  fBGFit.SetLineColor(kBlack);
+  //fBGFit.SetNpx(1000);
+  //fBGFit.SetLineStyle(2);
+  //fBGFit.SetLineColor(kBlack);
 
   SetName(Form("Chan%d_%d_to_%d",(Int_t)(cent),(Int_t)(xlow),(Int_t)(xhigh)));
   InitNames();
@@ -40,7 +40,7 @@ GPeak::GPeak(Double_t cent,Double_t xlow,Double_t xhigh,Option_t *opt)
   
   SetParent(0);
   //TF1::SetDirectory(0);
-  DetachBackground();
+  //DetachBackground();
   //fBGFit.SetDirectory(0);
 
 }
@@ -62,37 +62,37 @@ GPeak::GPeak(Double_t cent,Double_t xlow,Double_t xhigh,TF1 *bg,Option_t *opt)
   InitNames();
   TF1::SetParameter("centroid",cent);
 
-  if(bg) {
-    fBGFit.Clear();
-    fBGFit.Copy(*bg);
-  } else {
-    fBGFit = TF1("BGFit",GFunctions::StepBG,xlow,xhigh,10);
-  }
+  //if(bg) {
+  //  fBGFit.Clear();
+  //  fBGFit.Copy(*bg);
+  //} else {
+  //  fBGFit = TF1("BGFit",GFunctions::StepBG,xlow,xhigh,10);
+  //}
 
-  fBGFit.SetNpx(1000);
-  fBGFit.SetLineStyle(2);
-  fBGFit.SetLineColor(kBlack);
+  //fBGFit.SetNpx(1000);
+  //fBGFit.SetLineStyle(2);
+  //fBGFit.SetLineColor(kBlack);
   
   SetParent(0);
-  DetachBackground();
+  //DetachBackground();
   //SetDirectory(0);
   //fBGFit.SetDirectory(0);
 }
 
 
 GPeak::GPeak()
-      : TF1("photopeakbg",GFunctions::PhotoPeakBG,0,1000,10),
-        fBGFit("background",GFunctions::StepBG,0,1000,10) {
+      : TF1("photopeakbg",GFunctions::PhotoPeakBG,0,1000,10){
+        //fBGFit("background",GFunctions::StepBG,0,1000,10) {
 
   Clear();
   InitNames();
-  fBGFit.SetNpx(1000);
-  fBGFit.SetLineStyle(2);
-  fBGFit.SetLineColor(kBlack);
+  //fBGFit.SetNpx(1000);
+  //fBGFit.SetLineStyle(2);
+  //fBGFit.SetLineColor(kBlack);
   
   SetParent(0);
   //SetDirectory(0);
-  DetachBackground();
+  //DetachBackground();
   //fBGFit.SetDirectory(0);
 }
 
@@ -101,7 +101,7 @@ GPeak::GPeak(const GPeak &peak)
   
   SetParent(0);
   //SetDirectory(0);
-  DetachBackground();
+  //DetachBackground();
   //fBGFit.SetDirectory(0);
   peak.Copy(*this);
 }
@@ -156,8 +156,8 @@ void GPeak::Copy(TObject &obj) const {
   ((GPeak&)obj).fChi2     = fChi2;
   ((GPeak&)obj).fNdf      = fNdf;
 
-  fBGFit.Copy((((GPeak&)obj).fBGFit));
-  ((GPeak&)obj).DetachBackground();
+  //fBGFit.Copy((((GPeak&)obj).fBGFit));
+  //((GPeak&)obj).DetachBackground();
 }
 
 bool GPeak::InitParams(TH1 *fithist){
@@ -345,6 +345,10 @@ Bool_t GPeak::Fit(TH1 *fithist,Option_t *opt) {
   bgpars[4] = TF1::GetParameters()[6];
   //bgpars[5] = TF1::GetParameters()[7];
 
+  TF1 fBGFit("background",GFunctions::StepBG,xlow,xhigh,6); 
+  fBGFit.SetNpx(1000);
+  fBGFit.SetLineStyle(2);
+  fBGFit.SetLineColor(kBlack);
   fBGFit.SetParameters(bgpars);
   //fithist->GetListOfFunctions()->Print();
 
@@ -377,11 +381,11 @@ Bool_t GPeak::Fit(TH1 *fithist,Option_t *opt) {
   //printf("fithist->GetListOfFunctions()->FindObject(this) = 0x%08x\n",fithist->GetListOfFunctions()->FindObject(GetName()));
   //fflush(stdout);
   Copy(*fithist->GetListOfFunctions()->FindObject(GetName()));
-  //  fithist->GetListOfFunctions()->Add(&fBGFit); //use to be a clone.
   fithist->GetListOfFunctions()->Add(fBGFit.Clone()); //use to be a clone.
+  //fithist->GetListOfFunctions()->Add(&fBGFit); //use to be a clone.
 
   SetParent(0); //fithist);
-  DetachBackground();
+  //DetachBackground();
 
 
   //delete tmppeak;
@@ -427,6 +431,12 @@ Bool_t GPeak::FitExclude(TH1 *fithist,double xlow,double xhigh,Option_t *opt) {
   bgpars[3] = TF1::GetParameters()[5];
   bgpars[4] = TF1::GetParameters()[6];
   //bgpars[5] = TF1::GetParameters()[7];
+  
+  
+  TF1 fBGFit("background",GFunctions::StepBG,xlow,xhigh,6);
+  fBGFit.SetNpx(1000);
+  fBGFit.SetLineStyle(2);
+  fBGFit.SetLineColor(kBlack);
   fBGFit.SetParameters(bgpars);
 
   fArea = this->Integral(xlow,xhigh) /  fithist->GetBinWidth(1);
@@ -461,7 +471,7 @@ Bool_t GPeak::FitExclude(TH1 *fithist,double xlow,double xhigh,Option_t *opt) {
   //Copy(*fithist->GetListOfFunctions()->FindObject(GetName()));
   //fithist->GetListOfFunctions()->Remove(fBGFit.GetName()); 
   fithist->GetListOfFunctions()->Add(fBGFit.Clone()); //use to be a clone.
-  DetachBackground();
+  //DetachBackground();
 
   
   return true;
@@ -535,7 +545,8 @@ void GPeak::DrawResiduals(TH1 *hist) const{
   delete[] bin;
 }
 
-void GPeak::DetachBackground() {
-  fBGFit.SetParent(0);
-  fBGFit.SetBit(TObject::kCanDelete,false);
-}
+
+//void GPeak::DetachBackground() {
+//  fBGFit.SetParent(0);
+//  fBGFit.SetBit(TObject::kCanDelete,false);
+//}
