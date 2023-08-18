@@ -88,6 +88,10 @@ TH1* GH1D::DrawNormalized(Option_t *opt, double norm) const {
 
 TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
   TString sname(newname);
+  //find the current viewing range
+  double xlow = GetXaxis()->FindBinLowEdge(GetXaxis()->GetFirst());
+  double xup  = GetXaxis()->FindBinUpEdge(GetXaxis()->GetLast());
+
   if(sname.Length()==0) {
     // we are not going to return a new histogram
     // so lets copy the current histogram to allow us to unbin latter...
@@ -99,11 +103,16 @@ TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
     fOriginal->SetName(Form("_%s_copy",this->GetName()));
     fOriginal->SetDirectory(0);
   }
-  return TH1D::Rebin(ngroup,newname,xbins);
+  TH1 *temp = TH1D::Rebin(ngroup,newname,xbins);
+  if(sname.Length()==0) 
+    GetXaxis()->SetRangeUser(xlow,xup);
+  return temp;
 }
 
 void GH1D::Unbin() {
   if(!fArray) return;
+  double xlow = GetXaxis()->FindBinLowEdge(GetXaxis()->GetFirst());
+  double xup  = GetXaxis()->FindBinUpEdge(GetXaxis()->GetLast());
   const char *fname = this->GetName();
   TDirectory *current = this->GetDirectory();
   fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
@@ -113,5 +122,6 @@ void GH1D::Unbin() {
     gPad->Modified();
     gPad->Update();
   }
+  GetXaxis()->SetRangeUser(xlow,xup);
 }
 
