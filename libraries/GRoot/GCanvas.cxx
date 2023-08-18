@@ -16,6 +16,9 @@
 #include <TFrame.h>
 #include <TAxis.h>
 
+#include <TRootCanvas.h>
+#include <TVirtualX.h>
+
 
 int GCanvas::fCanvasNumber = 0;
 
@@ -45,13 +48,59 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
-
-  //TQObject::Connect("TCanvas","Selected(TVirtualPad*,TObject*,Int_t)","GCanvas",this,"doSelected(TVirtualPad*,TObject*,Int_t)"); // this would connect all TPad::RangeChangeds
+  gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
 
 }
 
+void GCanvas::EventProcessed(Event_t *event) {
+//ProcessedEvent(int event, int x, int y, TObject *selected) {
+  if(static_cast<unsigned long>(event->fWindow) != 
+     static_cast<unsigned long>(this->GetCanvasID())) 
+    return;
+  //switch(event->fCode) {
+
+  if(event->fType!=0) return; // only look for key down...
+
+  unsigned int keysym;
+  char str[2];
+  gVirtualX->LookupString(event, str, sizeof(str), keysym);
+
+
+  //bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
+  //switch(event->fCode) {
+  switch(keysym) {
+    case kKey_Left:
+    case kKey_Up:
+    case kKey_Right:
+    case kKey_Down:
+      //printf("arrow key pressed.\n");
+      //printf("keysym = 0x%08x\n",keysym);
+      HandleArrowPress(kArrowKeyPress,keysym,keysym);
+      break;
+    defualt:
+      break;
+  }
+  /*
+  printf("-------------\n");
+  printf("Event Processed\n");
+  printf("\tevent  = %i\n",event->fCode);
+  printf("\tevent  = 0x%08x\n",event->fCode);
+  printf("\tstate  = 0x%08x\n",event->fState);
+  printf("\ttype   = 0x%08x\n",event->fType);   // 0 down, 1 up
+  printf("\twindow = %lu\n",event->fWindow);
+  printf("\tx      = 0x%08x\n",event->fX);
+  printf("\ty      = 0x%08x\n",event->fY);
+  //printf("\tobject = %s\n",selected ? selected->GetName() : "");
+  */
+  
+  return;
+}
+
+
+
 void GCanvas::HandleInput(EEventType event, int px, int py) {
   bool handled = false;
+
 
   //check the event,
   switch(event) {
@@ -82,6 +131,7 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   if(!handled) 
     TCanvas::HandleInput(event,px,py);
 }
+
 
 bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) { 
   bool handled = false;
@@ -123,16 +173,44 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
   bool handled  = false;
   bool doUpdate = false;
   TH1 *gHist = 0;
-  printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
-  switch(py) {
+  //printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
+  gHist = GrabHist();
+  switch(px) {
+    //gHist->GetXaxis()->GetXmin() // minimum x
+    //gHist->GetXaxis()->GetXmax() // maximum x
+    //gPad->GetUxmin() // current min
+    //gPAd->GetUxmax() // current max
     case kKey_Left:
+      if(gHist && gHist->GetDimension()==1) {
+        double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
+        if((gPad->GetUxmin() - halfWindow)<gHist->GetXaxis()->GetXmin()) 
+          halfWindow = fabs(gPad->GetUxmin()-gHist->GetXaxis()->GetXmin());
+        gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
+      } 
+      handled  = true;
+      doUpdate = true;
+      break;
     case kKey_Up:
+      break;
     case kKey_Right:
+      if(gHist && gHist->GetDimension()==1) {
+        double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
+        if((gPad->GetUxmax() + halfWindow)>gHist->GetXaxis()->GetXmax()) 
+          halfWindow = fabs(gHist->GetXaxis()->GetXmax() - gPad->GetUxmax());
+        gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
+      } 
+      handled  = true;
+      doUpdate = true;
+      break;
     case kKey_Down:
-      printf("ARROW!!\n"); fflush(stdout);
+      //printf("ARROW!!\n"); fflush(stdout);
       break;
     default:
       break;
+  }
+  if(doUpdate) {
+    gPad->Modified();
+    gPad->Update();
   }
   return handled;
 }
