@@ -89,8 +89,8 @@ TH1* GH1D::DrawNormalized(Option_t *opt, double norm) const {
 TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
   TString sname(newname);
   //find the current viewing range
-  double xlow = GetXaxis()->FindBinLowEdge(GetXaxis()->GetFirst());
-  double xup  = GetXaxis()->FindBinUpEdge(GetXaxis()->GetLast());
+  double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
+  double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
 
   if(sname.Length()==0) {
     // we are not going to return a new histogram
@@ -98,26 +98,53 @@ TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
     if(!fOriginal) {
       fOriginal = new TH1D();  
       fOriginal->SetDirectory(0);
+      fOriginalBins = GetNbinsX();
+      dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
+      fOriginal->SetName(Form("_%s_copy",this->GetName()));
+      fOriginal->SetDirectory(0);
     }
-    dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
-    fOriginal->SetName(Form("_%s_copy",this->GetName()));
-    fOriginal->SetDirectory(0);
   }
   TH1 *temp = TH1D::Rebin(ngroup,newname,xbins);
+  //printf("Rebinng:\n");
+  //printf("current  bins = %i\n",GetNbinsX());  
+  //printf("original bins = %i\n\n",GetNbinsOriginal());  
   if(sname.Length()==0) 
     GetXaxis()->SetRangeUser(xlow,xup);
   return temp;
 }
 
-void GH1D::Unbin() {
-  if(!fArray) return;
-  double xlow = GetXaxis()->FindBinLowEdge(GetXaxis()->GetFirst());
-  double xup  = GetXaxis()->FindBinUpEdge(GetXaxis()->GetLast());
-  const char *fname = this->GetName();
+void GH1D::Unbin(int ngroup) {
+  //printf("unbin called!\n");
+
+  if(!fOriginal) return;
+  double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
+  double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
+  std::string fname = this->GetName();
+  //printf("Unbinng:\n");
+  //printf("name: %s\n",fname.c_str());
+  //printf("current  bins = %i\n",GetNbinsX());  
+  //printf("original bins = %i\n\n",GetNbinsOriginal());  
+
+  int oldBins = GetNbinsX();
+
   TDirectory *current = this->GetDirectory();
   fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
-  this->SetName(fname);
+  this->SetName(fname.c_str());
+  //printf("name2 = %s\n",this->GetName());
   this->SetDirectory(current);
+  //printf("name3 = %s\n",this->GetName());
+
+  if(ngroup>0) {
+    int aim = oldBins*ngroup;
+    //printf("aim = %i\n",aim);
+    if(aim<GetNbinsOriginal()) {
+      while(GetNbinsX()>(aim+2)) {
+        //printf("\tcurrent = %i\n",GetNbinsX());
+        Rebin(ngroup);
+      }
+    }
+  }
+
   if(gPad && gPad->GetListOfPrimitives()->FindObject(this->GetName())) {
     gPad->Modified();
     gPad->Update();

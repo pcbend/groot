@@ -7,6 +7,7 @@
 #include <globals.h>
 #include <GCommands.h>
 #include <GMarker.h>
+#include <GH1D.h>
 
 #include <KeySymbols.h>
 #include <TH1.h>
@@ -299,6 +300,23 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       }
       doUpdate = true;
       handled  = true;
+      break;
+    case kKey_w:
+      gHist = GrabHist();
+      if(gHist && gHist->InheritsFrom(GH1D::Class())) {
+        gHist->Rebin(2);
+        doUpdate = true;
+        handled  = true;
+      }
+      break;
+    case kKey_q:
+      gHist = GrabHist();
+      if(gHist && gHist->InheritsFrom(GH1D::Class())) {
+        GH1D *ggHist = dynamic_cast<GH1D*>(gHist);
+        ggHist->Unbin(2);
+        doUpdate = true;
+        handled  = true;
+      }
       break;
     case kKey_l:
     case kKey_z:
