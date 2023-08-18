@@ -29,8 +29,12 @@ class GH1D : public TH1D, public TQObject {
 
     void Paint(Option_t *opt="") override;
 
+    TH1* Rebin(int ngroup=2,const char *newname="",const double *xbins=nullptr) override;
+    void Unbin();
 
   private:
+    TH1D *fOriginal;    
+
 
   ClassDefOverride(GH1D,100)
 };
