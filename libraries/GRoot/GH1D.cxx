@@ -31,6 +31,10 @@ GH1D::GH1D(const char *name,const char *title,int nbinsx,double xlow, double xhi
 GH1D::GH1D(const TH1D &h1d) :
   TH1D(h1d), fOriginal(0)   { } 
 
+GH1D::GH1D(const TH1F &h1f) :
+   fOriginal(0)   {  h1f.Copy(*this); } 
+
+
 GH1D::GH1D(const TVectorD &v) :
   TH1D(v), fOriginal(0)   { }
 
@@ -89,8 +93,8 @@ TH1* GH1D::DrawNormalized(Option_t *opt, double norm) const {
 TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
   TString sname(newname);
   //find the current viewing range
-  double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
-  double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
+  //double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
+  //double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
 
   if(sname.Length()==0) {
     // we are not going to return a new histogram
@@ -108,8 +112,8 @@ TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
   //printf("Rebinng:\n");
   //printf("current  bins = %i\n",GetNbinsX());  
   //printf("original bins = %i\n\n",GetNbinsOriginal());  
-  if(sname.Length()==0) 
-    GetXaxis()->SetRangeUser(xlow,xup);
+  //if(sname.Length()==0) 
+  //  GetXaxis()->SetRangeUser(xlow,xup);
   return temp;
 }
 
@@ -117,8 +121,8 @@ void GH1D::Unbin(int ngroup) {
   //printf("unbin called!\n");
 
   if(!fOriginal) return;
-  double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
-  double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
+  //double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
+  //double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
   std::string fname = this->GetName();
   //printf("Unbinng:\n");
   //printf("name: %s\n",fname.c_str());
@@ -145,10 +149,10 @@ void GH1D::Unbin(int ngroup) {
     }
   }
 
-  if(gPad && gPad->GetListOfPrimitives()->FindObject(this->GetName())) {
-    gPad->Modified();
-    gPad->Update();
-  }
-  GetXaxis()->SetRangeUser(xlow,xup);
+  //if(gPad && gPad->GetListOfPrimitives()->FindObject(this->GetName())) {
+  //  gPad->Modified();
+  //  gPad->Update();
+  //}
+  //GetXaxis()->SetRangeUser(xlow,xup);
 }
 

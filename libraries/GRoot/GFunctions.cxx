@@ -108,8 +108,6 @@ Double_t GFunctions::DoubleGaus(Double_t *dim, Double_t *par) {
   
   Double_t sigma   = par[4];
 
- 
-
   return height1*TMath::Gaus(x,cent1,sigma) + height2*TMath::Gaus(x,cent2,sigma) + PolyBg(dim,(par+5),2);
 }
 

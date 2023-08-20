@@ -55,8 +55,19 @@ void GCanvas::Init(const char* name, const char* title) {
 
 void GCanvas::EventProcessed(Event_t *event) {
 //ProcessedEvent(int event, int x, int y, TObject *selected) {
+/*
+  printf("-------------\n");
+  printf("Event Processed\n");
+  printf("\tevent  = %i\n",event->fCode);
+  printf("\tevent  = 0x%08x\n",event->fCode);
+  printf("\tstate  = 0x%08x\n",event->fState);
+  printf("\ttype   = 0x%08x\n",event->fType);   // 0 down, 1 up
+  printf("\twindow = %lu\n",event->fWindow);
+  printf("\tx      = 0x%08x\n",event->fX);
+  printf("\ty      = 0x%08x\n",event->fY);
+*/
   if(static_cast<unsigned long>(event->fWindow) != 
-     static_cast<unsigned long>(this->GetCanvasID())) 
+     static_cast<unsigned long>(gVirtualX->GetWindowID(this->GetCanvasID()))) 
     return;
   //switch(event->fCode) {
 
@@ -81,18 +92,9 @@ void GCanvas::EventProcessed(Event_t *event) {
     defualt:
       break;
   }
-  /*
-  printf("-------------\n");
-  printf("Event Processed\n");
-  printf("\tevent  = %i\n",event->fCode);
-  printf("\tevent  = 0x%08x\n",event->fCode);
-  printf("\tstate  = 0x%08x\n",event->fState);
-  printf("\ttype   = 0x%08x\n",event->fType);   // 0 down, 1 up
-  printf("\twindow = %lu\n",event->fWindow);
-  printf("\tx      = 0x%08x\n",event->fX);
-  printf("\ty      = 0x%08x\n",event->fY);
+  
   //printf("\tobject = %s\n",selected ? selected->GetName() : "");
-  */
+  
   
   return;
 }
@@ -304,7 +306,10 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
     case kKey_w:
       gHist = GrabHist();
       if(gHist && gHist->InheritsFrom(GH1D::Class())) {
+        double xlow = gHist->GetXaxis()->GetBinLowEdge(gHist->GetXaxis()->GetFirst());
+        double xup  = gHist->GetXaxis()->GetBinUpEdge(gHist->GetXaxis()->GetLast());
         gHist->Rebin(2);
+        gHist->GetXaxis()->SetRangeUser(xlow,xup);
         doUpdate = true;
         handled  = true;
       }
@@ -313,7 +318,10 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       gHist = GrabHist();
       if(gHist && gHist->InheritsFrom(GH1D::Class())) {
         GH1D *ggHist = dynamic_cast<GH1D*>(gHist);
+        double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
+        double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
         ggHist->Unbin(2);
+        ggHist->GetXaxis()->SetRangeUser(xlow,xup);
         doUpdate = true;
         handled  = true;
       }
