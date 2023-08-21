@@ -43,27 +43,32 @@ class GListTree : public TGListTree {
     GListTree(TGCanvas *parent=0,Histomatic *hist=0);
     ~GListTree();
 
-  TList *GetAllActive(TGListTreeItem *item=0);  
   void ClearActive();
 
   void InsertObject(TObject *obj,TGListTreeItem *parent=0);
   const TGPicture *GetIcon(TClass *cls);
-  void OnDoubleClicked(TGListTreeItem *item, Int_t btn); 
+  
+  void Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) override; 
+  void DoubleClicked(TGListTreeItem *item, int btn, int x, int y) override; 
 
   std::string GetFullPath(TGListTreeItem *item) const;
   TObject*    GetObject(TGListTreeItem *item) const;
 
-  bool HandleButton(Event_t *event);
+  bool HandleButton(Event_t *event) override;
+
+  bool IsDrawable(const TGListTreeItem *item) const;
 
   private:
     TGCanvas   *fCanvas;
     //TGListTree *fListTree;
     TGListTreeItem *fLastSelected;
-    TList      *fActive;
-  
+    int fLastY; 
+    int fLastX; 
+
+    std::vector<TGListTreeItem*> fSelected;
     Histomatic *fHistomatic;
   
-  ClassDef(GListTree,0)
+  ClassDefOverride(GListTree,0)
 };
 
 class Histomatic { //: public TGMainFrame {
@@ -82,6 +87,7 @@ class Histomatic { //: public TGMainFrame {
   //private:
     void doUpdate();
     void doDraw(TObject*,Option_t *opt="");
+    void doDraw(TList*,Option_t *opt="");
 
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;
@@ -127,7 +133,7 @@ class Histomatic { //: public TGMainFrame {
     void CloseWindow();
     
     void AddRootFile(TFile *file) { fGListTree->InsertObject(file); }
-    TList *GetAllActive();
+    //TList *GetAllActive();
 
     TGStatusBar *GetStatusBar() { return fStatusBar; } 
 
