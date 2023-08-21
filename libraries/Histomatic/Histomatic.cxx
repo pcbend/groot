@@ -418,11 +418,11 @@ void Histomatic::doDraw(TObject *obj,Option_t *opt) {
     if(obj->InheritsFrom(TH1::Class())) { 
       canDraw=true; 
       if(obj->InheritsFrom(TH1::Class())){
-        if(obj->InheritsFrom(TH1D::Class()) &&
+        if((obj->InheritsFrom(TH1D::Class()) || obj->InheritsFrom(TH1F::Class())) &&
            !obj->InheritsFrom(GH1D::Class())) {
           obj = new GH1D(*((TH1D*)obj));
-        } else if(obj->InheritsFrom(TH2D::Class()) && 
-                 !obj->InheritsFrom(GH1D::Class())) {
+        } else if((obj->InheritsFrom(TH2D::Class()) || obj->InheritsFrom(TH2F::Class())) &&
+                 !obj->InheritsFrom(GH2D::Class())) {
           obj = new GH2D(*((TH2D*)obj));
           sopt.Append("colz");
         }

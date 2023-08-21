@@ -19,6 +19,8 @@ class GH1D : public TH1D, public TQObject {
 
     //GH1D(const GH1D &h1d);
     GH1D(const TH1D &h1d);
+    GH1D(const TH1F &h1f);
+
     GH1D(const TVectorD &v);
     
     virtual ~GH1D(); 
