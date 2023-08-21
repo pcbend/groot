@@ -50,3 +50,27 @@ GH2D::GH2D(const TH2D &h2d) : TH2D(h2d) { }
 GH2D::~GH2D() { }
 
 
+
+void GH2D::Draw(Option_t *opt) {
+  TH2D::Draw(opt);
+} 
+
+TH1* GH2D::DrawCopy(Option_t *opt, const char *name_postfix) const {
+  return TH2D::DrawCopy(opt,name_postfix);
+} 
+
+TH1* GH2D::DrawNormalized(Option_t *opt, double norm) const {
+  return TH2D::DrawNormalized(opt,norm);
+} 
+
+void GH2D::Paint(Option_t *opt) {
+  TString sopt(opt);
+  if(sopt.Length()==0)  
+    sopt.Append("colz");
+  TH2D::Paint(sopt.Data());
+  return;
+}
+
+
+
+

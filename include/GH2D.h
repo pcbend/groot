@@ -33,10 +33,18 @@ class GH2D : public TH2D {
    GH2D(const TH2D &h2d);
    virtual ~GH2D();
 
+
+    void Draw(Option_t *opt="") override;
+    TH1* DrawCopy(Option_t *opt="", const char *name_postfix="_copy") const override; 
+    TH1* DrawNormalized(Option_t *opt="", double norm=1) const override; 
+
+    void Paint(Option_t *opt="") override;
+
+
   private:
     
 
-  ClassDef(GH2D,100)
+  ClassDefOverride(GH2D,100)
 };
 
 
