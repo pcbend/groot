@@ -119,9 +119,10 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
         pitem = pitem->GetNextSibling();
       }
     }
-  } else {
+  } 
+  //else {
     fSelected.push_back(item);
-  }
+  //}
   //printf("%s\n",programPath().c_str()); 
   //printf("%s\n",GetFullPath(item).c_str()); 
   //TObject *obj = GetObject(item);
@@ -461,7 +462,21 @@ void Histomatic::doDraw(TList *list,Option_t *opt) {
   }
   if(canDraw) {
     GCanvas *g = new GCanvas;
-    //obj->Draw(sopt.Data());
+    if(hs.GetNhists()<5) {
+      //printf("I AM HERE!\n");
+      gPad->Divide(1,hs.GetNhists());
+      g->cd(0);
+      int nps=0;
+      TObject *obj;
+      TIter nextp(gPad->GetListOfPrimitives());
+      while ((obj = nextp())) {
+         if (obj->InheritsFrom(TVirtualPad::Class())) nps++;
+      }
+      printf("\nnpads = %i\n",hs.GetNhists());
+      printf("nps   = %i\n",nps);
+
+      //gPad->Update();  
+    }  
     hs.Draw("pads");
     doUpdate(); 
   }

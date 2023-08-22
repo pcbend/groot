@@ -3,10 +3,11 @@
 
 #include<string>
 
-#include<TH1D.h>
-#include<TQObject.h>
+#include<TH1.h>
+#include<TH2.h>
+//#include<TQObject.h>
 
-class GH1D : public TH1D, public TQObject {
+class GH1D : public TH1D { //, public TQObject {
   public:
     GH1D();
     GH1D(std::string name,int nbinsx,const double *xbins);
@@ -39,6 +40,8 @@ class GH1D : public TH1D, public TQObject {
   private:
     TH1D *fOriginal;    
     int  fOriginalBins;
+
+    TH2  *fParent;
 
   ClassDefOverride(GH1D,100)
 };

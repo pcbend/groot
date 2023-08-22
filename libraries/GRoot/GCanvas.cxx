@@ -114,8 +114,8 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     case kArrowKeyRelease:
       handled = HandleArrowPress(event,px,py);
       break;
-    case kButton1Down:
     case kButton1Shift:
+    case kButton1Down:
     case kButton1Up:
     case kButton1Double:
       printf("clicked on %s\n",GetSelected()->IsA()->GetName());
@@ -160,6 +160,20 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
       }
       break;
     case kButton1Shift:
+      gHist = GrabHist();
+      if(gPad != TCanvas::GetSelectedPad()) {
+        TCanvas::HandleInput(kButton2Down,px,py);
+      } else if(gHist && gPad) {
+        //unzoom hist?
+        TVirtualPad *current = gPad;
+        GCanvas *c = new GCanvas;
+        c->cd();      
+        gHist->DrawCopy();
+        gPad->Modified();
+        gPad->Update();
+
+      }
+      break;
       break;
     case kButton1Up:
       break;

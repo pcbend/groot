@@ -71,6 +71,15 @@ void GH2D::Paint(Option_t *opt) {
   return;
 }
 
+TH1D* GH2D::ProjectionX(std::string name,double firstybin,double lastybin,Option_t *option) const { 
+  TH1D* projection=0;
+  return projection;
+}    
+
+TH1D* GH2D::ProjectionY(std::string name,double firstybin,double lastybin,Option_t *option) const { 
+  TH1D* projection=0;
+  return projection;
+} 
 
 
 
