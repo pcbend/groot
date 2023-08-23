@@ -17,6 +17,7 @@
 #include <TFrame.h>
 #include <TAxis.h>
 
+#include <TContextMenu.h>
 #include <TRootCanvas.h>
 #include <TVirtualX.h>
 
@@ -236,7 +237,8 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
 bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
   bool handled  = false;
   bool doUpdate = false;
-  TH1 *gHist = 0;
+  TH1*   gHist = 0;
+  TList* gList = 0;
   //printf("HandleKey()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
   //printf("key: %i  %i  %i\n",event,px,py);
   switch(py) {
@@ -260,6 +262,31 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
           handled=true;
         }
       }
+      break;
+    case kKey_E:
+      gHist = GrabHist();
+      GetContextMenu()->Action(gHist->GetXaxis(),gHist->GetXaxis()->Class()->GetMethodAny("SetRangeUser"));
+      {
+        double x1 = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetFirst());
+        double x2 = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetLast());
+        TIter iter(this->GetListOfPrimitives());
+        while(TObject *obj = iter.Next()) {
+          if(obj->InheritsFrom(TPad::Class())) {
+            TPad *pad = (TPad*)obj;
+            TIter iter2(pad->GetListOfPrimitives());
+            while(TObject *obj2=iter2.Next()) {
+              if(obj2->InheritsFrom(TH1::Class())||obj2->InheritsFrom(TH1::Class())) {
+                TH1* hist = (TH1*)obj2;
+                hist->GetXaxis()->SetRangeUser(x1,x2);
+                pad->Modified();
+                pad->Update();
+              }
+            }
+          }
+        }
+      }
+      doUpdate = true;
+      handled  = true;
       break;
     case kKey_f:
       gHist=GrabHist();
@@ -317,6 +344,31 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       doUpdate = true;
       handled  = true;
       break;
+    case kKey_O:
+      gList = GrabHists(gPad->GetCanvas());    
+      if(gList) {
+        TIter iter(gList);
+        while(TObject *obj = iter.Next()) {
+          if(obj->InheritsFrom(TH1::Class())) {
+            gHist = dynamic_cast<TH1*>(obj);
+            gHist->GetXaxis()->UnZoom();
+            if(gHist->GetDimension()==2)
+              gHist->GetYaxis()->UnZoom();
+          }
+        }
+        TIter citer(gPad->GetCanvas()->GetListOfPrimitives());
+        while(TObject* obj = citer.Next()) { 
+          if(obj->InheritsFrom(TVirtualPad::Class())) {
+            ((TVirtualPad*)obj)->Modified();
+            ((TVirtualPad*)obj)->Update();
+          }
+        }
+        handled = true;
+      }  
+      break;
+
+
+      break;
     case kKey_w:
       gHist = GrabHist();
       if(gHist && gHist->InheritsFrom(GH1D::Class())) {
@@ -339,6 +391,52 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         doUpdate = true;
         handled  = true;
       }
+      break;
+    case kKey_W:
+      gList = GrabHists(gPad->GetCanvas());    
+      if(gList) {
+        TIter iter(gList);
+        while(TObject *obj = iter.Next()) {
+          if(obj->InheritsFrom(GH1D::Class())) {
+            GH1D *ggHist = dynamic_cast<GH1D*>(obj);
+            double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
+            double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
+            ggHist->Rebin(2);
+            ggHist->GetXaxis()->SetRangeUser(xlow,xup);
+          }
+        }
+        TIter citer(gPad->GetCanvas()->GetListOfPrimitives());
+        while(TObject* obj = citer.Next()) { 
+          if(obj->InheritsFrom(TVirtualPad::Class())) {
+            ((TVirtualPad*)obj)->Modified();
+            ((TVirtualPad*)obj)->Update();
+          }
+        }
+        handled = true;
+      }  
+      break;
+    case kKey_Q:
+      gList = GrabHists(gPad->GetCanvas());    
+      if(gList) {
+        TIter iter(gList);
+        while(TObject *obj = iter.Next()) {
+          if(obj->InheritsFrom(GH1D::Class())) {
+            GH1D *ggHist = dynamic_cast<GH1D*>(obj);
+            double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
+            double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
+            ggHist->Unbin(2);
+            ggHist->GetXaxis()->SetRangeUser(xlow,xup);
+          }
+        }
+        TIter citer(gPad->GetCanvas()->GetListOfPrimitives());
+        while(TObject* obj = citer.Next()) { 
+          if(obj->InheritsFrom(TVirtualPad::Class())) {
+            ((TVirtualPad*)obj)->Modified();
+            ((TVirtualPad*)obj)->Update();
+          }
+        }
+        handled = true;
+      }  
       break;
     case kKey_l:
     case kKey_z:

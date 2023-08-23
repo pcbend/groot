@@ -64,6 +64,28 @@ TH1 *GrabHist(int i)  {
   return hist;
 }
 
+TList *GrabHists(TVirtualPad *p) {
+  //return all histograms on a canvas or pad. (default is the gPad);
+  TList *histList = new TList;
+  if(!p) p = gPad;
+  if(!p) return histList;
+  TVirtualPad *current = gPad;
+  TIter nextp(p->GetListOfPrimitives());
+  while(TObject *obj = nextp()) {
+    if(obj->InheritsFrom(TVirtualPad::Class())) {
+      TIter nextp2(((TVirtualPad*)obj)->GetListOfPrimitives());
+      while(TObject *obj2 = nextp2()) {
+        if(obj2->InheritsFrom(TH1::Class())) {
+          histList->Add(obj2);
+        }
+      }
+    } else if(obj->InheritsFrom(TH1::Class())) {
+      histList->Add(obj);
+    }
+  }
+  return histList;
+}
+
 TF1 *GrabFit(int i)  {
   //return the histogram from the current canvas, pad i.
   TH1 *hist = 0;

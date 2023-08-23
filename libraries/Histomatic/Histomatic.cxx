@@ -463,21 +463,16 @@ void Histomatic::doDraw(TList *list,Option_t *opt) {
   if(canDraw) {
     GCanvas *g = new GCanvas;
     if(hs.GetNhists()<5) {
-      //printf("I AM HERE!\n");
-      gPad->Divide(1,hs.GetNhists());
-      g->cd(0);
-      int nps=0;
-      TObject *obj;
-      TIter nextp(gPad->GetListOfPrimitives());
-      while ((obj = nextp())) {
-         if (obj->InheritsFrom(TVirtualPad::Class())) nps++;
+      g->Divide(1,hs.GetNhists());
+      TIter nexth(hs.GetHists());
+      int cpad=1;
+      while(TObject *h=nexth.Next()) {
+        g->cd(cpad++);
+        h->Draw();
       }
-      printf("\nnpads = %i\n",hs.GetNhists());
-      printf("nps   = %i\n",nps);
-
-      //gPad->Update();  
-    }  
-    hs.Draw("pads");
+    } else {  
+      hs.Draw("pads");
+    }
     doUpdate(); 
   }
 }
