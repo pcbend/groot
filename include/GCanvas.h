@@ -20,6 +20,7 @@ class GCanvas : public TCanvas {
     //void ProcessedEvent(int event, int x, int y, TObject *selected) override;
     void EventProcessed(Event_t *event);
 
+    void UpdateAllPads();
  
   //private:
     void Init(const char* name="",const char* title="");

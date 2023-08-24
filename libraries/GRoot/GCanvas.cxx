@@ -265,25 +265,32 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       break;
     case kKey_E:
       gHist = GrabHist();
-      GetContextMenu()->Action(gHist->GetXaxis(),gHist->GetXaxis()->Class()->GetMethodAny("SetRangeUser"));
-      {
-        double x1 = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetFirst());
-        double x2 = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetLast());
-        TIter iter(this->GetListOfPrimitives());
-        while(TObject *obj = iter.Next()) {
-          if(obj->InheritsFrom(TPad::Class())) {
-            TPad *pad = (TPad*)obj;
-            TIter iter2(pad->GetListOfPrimitives());
-            while(TObject *obj2=iter2.Next()) {
-              if(obj2->InheritsFrom(TH1::Class())||obj2->InheritsFrom(TH1::Class())) {
-                TH1* hist = (TH1*)obj2;
-                hist->GetXaxis()->SetRangeUser(x1,x2);
-                pad->Modified();
-                pad->Update();
-              }
-            }
+      if(true) {
+        std::vector<GMarker*> markers;
+        if(gHist) 
+          markers = GMarker::GetAll(gHist);
+        double xlow,xhigh;
+        if(markers.size()>1) {
+          xlow  = markers.at(0)->X();
+          xhigh = markers.at(1)->X();
+          if(xlow>xhigh) std::swap(xlow,xhigh);
+          GMarker::RemoveAll(gHist);
+        } else {
+          GetContextMenu()->Action(gHist->GetXaxis(),gHist->GetXaxis()->Class()->GetMethodAny("SetRangeUser"));
+          xlow = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetFirst());
+          xhigh = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetLast());
+        }  
+        gList = GrabHists(gPad->GetCanvas()); 
+        TIter iter(gList);
+        while(TH1 *hist = ((TH1*)iter.Next())) {
+          if(hist->GetDimension()==1) {
+            hist->GetXaxis()->SetRangeUser(xlow,xhigh);
+            //pad->Modified();
+            //pad->Update();
           }
         }
+        //gPad->GetCanvas()->Modified(); 
+        //gPad->GetCanvas()->Update(); 
       }
       doUpdate = true;
       handled  = true;
@@ -475,8 +482,9 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
 
   }
   if(gPad && doUpdate) {
-    gPad->Modified();
-    gPad->Update();
+    UpdateAllPads();//gPad);
+    //gPad->Modified();
+    //gPad->Update();
   }
   return handled;
 }
@@ -487,6 +495,24 @@ TVirtualPad* GCanvas::GetSelectedPad() const {
   //printf("gPad = 0x%p\n",gPad);
   //printf("sPad = 0x%p\n",sPad);
   return sPad;
+}
+
+
+void GCanvas::UpdateAllPads() {
+  TIter iter1(this->GetListOfPrimitives());
+  while(TObject *obj1 = iter1()) {
+    if(!obj1->InheritsFrom(TVirtualPad::Class())) continue;
+    TVirtualPad *pad1 = dynamic_cast<TVirtualPad*>(obj1);
+    TIter iter2(pad1->GetListOfPrimitives());
+    while(TObject *obj2 = iter2()) {
+      if(!obj2->InheritsFrom(TVirtualPad::Class())) continue;
+      TVirtualPad *pad2 = dynamic_cast<TVirtualPad*>(obj2);
+      pad2->Modified();
+      pad2->Update();
+    }
+    pad1->Modified();
+    pad1->Update();
+  }
 }
 
 
