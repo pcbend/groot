@@ -93,6 +93,7 @@ const TGPicture *GListTree::GetIcon(TClass *cls) {
 void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) { 
   //printf("single clicked\n");
   //printf("mask: 0x%08x\n",mask);
+  //printf("kKeyShiftMask: 0x%08x\n",kKeyShiftMask); 
   //printf("current: %s\n",item->GetText());
   //printf("parent: 0x%p\n",item->GetParent());
   //printf(" x = %i \t y = %i\n",x,y); 
@@ -100,10 +101,10 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
   //  printf("last:    %s\n",fLastSelected->GetText());
 
   ClearActive(); // clears fSelected.
-  if(mask == kKeyShiftMask &&
+  if((mask&kKeyShiftMask)  &&
      fLastSelected         && 
-     IsDrawable(item)      && 
-     IsDrawable(fLastSelected) &&
+     //IsDrawable(item)      && 
+     //IsDrawable(fLastSelected) &&
      item->GetParent() == fLastSelected->GetParent()) {
 
     TGListTreeItem *pitem = fLastSelected; 
@@ -462,8 +463,8 @@ void Histomatic::doDraw(TList *list,Option_t *opt) {
   }
   if(canDraw) {
     GCanvas *g = new GCanvas;
-    if(hs.GetNhists()<5) {
-      g->Divide(1,hs.GetNhists());
+    if(hs.GetNhists()<=5) {
+      g->Divide(1,hs.GetNhists(),0.01,0);
       TIter nexth(hs.GetHists());
       int cpad=1;
       while(TObject *h=nexth.Next()) {

@@ -35,13 +35,26 @@ class GH1D : public TH1D { //, public TQObject {
     TH1* Rebin(int ngroup=2,const char *newname="",const double *xbins=nullptr) override;
     void Unbin(int ngroup=-1);
 
+    TH1  *ShowBackground(int niter=12,Option_t* opt="same") override;
+    void Background();
+
     int GetNbinsOriginal() const { return fOriginalBins; }
+
+    enum EstatusBits {
+      kBackgroundRemoved = BIT(22)
+    };
+
+
+  private:
+    void Init();
+
 
   private:
     TH1D *fOriginal;    
     int  fOriginalBins;
 
     TH2  *fParent;
+
 
   ClassDefOverride(GH1D,100)
 };

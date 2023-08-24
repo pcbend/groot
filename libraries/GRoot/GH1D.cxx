@@ -2,7 +2,7 @@
 
 #include<cstdio>
 
-
+#include<TSpectrum.h>
 #include<TString.h>
 #include<TVirtualPad.h>
 #include<TBox.h>
@@ -19,30 +19,47 @@ GH1D::GH1D(std::string name,int nbinsx,double xlow, double xhigh) :
   GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { }
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const double *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { }
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
+  Init();
+}
  
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const float  *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { } 
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
+  Init();
+} 
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,double xlow, double xhigh) :
-  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0)    { }
+  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0)    { 
+  Init();
+}
 
 //GH1D::GH1D(const GH1D &h1d);
 GH1D::GH1D(const TH1D &h1d) :
-  TH1D(h1d), fOriginal(0), fParent(0)    { } 
+  TH1D(h1d), fOriginal(0), fParent(0)    { 
+  Init();
+} 
 
 GH1D::GH1D(const TH1F &h1f) :
-   fOriginal(0), fParent(0)    {  h1f.Copy(*this); } 
-
+   fOriginal(0), fParent(0)    {  
+  h1f.Copy(*this); 
+  Init();
+} 
 
 GH1D::GH1D(const TVectorD &v) :
-  TH1D(v), fOriginal(0), fParent(0)    { }
+  TH1D(v), fOriginal(0), fParent(0)    { 
+  Init();
+}
 
 GH1D::~GH1D() { 
   //printf("GH1D deleted\n"); fflush(stdout);  
   if(fOriginal)
     delete fOriginal;
 } 
+
+void GH1D::Init() { 
+  this->SetBit(kNoTitle);
+}
+
 
 void GH1D::Paint(Option_t *opt) {
   //printf("\t-in gh1d paint.\n");
@@ -148,11 +165,49 @@ void GH1D::Unbin(int ngroup) {
       }
     }
   }
-
-  //if(gPad && gPad->GetListOfPrimitives()->FindObject(this->GetName())) {
-  //  gPad->Modified();
-  //  gPad->Update();
-  //}
-  //GetXaxis()->SetRangeUser(xlow,xup);
 }
+
+
+TH1* GH1D::ShowBackground(int niter,Option_t* opt) {
+  return TH1D::ShowBackground(niter,opt);
+}
+
+void GH1D::Background() {
+  double x1=sqrt(-1);
+  double x2=sqrt(-1);
+  if(this->GetXaxis()) {
+    x1 = this->GetXaxis()->GetBinLowEdge(this->GetXaxis()->GetFirst());
+    x2 = this->GetXaxis()->GetBinUpEdge(this->GetXaxis()->GetLast());
+  }
+
+  if(this->TestBit(GH1D::kBackgroundRemoved)) {
+    //put the background back...
+    std::string fname = this->GetName();
+    TDirectory *current = this->GetDirectory();
+    fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
+    this->SetName(fname.c_str());
+    //printf("name2 = %s\n",this->GetName());
+    this->SetDirectory(current);
+
+  } else {
+    //remove the background...
+    if(!fOriginal) {
+      fOriginal = new TH1D();  
+      fOriginal->SetDirectory(0);
+      fOriginalBins = GetNbinsX();
+      dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
+      fOriginal->SetName(Form("_%s_copy",this->GetName()));
+      fOriginal->SetDirectory(0);
+    }
+    this->GetXaxis()->UnZoom();
+    TH1 *bg = TSpectrum::StaticBackground(this,12,"");
+    this->Add(bg,-1); 
+    this->SetBit(GH1D::kBackgroundRemoved);
+  }
+  if(x1==x1) {
+    //printf("%s I AM HERE!\n",GetName());
+    this->GetXaxis()->SetRangeUser(x1,x2);
+  }
+}
+
 
