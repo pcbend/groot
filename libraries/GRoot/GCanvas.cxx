@@ -56,17 +56,18 @@ void GCanvas::Init(const char* name, const char* title) {
 
 void GCanvas::EventProcessed(Event_t *event) {
 //ProcessedEvent(int event, int x, int y, TObject *selected) {
-/*
+  /*
   printf("-------------\n");
   printf("Event Processed\n");
   printf("\tevent  = %i\n",event->fCode);
   printf("\tevent  = 0x%08x\n",event->fCode);
-  printf("\tstate  = 0x%08x\n",event->fState);
+  printf("\tstate  = 0x%08x\n",event->fState);  // contains modifier information...
   printf("\ttype   = 0x%08x\n",event->fType);   // 0 down, 1 up
   printf("\twindow = %lu\n",event->fWindow);
   printf("\tx      = 0x%08x\n",event->fX);
   printf("\ty      = 0x%08x\n",event->fY);
-*/
+  */
+
   if(static_cast<unsigned long>(event->fWindow) != 
      static_cast<unsigned long>(gVirtualX->GetWindowID(this->GetCanvasID()))) 
     return;
@@ -88,7 +89,7 @@ void GCanvas::EventProcessed(Event_t *event) {
     case kKey_Down:
       //printf("arrow key pressed.\n");
       //printf("keysym = 0x%08x\n",keysym);
-      HandleArrowPress(kArrowKeyPress,keysym,keysym);
+      HandleArrowPress(kArrowKeyPress,keysym,keysym,event->fState);
       break;
     defualt:
       break;
@@ -111,10 +112,10 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     case kKeyPress:
       handled = HandleKeyPress(event,px,py);
       break;
-    case kArrowKeyPress:
-    case kArrowKeyRelease:
-      handled = HandleArrowPress(event,px,py);
-      break;
+    //case kArrowKeyPress:
+    //case kArrowKeyRelease:
+    //  handled = HandleArrowPress(event,px,py);
+    //  break;
     case kButton1Shift:
     case kButton1Down:
     case kButton1Up:
@@ -187,12 +188,14 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
   return handled;
 }
 
-bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
+bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
   bool handled  = false;
   bool doUpdate = false;
-  TH1 *gHist = 0;
+  TH1   *gHist = 0;
+  TList *gList = 0;
   //printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
   gHist = GrabHist();
+  gList = GrabHists(gPad->GetCanvas());
   switch(px) {
     //gHist->GetXaxis()->GetXmin() // minimum x
     //gHist->GetXaxis()->GetXmax() // maximum x
@@ -203,7 +206,13 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
         double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
         if((gPad->GetUxmin() - halfWindow)<gHist->GetXaxis()->GetXmin()) 
           halfWindow = fabs(gPad->GetUxmin()-gHist->GetXaxis()->GetXmin());
-        gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
+        if(mask&kKeyShiftMask) {
+          TIter iter(gList);
+          while(TH1 *hist = dynamic_cast<TH1*>(iter())) 
+            hist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
+        } else {
+          gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
+        }
       } 
       handled  = true;
       doUpdate = true;
@@ -215,7 +224,13 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
         double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
         if((gPad->GetUxmax() + halfWindow)>gHist->GetXaxis()->GetXmax()) 
           halfWindow = fabs(gHist->GetXaxis()->GetXmax() - gPad->GetUxmax());
-        gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
+        if(mask&kKeyShiftMask) {
+          TIter iter(gList);
+          while(TH1 *hist = dynamic_cast<TH1*>(iter())) 
+            hist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
+        } else {
+          gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
+        }
       } 
       handled  = true;
       doUpdate = true;
@@ -227,8 +242,9 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
       break;
   }
   if(doUpdate) {
-    gPad->Modified();
-    gPad->Update();
+    UpdateAllPads();
+    //gPad->Modified();
+    //gPad->Update();
   }
   return handled;
 }
@@ -499,6 +515,8 @@ TVirtualPad* GCanvas::GetSelectedPad() const {
 
 
 void GCanvas::UpdateAllPads() {
+  //TIter iter(this->GetListOfPrimitives());
+  //while(TObject *obj = iter()) printf("\t\t%s\n",obj->GetName());  
   TIter iter1(this->GetListOfPrimitives());
   while(TObject *obj1 = iter1()) {
     if(!obj1->InheritsFrom(TVirtualPad::Class())) continue;
@@ -513,6 +531,8 @@ void GCanvas::UpdateAllPads() {
     pad1->Modified();
     pad1->Update();
   }
+  this->Modified();
+  this->Update();
 }
 
 

@@ -463,8 +463,8 @@ void Histomatic::doDraw(TList *list,Option_t *opt) {
   }
   if(canDraw) {
     GCanvas *g = new GCanvas;
-    if(hs.GetNhists()<5) {
-      g->Divide(1,hs.GetNhists());
+    if(hs.GetNhists()<=5) {
+      g->Divide(1,hs.GetNhists(),0.01,0);
       TIter nexth(hs.GetHists());
       int cpad=1;
       while(TObject *h=nexth.Next()) {

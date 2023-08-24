@@ -19,30 +19,48 @@ GH1D::GH1D(std::string name,int nbinsx,double xlow, double xhigh) :
   GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { }
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const double *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { }
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
+  Init();
+}
  
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const float  *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { } 
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
+  Init();
+} 
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,double xlow, double xhigh) :
-  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0)    { }
+  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0)    { 
+  Init();
+}
 
 //GH1D::GH1D(const GH1D &h1d);
 GH1D::GH1D(const TH1D &h1d) :
-  TH1D(h1d), fOriginal(0), fParent(0)    { } 
+  TH1D(h1d), fOriginal(0), fParent(0)    { 
+  Init();
+} 
 
 GH1D::GH1D(const TH1F &h1f) :
-   fOriginal(0), fParent(0)    {  h1f.Copy(*this); } 
-
+   fOriginal(0), fParent(0)    {  
+  h1f.Copy(*this); 
+  Init();
+} 
 
 GH1D::GH1D(const TVectorD &v) :
-  TH1D(v), fOriginal(0), fParent(0)    { }
+  TH1D(v), fOriginal(0), fParent(0)    { 
+  Init();
+}
 
 GH1D::~GH1D() { 
   //printf("GH1D deleted\n"); fflush(stdout);  
   if(fOriginal)
     delete fOriginal;
 } 
+
+void GH1D::Init() { 
+  this->SetBit(kNoTitle);
+
+}
+
 
 void GH1D::Paint(Option_t *opt) {
   //printf("\t-in gh1d paint.\n");

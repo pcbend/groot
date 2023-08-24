@@ -38,6 +38,10 @@ class GH1D : public TH1D { //, public TQObject {
     int GetNbinsOriginal() const { return fOriginalBins; }
 
   private:
+    void Init();
+
+
+  private:
     TH1D *fOriginal;    
     int  fOriginalBins;
 
