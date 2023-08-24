@@ -264,6 +264,43 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       TCanvas::HandleInput(kButton2Down,px,py);
       handled = true;
       break;
+    case kKey_b:
+      gHist = GrabHist();
+      if(gHist->InheritsFrom(GH1D::Class())) {
+        //remember the current range...
+        double xlow = gHist->GetXaxis()->GetBinLowEdge(gHist->GetXaxis()->GetFirst());
+        double xup  = gHist->GetXaxis()->GetBinUpEdge(gHist->GetXaxis()->GetLast());
+        dynamic_cast<GH1D*>(gHist)->Background();
+        //gHist->GetXaxis()->SetRangeUser(xlow,xup); // and reset the range.
+        handled  = true;
+        doUpdate = true;
+      }
+      break;
+    case kKey_B:
+      // for some reason if I try to remove the background from multiple 
+      // histograms drawn in different Pads on the same Canvas, the inital 
+      // one always has it's range set to the full range.  It simply won't 
+      // remember it's original range.  All test I can currently think of
+      // say it should. (?) :/
+      gList = GrabHists(gPad->GetCanvas());
+      if(gList) {
+        TIter iter(gList);
+        while(TObject *obj = iter.Next()) {
+          if(obj->InheritsFrom(GH1D::Class())) {
+            GH1D *ggHist = dynamic_cast<GH1D*>(obj);
+            //remember the current range...
+            double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
+            double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
+            //printf("%s\t%.1f\t%.1f\n",ggHist->GetName(),xlow,xup);
+            ggHist->Background();
+            //printf("%s\t%.1f\t%.1f\n",ggHist->GetName(),xlow,xup);
+            //ggHist->GetXaxis()->SetRangeUser(xlow,xup); // and rest the range.
+          }
+        }
+        doUpdate = true;
+        handled  = true;
+      }  
+      break;
     case kKey_e:
       gHist = GrabHist();
       if(gHist) {
@@ -428,14 +465,8 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
             ggHist->GetXaxis()->SetRangeUser(xlow,xup);
           }
         }
-        TIter citer(gPad->GetCanvas()->GetListOfPrimitives());
-        while(TObject* obj = citer.Next()) { 
-          if(obj->InheritsFrom(TVirtualPad::Class())) {
-            ((TVirtualPad*)obj)->Modified();
-            ((TVirtualPad*)obj)->Update();
-          }
-        }
-        handled = true;
+        doUpdate = true;
+        handled  = true;
       }  
       break;
     case kKey_Q:
@@ -451,13 +482,7 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
             ggHist->GetXaxis()->SetRangeUser(xlow,xup);
           }
         }
-        TIter citer(gPad->GetCanvas()->GetListOfPrimitives());
-        while(TObject* obj = citer.Next()) { 
-          if(obj->InheritsFrom(TVirtualPad::Class())) {
-            ((TVirtualPad*)obj)->Modified();
-            ((TVirtualPad*)obj)->Update();
-          }
-        }
+        doUpdate = true;
         handled = true;
       }  
       break;
