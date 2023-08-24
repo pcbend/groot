@@ -169,7 +169,8 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
         //unzoom hist?
         TVirtualPad *current = gPad;
         GCanvas *c = new GCanvas;
-        c->cd();      
+        c->cd();
+        GMarker::RemoveAll(gHist);      
         gHist->DrawCopy();
         gPad->Modified();
         gPad->Update();
