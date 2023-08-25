@@ -35,5 +35,13 @@ class GMarker : public TLine { //, public TQObject {
   ClassDefOverride(GMarker,0)
 };
 
+/*
+class GBox : public TBox {
+  public:
+    GBox();
+    ~GBox();
+
+};
+*/
 
 #endif
