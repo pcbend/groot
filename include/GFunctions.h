@@ -40,6 +40,10 @@ namespace GFunctions {
   Double_t KN_unpol_norm(Double_t *x,Double_t *par);
   Double_t KN_pol(Double_t *x,Double_t *par);
 
+  Double_t Bateman(Double_t *x, Double_t *par, Int_t gen);
+  //Double_t Bateman(Double_t *x, Double_t *par);
+  //Double_t DecayChain(Double_t *x, Double_t *par);
+  //Double_t DecayMap(Double_t *x, Double_t *par, Int_t gen=1);
 
 }
 
