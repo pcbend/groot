@@ -219,7 +219,7 @@ TKey *GListTree::GetKey(TGListTreeItem *item) const {
   TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(file.c_str());
   if(!f || path.length()==0) return key;  
   TDirectory *current = gDirectory;
-  std::vector parts = tokenizeString(path);    
+  std::vector<std::string> parts = tokenizeString(path);    
   f->cd();
   for(size_t i=0;i<parts.size()-1;i++) {
     f->cd(parts.at(i).c_str());
