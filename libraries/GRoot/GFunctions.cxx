@@ -484,13 +484,28 @@ Double_t GFunctions::Bateman(Double_t *x, Double_t *par, Int_t gen=1){
 //  return (lam.back())*(A*mul*sum);
 //}
 
-//Double_t DecayChain(double *x, double *par){
+Double_t GFunction::DecayChain(double *x, double *par){
   // par[0] = generation of isotopes in the decay chain (parent = 1, daughter = 2 ...);
   // par[1] = activity;
   // par[i+2] = half-life of particle_i(i>0)
 
+  int gen = par[0];
+  std::vector<double *> vec_par; 
+  for(int i=1;i<=gen;i++){
+    double subpar[i+1];
+    for(int j=0;j<=i;j++){
+      subpar[j] = par[j+1];
+    }
+    vec_par.push_back(subpar); 
+  }
   
-//}
+  double sum = 0;
+  for(int i=1;i<=gen;i++){
+    sum += Bateman(x,vec_par[i-1],i);
+  }
+
+  return sum;
+}
 
 
 //Double_t GFunctions::DecayMap()
