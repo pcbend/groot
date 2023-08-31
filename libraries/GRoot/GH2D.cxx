@@ -95,6 +95,7 @@ GH1D* GH2D::ProjectionX(double low,double up,Option_t *option) {
   std::string pname = Form("%s_x_%i_%i",GetName(),blow,bup);
   projection = new GH1D(*(dynamic_cast<TH2D*>(this)->ProjectionX(pname.c_str(),blow,bup)));
   projection->SetParent(this);  
+  projection->SetBit(GH1D::kProjectionX,true);
 
   //reset x axis.
   GetXaxis()->SetRangeUser(first,last);        
@@ -126,6 +127,7 @@ GH1D* GH2D::ProjectionY(double low,double up,Option_t *option) {
   std::string pname = Form("%s_y_%i_%i",GetName(),blow,bup);
   projection = new GH1D(*(dynamic_cast<TH2D*>(this)->ProjectionY(pname.c_str(),blow,bup)));
   projection->SetParent(this);  
+  projection->SetBit(GH1D::kProjectionX,false);
 
   //reset y axis.
   GetYaxis()->SetRangeUser(first,last);        
