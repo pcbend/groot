@@ -3,6 +3,8 @@
 
 #include<TH2D.h>
 
+class GH1D;
+
 class GH2D : public TH2D {
   public:
     GH2D();
@@ -42,8 +44,8 @@ class GH2D : public TH2D {
 
     //TH1D* ProjectionX(const char *name="_px",int firstybin=0,int lastybin=-1, Option_t *option="") const;    
     //TH1D* ProjectionY(const char *name="_py",int firstybin=0,int lastybin=-1, Option_t *option="") const;    
-    TH1D* ProjectionX(std::string name="_px",double firstybin=0,double lastybin=-1, Option_t *option="") const;    
-    TH1D* ProjectionY(std::string name="_py",double firstybin=0,double lastybin=-1, Option_t *option="") const;    
+    GH1D* ProjectionX(double low=sqrt(-1),double high=sqrt(-1), Option_t *option="");    
+    GH1D* ProjectionY(double low=sqrt(-1),double high=sqrt(-1), Option_t *option="");    
 
 
   private:

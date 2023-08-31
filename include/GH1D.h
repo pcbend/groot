@@ -44,6 +44,9 @@ class GH1D : public TH1D { //, public TQObject {
       kBackgroundRemoved = BIT(22)
     };
 
+  public:
+    void SetParent(TH2 *h) { fParent = h; }
+
 
   private:
     void Init();

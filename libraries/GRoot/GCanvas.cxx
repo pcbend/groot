@@ -8,6 +8,7 @@
 #include <GCommands.h>
 #include <GMarker.h>
 #include <GH1D.h>
+#include <GH2D.h>
 
 #include <KeySymbols.h>
 #include <TH1.h>
@@ -521,43 +522,21 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
     case kKey_x:
       gHist = GrabHist();
       if(gHist && gHist->GetDimension()==2) {
-        TVirtualPad *current = gPad;
-        //remember current range.  
-        int yfirst = gHist->GetYaxis()->GetFirst();
-        int ylast  = gHist->GetYaxis()->GetLast();
-
-        double xlow = gHist->GetXaxis()->GetBinLowEdge(gHist->GetXaxis()->GetFirst());
-        double xhigh  = gHist->GetXaxis()->GetBinUpEdge(gHist->GetXaxis()->GetLast());
-        //unzoom x
-        gHist->GetXaxis()->UnZoom();
-        GH1D *p = new GH1D(*(dynamic_cast<TH2D*>(gHist)->ProjectionX(Form("%s_x_%i_%i",gHist->GetName(),yfirst,ylast),
-                                                                          yfirst,ylast)));
-        //reset x
-        gHist->GetXaxis()->SetRangeUser(xlow,xhigh);        
-        p->GetXaxis()->SetRangeUser(xlow,xhigh);        
-        GCanvas *c = new GCanvas;
-        p->Draw();
+        if(gHist->InheritsFrom(GH2D::Class())) {
+          GCanvas * c = new GCanvas;
+          // if not, make it...
+          dynamic_cast<GH2D*>(gHist)->ProjectionX()->Draw();
+        }
       }
       break;
     case kKey_y:
       gHist = GrabHist();
       if(gHist && gHist->GetDimension()==2) {
-        TVirtualPad *current = gPad;
-        //remember current range.  
-        int xfirst = gHist->GetXaxis()->GetFirst();
-        int xlast  = gHist->GetXaxis()->GetLast();
-
-        double ylow   = gHist->GetYaxis()->GetBinLowEdge(gHist->GetYaxis()->GetFirst());
-        double yhigh  = gHist->GetYaxis()->GetBinUpEdge(gHist->GetYaxis()->GetLast());
-        //unzoom y
-        gHist->GetYaxis()->UnZoom();
-        GH1D *p = new GH1D(*(dynamic_cast<TH2D*>(gHist)->ProjectionY(Form("%s_y_%i_%i",gHist->GetName(),xfirst,xlast),
-                                                                          xfirst,xlast)));
-        //reset y
-        gHist->GetYaxis()->SetRangeUser(ylow,yhigh);        
-        p->GetXaxis()->SetRangeUser(ylow,yhigh);  //on the projection, y is now x
-        GCanvas *c = new GCanvas;
-        p->Draw();
+        if(gHist->InheritsFrom(GH2D::Class())) {
+          GCanvas * c = new GCanvas;
+          // if not, make it...
+          dynamic_cast<GH2D*>(gHist)->ProjectionY()->Draw();
+        }
       }
       break;
     default:

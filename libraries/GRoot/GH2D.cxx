@@ -1,5 +1,6 @@
 
 #include<GH2D.h>
+#include<GH1D.h>
 
 GH2D::GH2D() : TH2D() { }
 GH2D::GH2D(std::string name,int nbinsx,double xlow,double xup
@@ -71,13 +72,65 @@ void GH2D::Paint(Option_t *opt) {
   return;
 }
 
-TH1D* GH2D::ProjectionX(std::string name,double firstybin,double lastybin,Option_t *option) const { 
-  TH1D* projection=0;
+GH1D* GH2D::ProjectionX(double low,double up,Option_t *option) { 
+  GH1D* projection=0;
+  if(low>up) std::swap(low,up);
+  //current x-range ;
+  double first = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
+  double last  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
+ 
+  //unzoom y - otherwise the projection will be truncated.
+  GetXaxis()->UnZoom();
+
+  int blow,bup;
+  if(low!=low) 
+    blow = GetYaxis()->GetFirst();
+  else 
+    blow = GetYaxis()->FindBin(low);
+  if(up!=up) 
+    bup  = GetYaxis()->GetLast();
+  else
+    bup  = GetYaxis()->FindBin(up);
+
+  std::string pname = Form("%s_x_%i_%i",GetName(),blow,bup);
+  projection = new GH1D(*(dynamic_cast<TH2D*>(this)->ProjectionX(pname.c_str(),blow,bup)));
+  projection->SetParent(this);  
+
+  //reset x axis.
+  GetXaxis()->SetRangeUser(first,last);        
+  projection->GetXaxis()->SetRangeUser(first,last);        
+
   return projection;
 }    
 
-TH1D* GH2D::ProjectionY(std::string name,double firstybin,double lastybin,Option_t *option) const { 
-  TH1D* projection=0;
+GH1D* GH2D::ProjectionY(double low,double up,Option_t *option) { 
+  GH1D* projection=0;
+  if(low>up) std::swap(low,up);
+  //current y-range ;
+  double first = GetYaxis()->GetBinLowEdge(GetYaxis()->GetFirst());
+  double last  = GetYaxis()->GetBinUpEdge(GetYaxis()->GetLast());
+ 
+  //unzoom y - otherwise the projection will be truncated.
+  GetYaxis()->UnZoom();
+
+  int blow,bup;
+  if(low!=low) 
+    blow = GetXaxis()->GetFirst();
+  else 
+    blow = GetXaxis()->FindBin(low);
+  if(up!=up) 
+    bup  = GetXaxis()->GetLast();
+  else
+    bup  = GetXaxis()->FindBin(up);
+
+  std::string pname = Form("%s_y_%i_%i",GetName(),blow,bup);
+  projection = new GH1D(*(dynamic_cast<TH2D*>(this)->ProjectionY(pname.c_str(),blow,bup)));
+  projection->SetParent(this);  
+
+  //reset y axis.
+  GetYaxis()->SetRangeUser(first,last);        
+  projection->GetXaxis()->SetRangeUser(first,last);        
+
   return projection;
 } 
 
