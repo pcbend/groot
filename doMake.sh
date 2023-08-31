@@ -5,7 +5,7 @@ if [ ! -d "./build" ]; then
   mkdir build
 fi
 cd build
-cmake ..
+cmake ..  || cmake3 ..
 
 if [ $# -gt 0 ]; then   
   re='^[0-9]+$'
