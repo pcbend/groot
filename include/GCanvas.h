@@ -15,11 +15,12 @@ class GCanvas : public TCanvas {
     void HandleInput(EEventType event, int px, int py) override; 
     bool HandleMouseButton1(EEventType event, int px, int py);
     bool HandleKeyPress(EEventType event, int px, int py);
-    bool HandleArrowPress(EEventType event, int px, int py);
+    bool HandleArrowPress(EEventType event, int px, int py,int mask);
  
     //void ProcessedEvent(int event, int x, int y, TObject *selected) override;
     void EventProcessed(Event_t *event);
 
+    void UpdateAllPads();
  
   //private:
     void Init(const char* name="",const char* title="");

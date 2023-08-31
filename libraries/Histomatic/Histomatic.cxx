@@ -9,6 +9,7 @@
 #include <TH2.h>
 #include <TFrame.h>
 #include <THStack.h>
+#include <TGraph.h>
 
 #include <GCanvas.h>
 #include <GH1D.h>
@@ -93,6 +94,7 @@ const TGPicture *GListTree::GetIcon(TClass *cls) {
 void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) { 
   //printf("single clicked\n");
   //printf("mask: 0x%08x\n",mask);
+  //printf("kKeyShiftMask: 0x%08x\n",kKeyShiftMask); 
   //printf("current: %s\n",item->GetText());
   //printf("parent: 0x%p\n",item->GetParent());
   //printf(" x = %i \t y = %i\n",x,y); 
@@ -100,10 +102,8 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
   //  printf("last:    %s\n",fLastSelected->GetText());
 
   ClearActive(); // clears fSelected.
-  if(mask == kKeyShiftMask &&
+  if((mask&kKeyShiftMask)  &&
      fLastSelected         && 
-     IsDrawable(item)      && 
-     IsDrawable(fLastSelected) &&
      item->GetParent() == fLastSelected->GetParent()) {
 
     TGListTreeItem *pitem = fLastSelected; 
@@ -111,7 +111,6 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
     while(pitem != item) {
       pitem->SetActive(true);
       fSelected.push_back(pitem);
-      //item->CheckItem(true);
       //printf("\t %s \n",pitem->GetText());
       if(y<fLastY) {
         pitem = pitem->GetPrevSibling();
@@ -120,15 +119,7 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
       }
     }
   } 
-  //else {
-    fSelected.push_back(item);
-  //}
-  //printf("%s\n",programPath().c_str()); 
-  //printf("%s\n",GetFullPath(item).c_str()); 
-  //TObject *obj = GetObject(item);
-  //if(fHistomatic) fHistomatic->doDraw(obj);
-
-
+  fSelected.push_back(item);
   fLastSelected = item;
   fLastY = y;
   fLastX = x;
@@ -143,7 +134,12 @@ void GListTree::DoubleClicked(TGListTreeItem *item, int btn, int x, int y) {
   //TObject *obj = GetObject(item);
   //THStack *hs = new THStack;
   //bool oneCanvas = true 
-  
+ 
+  if(fSelected.size())
+    fHistomatic->doDraw(fSelected);
+  return;
+
+/*
   if(fSelected.size()==1) {
     TObject *obj = GetObject(item);
     if(fHistomatic) fHistomatic->doDraw(obj);
@@ -155,6 +151,7 @@ void GListTree::DoubleClicked(TGListTreeItem *item, int btn, int x, int y) {
     }
     if(fHistomatic) fHistomatic->doDraw(list);
   }
+*/
   //if(GetObject(item)->InheritsFrom(TH1::Class()) && fHistomatic) fHistomatic->doDraw(hs);
 } 
 
@@ -165,27 +162,47 @@ void GListTree::DoubleClicked(TGListTreeItem *item, int btn, int x, int y) {
 //  if(fHistomatic) fHistomatic->doDraw(obj);
 //} 
 
-std::string GListTree::GetFullPath(TGListTreeItem *item) const {
+std::string GListTree::GetPath(TGListTreeItem *item) const {
   if(!item) return "";
   std::vector<std::string> path;
   while(item) {
     path.push_back(item->GetText());
     item = item->GetParent();
   }
+  if(path.size()==1) return "";
+  //last element contains the filename, let's drop it.
+  path.pop_back();
   std::string fullPath = path.back();
   std::vector<std::string>::reverse_iterator it;
   for(it=path.rbegin()+1;it!=path.rend();++it) {
     fullPath += "/";
     fullPath += *it;
   } 
+  //printf("GETFULLPATH: %s\n",fullPath.c_str());
   return fullPath;    
+}
+
+std::string GListTree::GetFileName(TGListTreeItem *item) const {
+  if(!item) return "";
+  std::vector<std::string> path;
+  while(item) {
+    path.push_back(item->GetText());
+    item = item->GetParent();
+  }
+  return path.back(); 
+}
+
+std::string GListTree::GetFullPath(TGListTreeItem *item) const {
+  std::string path = GetFileName(item);
+  path += ":";
+  path += GetPath(item);
+  return path;
 }
 
 TObject *GListTree::GetObject(TGListTreeItem *item) const {
   TObject *obj=0;
-  std::string   path = GetFullPath(item);
-  std::string   file = path.substr(0,path.find_first_of("/"));
-  path = path.substr(path.find_first_of("/")+1);
+  std::string   path = GetPath(item);
+  std::string   file = GetFileName(item);
   TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(file.c_str());
   //printf("file: %s\n",file.c_str());
   //printf("path: %s\n",path.c_str());
@@ -193,6 +210,25 @@ TObject *GListTree::GetObject(TGListTreeItem *item) const {
   //printf("obj: 0x%p\n",obj);
   return obj;
 }
+
+
+TKey *GListTree::GetKey(TGListTreeItem *item) const {
+  TKey *key=0;
+  std::string   path = GetPath(item);
+  std::string   file = GetFileName(item);
+  TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject(file.c_str());
+  if(!f || path.length()==0) return key;  
+  TDirectory *current = gDirectory;
+  std::vector<std::string> parts = tokenizeString(path);    
+  f->cd();
+  for(size_t i=0;i<parts.size()-1;i++) {
+    f->cd(parts.at(i).c_str());
+  }
+  key = gDirectory->FindKey(parts.back().c_str());
+  current->cd(); 
+  return key;
+}
+
 
 /*
 TList *GListTree::GetAllActive(TGListTreeItem *item) {
@@ -407,74 +443,90 @@ void Histomatic::buttonAction() {
 
   printf("button ACTION!!! \n");
 
-
 }
 
-void Histomatic::doDraw(TObject *obj,Option_t *opt) {
-  TString sopt(opt);
-  //printf("obj: 0x%p\n",obj);
-  bool canDraw = false;
-  if(obj) {
-    //obj->Print();
-    if(obj->InheritsFrom(TH1::Class())) { 
-      canDraw=true; 
-      if(obj->InheritsFrom(TH1::Class())){
-        if((obj->InheritsFrom(TH1D::Class()) || obj->InheritsFrom(TH1F::Class())) &&
-           !obj->InheritsFrom(GH1D::Class())) {
-          obj = new GH1D(*((TH1D*)obj));
-        } else if((obj->InheritsFrom(TH2D::Class()) || obj->InheritsFrom(TH2F::Class())) &&
-                 !obj->InheritsFrom(GH2D::Class())) {
-          obj = new GH2D(*((TH2D*)obj));
-          sopt.Append("colz");
+void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
+  
+  TList hList;
+  for(auto item=selected.begin();item!=selected.end();item++) {
+    
+    //std::string   file = fGListTree->GetFileName(*item);
+    //std::string   path = fGListTree->GetPath(*item);
+    TKey          *key = fGListTree->GetKey(*item);  
+    /*
+    TObject      *obj  = fGListTree->GetObject(*item);
+    if(key)
+      printf("key:      %s\n",key->GetClassName());
+    if(obj)
+      printf("obj:      %s\n",obj->GetName());
+    printf("file:     %s\n",file.c_str());
+    printf("path:     %s\n",path.c_str());
+    printf("fullPath: %s\n\n",fGListTree->GetFullPath(*item).c_str());
+    */
+    if(!key) continue;
+    bool drawable =false;
+    if(TClass::GetClass(key->GetClassName())->InheritsFrom(TH1::Class())) // || 
+       //TClass::GetClass(key->GetClassName())->InheritsFrom(TGraph::Class())) 
+      drawable = true;
+    if(drawable) {
+      std::string fullPath = fGListTree->GetFullPath(*item);
+      if(fObjReadMap.find(fullPath) == fObjReadMap.end()) { //obj not in map.
+        TObject *obj = fGListTree->GetObject(*item);
+        if(obj) {
+          if(obj->InheritsFrom(TH2D::Class())) {
+            fObjReadMap[fullPath] = new GH2D(*static_cast<TH2D*>(obj));
+          } else if(obj->InheritsFrom(TH1D::Class())) {
+            fObjReadMap[fullPath] = new GH1D(*static_cast<TH1D*>(obj));
+          } else if(obj->InheritsFrom(TH1F::Class())) {
+            fObjReadMap[fullPath] = new GH1D(*static_cast<TH1F*>(obj));
+          } else {
+            fObjReadMap[fullPath] = obj;
+          }
         }
       }
-    }
+      hList.Add(fObjReadMap[fullPath]);
+    }    
   }
-  if(canDraw) {
-    GCanvas *g = new GCanvas;
-    obj->Draw(sopt.Data());
-    doUpdate(); 
-  }
-}
+  //TODO - do something with the opt....
 
-void Histomatic::doDraw(TList *list,Option_t *opt) {
-  if(!list) return;
-  TString sopt(opt);
-  bool canDraw = false;
+  if(hList.GetSize()<1) return;
+
+  bool only1D = true;
   THStack hs;
-  TIter iter(list);
+  TIter iter(&hList);
+
+  GCanvas *g = 0;
   while(TObject *obj = iter.Next()) {
-    if(obj->InheritsFrom(TH1::Class())) { 
-      canDraw=true; 
-      if(obj->InheritsFrom(TH1::Class())){
-        if(obj->InheritsFrom(TH1D::Class()) &&
-           !obj->InheritsFrom(GH1D::Class())) {
-          TH1 *h  = new GH1D(*((TH1D*)obj));
-          hs.Add(h);
-        } else if(obj->InheritsFrom(TH2D::Class()) && 
-                 !obj->InheritsFrom(GH1D::Class())) {
-          TH1 *h = new GH2D(*((TH2D*)obj));
-          hs.Add(h);
-          //sopt.Append("colz");
-        }
-      }
+    if(obj->InheritsFrom(TH2::Class())) { 
+      only1D = false;
+    }
+    if(obj->InheritsFrom(TH1::Class())) { //TODO: also draw non-histograms....
+      //printf("obj = 0x%p\n",obj);
+      hs.Add(dynamic_cast<TH1*>(obj));  
     }
   }
-  if(canDraw) {
-    GCanvas *g = new GCanvas;
-    if(hs.GetNhists()<5) {
-      g->Divide(1,hs.GetNhists());
+//return;
+
+  if(only1D) {
+    if(!g)
+      g = new GCanvas;
+    if(hs.GetNhists()<=5) {
+      g->Divide(1,hs.GetNhists(),0.01,0);
       TIter nexth(hs.GetHists());
       int cpad=1;
       while(TObject *h=nexth.Next()) {
         g->cd(cpad++);
         h->Draw();
       }
-    } else {  
+    } else {
       hs.Draw("pads");
     }
-    doUpdate(); 
+  } else {  
+    if(!g)
+      g = new GCanvas;
+    hs.Draw("pads");
   }
+  doUpdate(); 
 }
 
 void Histomatic::doUpdate() {
@@ -483,7 +535,9 @@ void Histomatic::doUpdate() {
     gPad->Update();
   }
 
+
 }
+
 
 
 //TList *Histomatic::GetAllActive() { return fGListTree->GetAllActive(); } 

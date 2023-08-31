@@ -19,6 +19,7 @@
 
 #include<exception>
 #include<iostream>
+#include<map>
 
 class Histomatic;
 
@@ -51,8 +52,11 @@ class GListTree : public TGListTree {
   void Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) override; 
   void DoubleClicked(TGListTreeItem *item, int btn, int x, int y) override; 
 
+  std::string GetPath(TGListTreeItem *item) const;
   std::string GetFullPath(TGListTreeItem *item) const;
+  std::string GetFileName(TGListTreeItem *item) const;
   TObject*    GetObject(TGListTreeItem *item) const;
+  TKey*       GetKey(TGListTreeItem *item) const;
 
   bool HandleButton(Event_t *event) override;
 
@@ -86,8 +90,9 @@ class Histomatic { //: public TGMainFrame {
 
   //private:
     void doUpdate();
-    void doDraw(TObject*,Option_t *opt="");
-    void doDraw(TList*,Option_t *opt="");
+    //void doDraw(TObject*,Option_t *opt="");
+    //void doDraw(TList*,Option_t *opt="");
+    void doDraw(std::vector<TGListTreeItem*> selected,Option_t *opt="");
 
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;
@@ -144,7 +149,7 @@ class Histomatic { //: public TGMainFrame {
     bool fDrawNew;
 
     TList *fTrash;
-
+    std::map<std::string, TObject*> fObjReadMap;
 
   //ClassDefOverride(Histomatic,0)
   ClassDef(Histomatic,0)

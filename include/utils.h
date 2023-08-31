@@ -10,13 +10,26 @@
 #include <fstream> 
 #include <sstream>
 #include <limits.h>
-
+#include <string>
 
 bool fileExists(const char *filename){
   //std::ifstream(filename);
   struct stat buffer;
   return (stat(filename,&buffer)==0);
 }
+
+std::vector<std::string> tokenizeString(std::string path,char delimiter='/') { 
+  std::istringstream ss(path);
+  std::string token;
+  std::vector<std::string> parts;
+  //printf("fullpath = %s\n",path.c_str());
+  while(std::getline(ss,token,delimiter)) {
+    //printf("token = %s\n",token.c_str());
+    parts.push_back(token);
+  }
+  return parts;
+}
+
 
 #ifdef __linux__
 #include <unistd.h>
