@@ -484,7 +484,7 @@ Double_t GFunctions::Bateman(Double_t *x, Double_t *par, Int_t gen=1){
 //  return (lam.back())*(A*mul*sum);
 //}
 
-Double_t GFunction::DecayChain(double *x, double *par){
+Double_t GFunctions::DecayChain(double *x, double *par){
   // par[0] = generation of isotopes in the decay chain (parent = 1, daughter = 2 ...);
   // par[1] = activity;
   // par[i+2] = half-life of particle_i(i>0)
