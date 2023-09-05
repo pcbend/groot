@@ -41,13 +41,17 @@ class GH1D : public TH1D { //, public TQObject {
     int GetNbinsOriginal() const { return fOriginalBins; }
 
     enum EstatusBits {
-      kBackgroundRemoved = BIT(22)
+      kBackgroundRemoved = BIT(22),
+      kProjectionX       = BIT(23)
     };
+
+  public:
+    void SetParent(TH2 *h) { fParent = h;    }
+    TH2* GetParent() const { return fParent; }
 
 
   private:
     void Init();
-
 
   private:
     TH1D *fOriginal;    

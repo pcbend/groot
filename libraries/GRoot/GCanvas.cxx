@@ -8,6 +8,7 @@
 #include <GCommands.h>
 #include <GMarker.h>
 #include <GH1D.h>
+#include <GH2D.h>
 
 #include <KeySymbols.h>
 #include <TH1.h>
@@ -319,10 +320,10 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       break;
     case kKey_E:
       gHist = GrabHist();
-      if(true) {
+      if(gHist) {
         std::vector<GMarker*> markers;
-        if(gHist) 
-          markers = GMarker::GetAll(gHist);
+        //if(gHist) 
+        markers = GMarker::GetAll(gHist);
         double xlow,xhigh;
         if(markers.size()>1) {
           xlow  = markers.at(0)->X();
@@ -427,8 +428,27 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         handled = true;
       }  
       break;
-
-
+    case kKey_p:
+      gHist = GrabHist();
+      if(gHist && gHist->InheritsFrom(GH1D::Class())) {
+        GH1D *ggHist = (GH1D*)gHist;
+        if(ggHist->GetParent() && ggHist->GetParent()->InheritsFrom(GH2D::Class())) {
+         std::vector<GMarker*> markers = GMarker::GetAll(ggHist);
+          if(markers.size()>1) {
+            double xlow  = markers.at(0)->X();
+            double xhigh = markers.at(1)->X();
+            if(xlow>xhigh) std::swap(xlow,xhigh);
+            GH1D *proj=0;
+            if(TestBit(GH1D::kProjectionX))
+              proj = dynamic_cast<GH2D*>(ggHist->GetParent())->ProjectionY(xlow,xhigh);
+            else
+              proj = dynamic_cast<GH2D*>(ggHist->GetParent())->ProjectionX(xlow,xhigh);
+            GMarker::RemoveAll(ggHist);
+            GCanvas *c = new GCanvas;
+            proj->Draw();            
+          }
+        }
+      }
       break;
     case kKey_w:
       gHist = GrabHist();
@@ -517,6 +537,26 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       }
       doUpdate = true;
       handled  = true;
+      break;
+    case kKey_x:
+      gHist = GrabHist();
+      if(gHist && gHist->GetDimension()==2) {
+        if(gHist->InheritsFrom(GH2D::Class())) {
+          GCanvas * c = new GCanvas;
+          // if not, make it...
+          dynamic_cast<GH2D*>(gHist)->ProjectionX()->Draw();
+        }
+      }
+      break;
+    case kKey_y:
+      gHist = GrabHist();
+      if(gHist && gHist->GetDimension()==2) {
+        if(gHist->InheritsFrom(GH2D::Class())) {
+          GCanvas * c = new GCanvas;
+          // if not, make it...
+          dynamic_cast<GH2D*>(gHist)->ProjectionY()->Draw();
+        }
+      }
       break;
     default:
       break;
