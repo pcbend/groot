@@ -439,7 +439,7 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
             double xhigh = markers.at(1)->X();
             if(xlow>xhigh) std::swap(xlow,xhigh);
             GH1D *proj=0;
-            if(TestBit(GH1D::kProjectionX))
+				 		if(ggHist->TestBit(GH1D::kProjectionX))
               proj = dynamic_cast<GH2D*>(ggHist->GetParent())->ProjectionY(xlow,xhigh);
             else
               proj = dynamic_cast<GH2D*>(ggHist->GetParent())->ProjectionX(xlow,xhigh);
