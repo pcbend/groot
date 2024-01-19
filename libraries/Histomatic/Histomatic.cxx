@@ -52,6 +52,8 @@ GListTree::~GListTree() {
 }
 
 void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
+  if(obj->InheritsFrom(TTree::Class())) return;
+
   //bool checkBox = false;
   //if(obj->InheritsFrom(TH1::Class()))
   //  checkBox = true;
