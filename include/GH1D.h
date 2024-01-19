@@ -37,6 +37,8 @@ class GH1D : public TH1D { //, public TQObject {
 
     TH1  *ShowBackground(int niter=12,Option_t* opt="same") override;
     void Background();
+    void PeakSearch(double threshold=0.05,double sigma=1,Option_t *opt="") { }  
+
 
     int GetNbinsOriginal() const { return fOriginalBins; }
 
@@ -46,16 +48,25 @@ class GH1D : public TH1D { //, public TQObject {
     };
 
   public:
-    void SetParent(TH2 *h) { fParent = h;    }
-    TH2* GetParent() const { return fParent; }
+    void SetParent(TH2 *h)    { fParent = h;    }
+		TH2* GetParent() const    { return fParent;  }
 
+		void SetSubtract(TH1D *h,double scale=-1); 
+		void SetScale(double scale) { fScale = scale; } 
+		void DoSubtract();
 
   private:
     void Init();
+		void SetOriginal();
+		void ResetOriginal();
 
   private:
     TH1D *fOriginal;    
-    int  fOriginalBins;
+		
+		TH1D *fSubtract;
+		double fScale;
+
+		int  fOriginalBins;
 
     TH2  *fParent;
 

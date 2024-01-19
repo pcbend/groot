@@ -11,9 +11,12 @@
 #include <THStack.h>
 #include <TGraph.h>
 
+#include <GObjectManager.h>
 #include <GCanvas.h>
 #include <GH1D.h>
 #include <GH2D.h>
+
+
 
 Histomatic *gHistomatic=0;
 
@@ -470,21 +473,28 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
       drawable = true;
     if(drawable) {
       std::string fullPath = fGListTree->GetFullPath(*item);
-      if(fObjReadMap.find(fullPath) == fObjReadMap.end()) { //obj not in map.
+      if(GetListTree()->fObjReadMap.find(fullPath) == GetListTree()->fObjReadMap.end()) { //obj not in map.
         TObject *obj = fGListTree->GetObject(*item);
         if(obj) {
           if(obj->InheritsFrom(TH2D::Class())) {
-            fObjReadMap[fullPath] = new GH2D(*static_cast<TH2D*>(obj));
+            GetListTree()->fObjReadMap[fullPath] = new GH2D(*static_cast<TH2D*>(obj));
           } else if(obj->InheritsFrom(TH1D::Class())) {
-            fObjReadMap[fullPath] = new GH1D(*static_cast<TH1D*>(obj));
+            GH1D *gh1d = new GH1D(*static_cast<TH1D*>(obj));
+            gh1d->SetTitle(fullPath.c_str());
+            GetListTree()->fObjReadMap[fullPath] = gh1d;
+            printf("I AM HERE\n");
+            //GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1D*>(obj));
           } else if(obj->InheritsFrom(TH1F::Class())) {
-            fObjReadMap[fullPath] = new GH1D(*static_cast<TH1F*>(obj));
+            GH1D *gh1d = new GH1D(*static_cast<TH1F*>(obj));
+            gh1d->SetTitle(fullPath.c_str());
+            printf("I AM HERE\n");
+            GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1F*>(obj));
           } else {
-            fObjReadMap[fullPath] = obj;
+            GetListTree()->fObjReadMap[fullPath] = obj;
           }
         }
       }
-      hList.Add(fObjReadMap[fullPath]);
+      hList.Add(GetListTree()->fObjReadMap[fullPath]);
     }    
   }
   //TODO - do something with the opt....

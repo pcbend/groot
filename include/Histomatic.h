@@ -44,23 +44,23 @@ class GListTree : public TGListTree {
     GListTree(TGCanvas *parent=0,Histomatic *hist=0);
     ~GListTree();
 
-  void ClearActive();
+	  void ClearActive();
 
-  void InsertObject(TObject *obj,TGListTreeItem *parent=0);
-  const TGPicture *GetIcon(TClass *cls);
+  	void InsertObject(TObject *obj,TGListTreeItem *parent=0);
+  	const TGPicture *GetIcon(TClass *cls);
   
-  void Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) override; 
-  void DoubleClicked(TGListTreeItem *item, int btn, int x, int y) override; 
+ 	 	void Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) override; 
+ 	 	void DoubleClicked(TGListTreeItem *item, int btn, int x, int y) override; 
 
-  std::string GetPath(TGListTreeItem *item) const;
-  std::string GetFullPath(TGListTreeItem *item) const;
-  std::string GetFileName(TGListTreeItem *item) const;
-  TObject*    GetObject(TGListTreeItem *item) const;
-  TKey*       GetKey(TGListTreeItem *item) const;
+  	std::string GetPath(TGListTreeItem *item) const;
+ 		std::string GetFullPath(TGListTreeItem *item) const;
+  	std::string GetFileName(TGListTreeItem *item) const;
+ 	 	TObject*    GetObject(TGListTreeItem *item) const;
+  	TKey*       GetKey(TGListTreeItem *item) const;
 
-  bool HandleButton(Event_t *event) override;
+  	bool HandleButton(Event_t *event) override;
 
-  bool IsDrawable(const TGListTreeItem *item) const;
+  	bool IsDrawable(const TGListTreeItem *item) const;
 
   private:
     TGCanvas   *fCanvas;
@@ -70,10 +70,16 @@ class GListTree : public TGListTree {
     int fLastX; 
 
     std::vector<TGListTreeItem*> fSelected;
-    Histomatic *fHistomatic;
+  public:  
+		std::map<std::string, TObject*> fObjReadMap;
+	private:
+		Histomatic *fHistomatic;
   
   ClassDefOverride(GListTree,0)
 };
+
+
+
 
 class Histomatic { //: public TGMainFrame {
   //RQ_OBJECT("Histomatic")
@@ -84,7 +90,8 @@ class Histomatic { //: public TGMainFrame {
     Histomatic();
     virtual ~Histomatic();    
 
-    TGListTree *GetListTree() { return fGListTree; }
+    //TGListTree *GetListTree() { return fGListTree; }
+    GListTree *GetListTree() { return fGListTree; }
 
     void buttonAction();
 
@@ -149,7 +156,7 @@ class Histomatic { //: public TGMainFrame {
     bool fDrawNew;
 
     TList *fTrash;
-    std::map<std::string, TObject*> fObjReadMap;
+    //std::map<std::string, TObject*> fObjReadMap;
 
   //ClassDefOverride(Histomatic,0)
   ClassDef(Histomatic,0)

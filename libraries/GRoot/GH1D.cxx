@@ -19,34 +19,34 @@ GH1D::GH1D(std::string name,int nbinsx,double xlow, double xhigh) :
   GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { }
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const double *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0), fSubtract(0)   { 
   Init();
 }
  
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const float  *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0), fSubtract(0)    { 
   Init();
 } 
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,double xlow, double xhigh) :
-  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0)    { 
+  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0), fSubtract(0)     { 
   Init();
 }
 
 //GH1D::GH1D(const GH1D &h1d);
 GH1D::GH1D(const TH1D &h1d) :
-  TH1D(h1d), fOriginal(0), fParent(0)    { 
+  TH1D(h1d), fOriginal(0), fParent(0), fSubtract(0)     { 
   Init();
 } 
 
 GH1D::GH1D(const TH1F &h1f) :
-   fOriginal(0), fParent(0)    {  
+   fOriginal(0), fParent(0), fSubtract(0)     {  
   h1f.Copy(*this); 
   Init();
 } 
 
 GH1D::GH1D(const TVectorD &v) :
-  TH1D(v), fOriginal(0), fParent(0)    { 
+  TH1D(v), fOriginal(0), fParent(0), fSubtract(0)     { 
   Init();
 }
 
@@ -54,11 +54,15 @@ GH1D::~GH1D() {
   //printf("GH1D deleted\n"); fflush(stdout);  
   if(fOriginal)
     delete fOriginal;
+	if(fSubtract)
+		delete fSubtract;
 } 
 
 void GH1D::Init() { 
-  this->SetBit(kNoTitle);
+  //this->SetBit(kNoTitle);
+	SetOriginal();
 }
+
 
 
 void GH1D::Paint(Option_t *opt) {
@@ -106,13 +110,42 @@ TH1* GH1D::DrawNormalized(Option_t *opt, double norm) const {
   return TH1D::DrawNormalized(opt,norm);
 } 
 
+void GH1D::SetOriginal()   {
+	if(!fOriginal) {
+  	fOriginal = new TH1D();  
+    fOriginal->SetDirectory(0);
+    fOriginalBins = GetNbinsX();
+    dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
+    fOriginal->SetName(Form("_%s_copy",this->GetName()));
+  }
+}
+
+void GH1D::ResetOriginal() { 
+
+  if(!fOriginal) return;
+  //double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
+  //double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
+  std::string fname = this->GetName();
+  //printf("Unbinng:\n");
+  //printf("name: %s\n",fname.c_str());
+  //printf("current  bins = %i\n",GetNbinsX());  
+  //printf("original bins = %i\n\n",GetNbinsOriginal());  
+
+  TDirectory *current = this->GetDirectory();
+  fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
+  this->SetName(fname.c_str());
+  //printf("name2 = %s\n",this->GetName());
+  this->SetDirectory(current);
+  //printf("name3 = %s\n",this->GetName());
+} 
+
 
 TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
   TString sname(newname);
   //find the current viewing range
   //double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
   //double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
-
+  /*
   if(sname.Length()==0) {
     // we are not going to return a new histogram
     // so lets copy the current histogram to allow us to unbin latter...
@@ -125,6 +158,7 @@ TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
       fOriginal->SetDirectory(0);
     }
   }
+	*/
   TH1 *temp = TH1D::Rebin(ngroup,newname,xbins);
   //printf("Rebinng:\n");
   //printf("current  bins = %i\n",GetNbinsX());  
@@ -140,20 +174,24 @@ void GH1D::Unbin(int ngroup) {
   if(!fOriginal) return;
   //double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
   //double xup  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
-  std::string fname = this->GetName();
+  //std::string fname = this->GetName();
   //printf("Unbinng:\n");
   //printf("name: %s\n",fname.c_str());
   //printf("current  bins = %i\n",GetNbinsX());  
   //printf("original bins = %i\n\n",GetNbinsOriginal());  
 
   int oldBins = GetNbinsX();
-
+	
+	/*
   TDirectory *current = this->GetDirectory();
   fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
   this->SetName(fname.c_str());
   //printf("name2 = %s\n",this->GetName());
   this->SetDirectory(current);
   //printf("name3 = %s\n",this->GetName());
+	*/
+
+	ResetOriginal();
 
   if(ngroup>0) {
     int aim = oldBins*ngroup;
@@ -165,6 +203,50 @@ void GH1D::Unbin(int ngroup) {
       }
     }
   }
+}
+
+void GH1D::SetSubtract(TH1D *h, double scale) {
+	
+  if(!fOriginal) {
+    fOriginal = new TH1D();  
+    fOriginal->SetDirectory(0);
+    fOriginalBins = GetNbinsX();
+    dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
+    fOriginal->SetName(Form("_%s_copy",this->GetName()));
+    fOriginal->SetDirectory(0);
+  }
+
+
+	if(fSubtract) {
+		printf("DELETING SUBTRACT\n");
+		fflush(stdout);
+		delete fSubtract;
+	}
+	fSubtract = new TH1D();
+	fSubtract->SetDirectory(0);
+	h->Copy(*fSubtract);
+	fSubtract->SetName(Form("%s_%s",this->GetName(),h->GetName()));
+	fSubtract->SetDirectory(0);
+
+	SetScale(scale);
+
+	DoSubtract();
+}
+
+void GH1D::DoSubtract() {
+	if(!fOriginal || !fSubtract)
+		return;
+	
+  std::string fname = this->GetName();
+  TDirectory *current = this->GetDirectory();
+  fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
+  this->SetName(fname.c_str());
+  //printf("name2 = %s\n",this->GetName());
+  this->SetDirectory(current);
+  //printf("name3 = %s\n",this->GetName());
+
+	this->Add(fSubtract,fScale);
+
 }
 
 
