@@ -21,6 +21,9 @@ GMarker::~GMarker() {
 void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   if(!h) return;
   fHist = h;
+  x = fHist->GetBinLowEdge(fHist->FindBin(x));
+  
+
   SetX1(x);
   SetX2(x);
   fX =x;  

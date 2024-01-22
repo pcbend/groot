@@ -121,7 +121,7 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     case kButton1Down:
     case kButton1Up:
     case kButton1Double:
-      printf("clicked on %s\n",GetSelected()->IsA()->GetName());
+      //printf("clicked on %s\n",GetSelected()->IsA()->GetName());
       if(GetSelected()->InheritsFrom(TH1::Class()) ||
          GetSelected()->InheritsFrom(TFrame::Class()) )
         handled = HandleMouseButton1(event,px,py);
@@ -358,7 +358,7 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
           if(PhotoPeakFit(gHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
             handled=true;
-            GMarker::RemoveAll(gHist);
+            //GMarker::RemoveAll(gHist);
           }
         }
       }
@@ -371,8 +371,23 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
           if(GausFit(gHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
             handled=true;
-            GMarker::RemoveAll(gHist);
+            //GMarker::RemoveAll(gHist);
           }
+        }
+      }
+      break;
+    case kKey_i:
+      gHist=GrabHist();
+      if(gHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+        if(markers.size()>1) {
+          double low  = markers.at(0)->X();
+          double high = markers.at(1)->X();
+          if(low>high) std::swap(low,high);    
+          double sum = gHist->Integral(gHist->FindBin(low),
+                                       gHist->FindBin(high));
+          printf( BLUE "\n\tSum [%i : %i] = %.01f   (bins)" RESET_COLOR  "\n",gHist->FindBin(low),gHist->FindBin(high),sum);
+          printf( BLUE "\tSum [%.01f : %.01f] = %.01f" RESET_COLOR  "\n",low,high,sum);
         }
       }
       break;
