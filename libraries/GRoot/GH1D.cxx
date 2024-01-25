@@ -66,6 +66,9 @@ void GH1D::Init() {
 
 
 void GH1D::Paint(Option_t *opt) {
+  TH1D::Paint(opt);
+
+  return;
   //printf("\t-in gh1d paint.\n");
   //fflush(stdout);
   TString sopt(opt);
