@@ -4,6 +4,7 @@
 #include<TVirtualPad.h>
 #include<TList.h>
 #include<TH1.h>
+#include<TGraph.h>
 #include<TF1.h>
 
 #include<GGaus.h>
@@ -24,6 +25,9 @@ GGaus *GausFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
   //TF1 *bg = new TF1(*mypeak->Background());
   //hist->GetListOfFunctions()->Add(bg);
 
+  double chi2 = GetChi2(hist,mypeak);
+  printf("Cal chi2 = %.03f\n",chi2);
+  
   return mypeak;
 }
 
@@ -40,6 +44,9 @@ GPeak *PhotoPeakFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
   //mypeak->Background()->Draw("SAME");
   //TF1 *bg = new TF1(*mypeak->Background());
   //hist->GetListOfFunctions()->Add(bg);
+
+  double chi2 = GetChi2(hist,mypeak);
+  printf("Cal chi2 = %.03f\n",chi2);
 
   return mypeak;
 }
@@ -111,4 +118,70 @@ TF1 *GrabFit(int i)  {
   }
   return fit;
 }
+
+
+
+double GetChi2(TObject *obj,TF1 *f=0) {
+  if(obj->InheritsFrom(TGraph::Class())) {
+    /*
+    TGraph *gr = (TGraph*)obj;
+    if(f==0) 
+      if(gr->GetListOfFunctions()->GetEntries()) 
+        f = (TF1*)gr->GetListOfFunctions()->Last();
+    if(f==0)
+      return sqrt(-1);
+
+    double low,high;
+    f->GetRange(low,high);
+    double *x = gr->GetX();
+    double *y = gr->GetY();
+    double chi2 = 0;
+    for(int i=0;i<11;i++){            //help 
+      double yf = fx->Eval(x[i]);
+      chi2 += pow((yf-y[i]),2)/y[i];
+    }
+
+    printf("chi2 = %f\n",chi2/10); // 10 is number of dat
+    */
+    //FIXME
+    return sqrt(-1);
+
+  } else if(obj->InheritsFrom(TH1::Class())) {
+    TH1 *hist = (TH1*)obj;
+    if(hist->GetDimension()>1)
+      return sqrt(-1);
+
+    if(f==0) 
+      if(hist->GetListOfFunctions()->GetEntries()) 
+        f = (TF1*)hist->GetListOfFunctions()->Last();
+    if(f==0)
+      return sqrt(-1);
+
+    double low,high;
+    f->GetRange(low,high);
+    int binLow = hist->FindBin(low);
+    int binHigh = hist->FindBin(high);
+
+    //double *x = gr->GetX();
+    //double *y = gr->GetY();
+    double chi2 = 0;
+    int pzero = 0;
+    for(int i=binLow;i<=binHigh;i++){            //help 
+      double obs = hist->GetBinContent(i);
+      if(obs==0){
+        pzero++;
+        continue;
+      }
+      double cal = f->Eval(hist->GetBinCenter(i));
+      chi2 += pow((obs-cal),2)/obs;
+    }
+    int NDF = binHigh-binLow+1-pzero;
+    //printf("chi2 = %f\n",chi2/(NDF-1)); // 10 is number of dat
+    
+    return chi2/(NDF-1);
+  }
+  return sqrt(-1);
+}
+
+
 

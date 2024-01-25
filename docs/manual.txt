@@ -1,0 +1,17 @@
+
+
+
+
+
+
+TH1:
+
+  Mouse:
+    Left: 
+          Select a pad;
+          If the pad was selected already and a TH1 exsits, add a marker on curse postion;
+    
+    Shift(hold) + Left: 
+          Select a pad;
+          If the pad was selected already and a TH1 exsits, copy the selected histogram and draw in a new canvas;
+          

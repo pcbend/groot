@@ -1,6 +1,7 @@
 
 #include <Histomatic.h>
 #include <utils.h>
+#include <vector>
 
 #include <TROOT.h>
 #include <TVirtualPad.h>

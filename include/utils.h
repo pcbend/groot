@@ -11,6 +11,7 @@
 #include <sstream>
 #include <limits.h>
 #include <string>
+#include <vector>
 
 bool fileExists(const char *filename){
   //std::ifstream(filename);

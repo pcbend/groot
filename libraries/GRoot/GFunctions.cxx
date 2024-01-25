@@ -435,4 +435,92 @@ Double_t GFunctions::PolarizationAsymmetry(Double_t *x,Double_t *par) {
 
 }
 
+Double_t GFunctions::Bateman(Double_t *x, Double_t *par, Int_t gen=1){
+  // gen: generation of one isotope in the decay chain (parent = 1, daughter = 2, granddaughter = 3 ...
+  // par[0] = partilce[gen] activity
+  // par[i] = half-life of particle[i] (gen >= i >= 1);
+
+  double mul = 1;
+  double sum = 0;
+  for(int i=1;i<=gen;i++){
+    double lami = 0.693/par[i];
+    if(i>=2 && (i<=gen-1)) mul = mul*lami;
+    double denominator = 1;
+    for(int j=1;j<=gen;j++){
+      if(j==i) continue;
+      double lamj = 0.693/par[j];
+      denominator = denominator * (lamj - lami);
+    }
+    sum += TMath::Exp(-lami*x[0])/denominator;
+  }
+  if(gen==1) return par[0]*mul*sum;
+  return (0.693/par[gen])*(par[0]*mul*sum);
+}
+
+//Double_t Bateman(double *x, double *par){
+//  // par[0] = generation of isotopes in the decay chain (parent = 1, daughter = 2 ...);
+//  // par[1] = activity;
+//  // par[i+2] = half-life of particle_i(i>0)
+//  int n = par[0];
+//  double A = par[1];
+//  std::vector<double> lam;
+//  for(int i=2;i<n+2;i++){
+//    lam.push_back(0.693/par[i]);
+//  }
+// 
+// 
+//  double mul = 1;
+//  double sum = 0;
+//  for(int i=0;i<lam.size();i++){
+//    if(i>=1 && (i<lam.size()-1)) mul = mul*lam[i];
+//    double denominator = 1;
+//    for(int j=0;j<lam.size();j++){
+//      if(j==i) continue;
+//      denominator = denominator * (lam[j] - lam[i]);
+//    }
+//    sum += TMath::Exp(-lam[i]*x[0])/denominator;
+//  }
+//  if(lam.size()==1) return A*mul*sum;
+//  return (lam.back())*(A*mul*sum);
+//}
+
+/*Double_t GFunction::DecayChain(double *x, double *par){
+  // par[0] = generation of isotopes in the decay chain (parent = 1, daughter = 2 ...);
+  // par[1] = activity;
+  // par[i+2] = half-life of particle_i(i>0)
+
+  int gen = par[0];
+  std::vector<double *> vec_par; 
+  for(int i=1;i<=gen;i++){
+    double subpar[i+1];
+    for(int j=0;j<=i;j++){
+      subpar[j] = par[j+1];
+    }
+    vec_par.push_back(subpar); 
+  }
+  
+  double sum = 0;
+  for(int i=1;i<=gen;i++){
+    sum += Bateman(x,vec_par[i-1],i);
+  }
+
+  return sum;
+}*/
+
+
+//Double_t GFunctions::DecayMap()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
