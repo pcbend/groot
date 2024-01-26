@@ -95,6 +95,8 @@ class Histomatic { //: public TGMainFrame {
 
     void buttonAction();
 
+    void SetStatusText(std::string text, int col) { fStatusBar->SetText(text.c_str(),col); }
+
   //private:
     void doUpdate();
     //void doDraw(TObject*,Option_t *opt="");

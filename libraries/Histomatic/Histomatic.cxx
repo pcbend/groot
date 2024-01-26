@@ -422,7 +422,8 @@ void Histomatic::CreateWindow() {
 
   fStatusBar = new TGStatusBar(fVf,100,50);
   {
-    fStatusBar->SetText("I AM A STATUS BAR");
+    //fStatusBar->SetText("I AM A STATUS BAR");
+    SetStatusText("some junk",0);
     fStatusBar->SetBackgroundColor(fStatusBar->GetBlackPixel());
     fStatusBar->SetForegroundColor(fStatusBar->GetWhitePixel());
   }
@@ -485,12 +486,12 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
             GH1D *gh1d = new GH1D(*static_cast<TH1D*>(obj));
             gh1d->SetTitle(fullPath.c_str());
             GetListTree()->fObjReadMap[fullPath] = gh1d;
-            printf("I AM HERE\n");
+            //printf("I AM HERE\n");
             //GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1D*>(obj));
           } else if(obj->InheritsFrom(TH1F::Class())) {
             GH1D *gh1d = new GH1D(*static_cast<TH1F*>(obj));
             gh1d->SetTitle(fullPath.c_str());
-            printf("I AM HERE\n");
+            //printf("I AM HERE\n");
             GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1F*>(obj));
           } else {
             GetListTree()->fObjReadMap[fullPath] = obj;
