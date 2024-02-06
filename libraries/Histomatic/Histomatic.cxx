@@ -21,7 +21,7 @@
 #include <GUtils.h>
 
 
-Histomatic *gHistomatic=0;
+//extern Histomatic *gHistomatic;
 
 
 ClassImp(GListTreeCanvas);
@@ -334,7 +334,7 @@ Histomatic::Histomatic() {
 }
 
 Histomatic::~Histomatic() {
-  if(gHistomatic = this)
+  if(gHistomatic == this)
     gHistomatic = 0;
 
   if(fEventTimer) {
