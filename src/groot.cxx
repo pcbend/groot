@@ -7,7 +7,6 @@
 
 #include<TEnv.h>
 
-
 void loadEnv() {
   // Set the GRUTSYS variable based on the executable path.
   // If GRUTSYS has already been defined, don't overwrite.

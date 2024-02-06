@@ -2,8 +2,9 @@
 
 #include <GGlobals.h>
 
+#include <TH1.h>
 
-//gHist = 0;
+TH1* gHist = 0;
 
 
 

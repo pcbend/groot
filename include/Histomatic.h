@@ -22,8 +22,8 @@
 #include<map>
 
 class Histomatic;
+class GEventTimer;
 
-extern Histomatic *gHistomatic;
 
 class GListTreeCanvas : public TGCanvas {
   public:
@@ -159,6 +159,8 @@ class Histomatic { //: public TGMainFrame {
 
     TList *fTrash;
     //std::map<std::string, TObject*> fObjReadMap;
+    GEventTimer *fEventTimer;
+
 
   //ClassDefOverride(Histomatic,0)
   ClassDef(Histomatic,0)

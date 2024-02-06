@@ -141,21 +141,21 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
 
 bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) { 
   bool handled = false;
-  TH1 *gHist = 0;
+  TH1 *currentHist = 0;
   switch(event) {
     case kButton1Down:
-      gHist = GrabHist();
+      currentHist = GrabHist();
       //TVirtualPad *sPad = TCanvas::GetSelectedPad();
       if(gPad != TCanvas::GetSelectedPad()) {
         //switch the gPad to the clicked pad... 
         TCanvas::HandleInput(kButton2Down,px,py);
-      } else if(gHist && gPad) {
+      } else if(currentHist && gPad) {
         GMarker *m = new GMarker();
         //printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
         double xx = gPad->AbsPixeltoX(px);
         double x  = gPad->PadtoX(xx);
         //int  binx = h->GetXaxis()->FindBin(x);
-        m->AddTo(gHist,x);
+        m->AddTo(currentHist,x);
         handled = true;
         
         gPad->Modified();
@@ -163,16 +163,16 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
       }
       break;
     case kButton1Shift:
-      gHist = GrabHist();
+      currentHist = GrabHist();
       if(gPad != TCanvas::GetSelectedPad()) {
         TCanvas::HandleInput(kButton2Down,px,py);
-      } else if(gHist && gPad) {
+      } else if(currentHist && gPad) {
         //unzoom hist?
         TVirtualPad *current = gPad;
         GCanvas *c = new GCanvas;
         c->cd();
-        GMarker::RemoveAll(gHist);      
-        gHist->DrawCopy();
+        GMarker::RemoveAll(currentHist);      
+        currentHist->DrawCopy();
         gPad->Modified();
         gPad->Update();
 
@@ -193,27 +193,27 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
 bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
   bool handled  = false;
   bool doUpdate = false;
-  TH1   *gHist = 0;
+  TH1   *currentHist = 0;
   TList *gList = 0;
   //printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
-  gHist = GrabHist();
+  currentHist = GrabHist();
   gList = GrabHists(gPad->GetCanvas());
   switch(px) {
-    //gHist->GetXaxis()->GetXmin() // minimum x
-    //gHist->GetXaxis()->GetXmax() // maximum x
+    //currentHist->GetXaxis()->GetXmin() // minimum x
+    //currentHist->GetXaxis()->GetXmax() // maximum x
     //gPad->GetUxmin() // current min
     //gPAd->GetUxmax() // current max
     case kKey_Left:
-      if(gHist && gHist->GetDimension()==1) {
+      if(currentHist && currentHist->GetDimension()==1) {
         double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
-        if((gPad->GetUxmin() - halfWindow)<gHist->GetXaxis()->GetXmin()) 
-          halfWindow = fabs(gPad->GetUxmin()-gHist->GetXaxis()->GetXmin());
+        if((gPad->GetUxmin() - halfWindow)<currentHist->GetXaxis()->GetXmin()) 
+          halfWindow = fabs(gPad->GetUxmin()-currentHist->GetXaxis()->GetXmin());
         if(mask&kKeyShiftMask) {
           TIter iter(gList);
           while(TH1 *hist = dynamic_cast<TH1*>(iter())) 
             hist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
         } else {
-          gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
+          currentHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
         }
       } 
       handled  = true;
@@ -222,16 +222,16 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
     case kKey_Up:
       break;
     case kKey_Right:
-      if(gHist && gHist->GetDimension()==1) {
+      if(currentHist && currentHist->GetDimension()==1) {
         double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
-        if((gPad->GetUxmax() + halfWindow)>gHist->GetXaxis()->GetXmax()) 
-          halfWindow = fabs(gHist->GetXaxis()->GetXmax() - gPad->GetUxmax());
+        if((gPad->GetUxmax() + halfWindow)>currentHist->GetXaxis()->GetXmax()) 
+          halfWindow = fabs(currentHist->GetXaxis()->GetXmax() - gPad->GetUxmax());
         if(mask&kKeyShiftMask) {
           TIter iter(gList);
           while(TH1 *hist = dynamic_cast<TH1*>(iter())) 
             hist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
         } else {
-          gHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
+          currentHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
         }
       } 
       handled  = true;
@@ -255,7 +255,7 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
 bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
   bool handled  = false;
   bool doUpdate = false;
-  TH1*   gHist = 0;
+  TH1*   currentHist = 0;
   TList* gList = 0;
   //printf("HandleKey()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
   //printf("key: %i  %i  %i\n",event,px,py);
@@ -267,13 +267,13 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       handled = true;
       break;
     case kKey_b:
-      gHist = GrabHist();
-      if(gHist->InheritsFrom(GH1D::Class())) {
+      currentHist = GrabHist();
+      if(currentHist->InheritsFrom(GH1D::Class())) {
         //remember the current range...
-        double xlow = gHist->GetXaxis()->GetBinLowEdge(gHist->GetXaxis()->GetFirst());
-        double xup  = gHist->GetXaxis()->GetBinUpEdge(gHist->GetXaxis()->GetLast());
-        dynamic_cast<GH1D*>(gHist)->Background();
-        //gHist->GetXaxis()->SetRangeUser(xlow,xup); // and reset the range.
+        double xlow = currentHist->GetXaxis()->GetBinLowEdge(currentHist->GetXaxis()->GetFirst());
+        double xup  = currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast());
+        dynamic_cast<GH1D*>(currentHist)->Background();
+        //currentHist->GetXaxis()->SetRangeUser(xlow,xup); // and reset the range.
         handled  = true;
         doUpdate = true;
       }
@@ -289,14 +289,14 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         TIter iter(gList);
         while(TObject *obj = iter.Next()) {
           if(obj->InheritsFrom(GH1D::Class())) {
-            GH1D *ggHist = dynamic_cast<GH1D*>(obj);
+            GH1D *gcurrentHist = dynamic_cast<GH1D*>(obj);
             //remember the current range...
-            double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
-            double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
-            //printf("%s\t%.1f\t%.1f\n",ggHist->GetName(),xlow,xup);
-            ggHist->Background();
-            //printf("%s\t%.1f\t%.1f\n",ggHist->GetName(),xlow,xup);
-            //ggHist->GetXaxis()->SetRangeUser(xlow,xup); // and rest the range.
+            double xlow = gcurrentHist->GetXaxis()->GetBinLowEdge(gcurrentHist->GetXaxis()->GetFirst());
+            double xup  = gcurrentHist->GetXaxis()->GetBinUpEdge(gcurrentHist->GetXaxis()->GetLast());
+            //printf("%s\t%.1f\t%.1f\n",gcurrentHist->GetName(),xlow,xup);
+            gcurrentHist->Background();
+            //printf("%s\t%.1f\t%.1f\n",gcurrentHist->GetName(),xlow,xup);
+            //gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup); // and rest the range.
           }
         }
         doUpdate = true;
@@ -304,36 +304,36 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       }  
       break;
     case kKey_e:
-      gHist = GrabHist();
-      if(gHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+      currentHist = GrabHist();
+      if(currentHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
         if(markers.size()>1) {
           double xlow  = markers.at(0)->X();
           double xhigh = markers.at(1)->X();
           if(xlow>xhigh) std::swap(xlow,xhigh);
-          gHist->GetXaxis()->SetRangeUser(xlow,xhigh);
-          GMarker::RemoveAll(gHist);
+          currentHist->GetXaxis()->SetRangeUser(xlow,xhigh);
+          GMarker::RemoveAll(currentHist);
           doUpdate=true;
           handled=true;
         }
       }
       break;
     case kKey_E:
-      gHist = GrabHist();
-      if(gHist) {
+      currentHist = GrabHist();
+      if(currentHist) {
         std::vector<GMarker*> markers;
-        //if(gHist) 
-        markers = GMarker::GetAll(gHist);
+        //if(currentHist) 
+        markers = GMarker::GetAll(currentHist);
         double xlow,xhigh;
         if(markers.size()>1) {
           xlow  = markers.at(0)->X();
           xhigh = markers.at(1)->X();
           if(xlow>xhigh) std::swap(xlow,xhigh);
-          GMarker::RemoveAll(gHist);
+          GMarker::RemoveAll(currentHist);
         } else {
-          GetContextMenu()->Action(gHist->GetXaxis(),gHist->GetXaxis()->Class()->GetMethodAny("SetRangeUser"));
-          xlow = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetFirst());
-          xhigh = gHist->GetXaxis()->GetBinCenter(gHist->GetXaxis()->GetLast());
+          GetContextMenu()->Action(currentHist->GetXaxis(),currentHist->GetXaxis()->Class()->GetMethodAny("SetRangeUser"));
+          xlow = currentHist->GetXaxis()->GetBinCenter(currentHist->GetXaxis()->GetFirst());
+          xhigh = currentHist->GetXaxis()->GetBinCenter(currentHist->GetXaxis()->GetLast());
         }  
         gList = GrabHists(gPad->GetCanvas()); 
         TIter iter(gList);
@@ -351,59 +351,59 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       handled  = true;
       break;
     case kKey_f:
-      gHist=GrabHist();
-      if(gHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+      currentHist=GrabHist();
+      if(currentHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
         if(markers.size()>1) {
-          if(PhotoPeakFit(gHist,markers.at(0)->X(),markers.at(1)->X())) {
+          if(PhotoPeakFit(currentHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
             handled=true;
-            //GMarker::RemoveAll(gHist);
+            //GMarker::RemoveAll(currentHist);
           }
         }
       }
       break;
     case kKey_g:
-      gHist=GrabHist();
-      if(gHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+      currentHist=GrabHist();
+      if(currentHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
         if(markers.size()>1) {
-          if(GausFit(gHist,markers.at(0)->X(),markers.at(1)->X())) {
+          if(GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
             handled=true;
-            //GMarker::RemoveAll(gHist);
+            //GMarker::RemoveAll(currentHist);
           }
         }
       }
       break;
     case kKey_i:
-      gHist=GrabHist();
-      if(gHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(gHist);
+      currentHist=GrabHist();
+      if(currentHist) {
+        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
         if(markers.size()>1) {
           double low  = markers.at(0)->X();
           double high = markers.at(1)->X();
           if(low>high) std::swap(low,high);    
-          double sum = gHist->Integral(gHist->FindBin(low),
-                                       gHist->FindBin(high));
-          printf( BLUE "\n\tSum [%i : %i] = %.01f   (bins)" RESET_COLOR  "\n",gHist->FindBin(low),gHist->FindBin(high),sum);
+          double sum = currentHist->Integral(currentHist->FindBin(low),
+                                       currentHist->FindBin(high));
+          printf( BLUE "\n\tSum [%i : %i] = %.01f   (bins)" RESET_COLOR  "\n",currentHist->FindBin(low),currentHist->FindBin(high),sum);
           printf( BLUE "\tSum [%.01f : %.01f] = %.01f" RESET_COLOR  "\n",low,high,sum);
         }
       }
       break;
     case kKey_n:
-      gHist=GrabHist();
-      if(gHist) {
-        TListIter iter(gHist->GetListOfFunctions());
+      currentHist=GrabHist();
+      if(currentHist) {
+        TListIter iter(currentHist->GetListOfFunctions());
         std::vector<TF1*> funcs;
         while(TObject *obj=iter.Next()) {
           if(obj->InheritsFrom(TF1::Class()))
             funcs.push_back(((TF1*)obj));
         }
         for(auto i=funcs.begin();i!=funcs.end();i++)
-          gHist->GetListOfFunctions()->Remove(*i);
-        GMarker::RemoveAll(gHist);
-        gHist->Sumw2(false);
+          currentHist->GetListOfFunctions()->Remove(*i);
+        GMarker::RemoveAll(currentHist);
+        currentHist->Sumw2(false);
 
       }
       doUpdate = true;
@@ -411,12 +411,12 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       break;
     case kKey_o:
       //printf("\tkey: %i  %i  %i\n",event,px,py);
-      gHist = GrabHist();
-      if(gHist && gHist->GetDimension()==1) {    
-        gHist->GetXaxis()->UnZoom();
-      } else if(gHist && gHist->GetDimension()==2) {  
-        ((TH2*)gHist)->GetXaxis()->UnZoom();
-        ((TH2*)gHist)->GetYaxis()->UnZoom();
+      currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==1) {    
+        currentHist->GetXaxis()->UnZoom();
+      } else if(currentHist && currentHist->GetDimension()==2) {  
+        ((TH2*)currentHist)->GetXaxis()->UnZoom();
+        ((TH2*)currentHist)->GetYaxis()->UnZoom();
       }
       doUpdate = true;
       handled  = true;
@@ -427,10 +427,10 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         TIter iter(gList);
         while(TObject *obj = iter.Next()) {
           if(obj->InheritsFrom(TH1::Class())) {
-            gHist = dynamic_cast<TH1*>(obj);
-            gHist->GetXaxis()->UnZoom();
-            if(gHist->GetDimension()==2)
-              gHist->GetYaxis()->UnZoom();
+            currentHist = dynamic_cast<TH1*>(obj);
+            currentHist->GetXaxis()->UnZoom();
+            if(currentHist->GetDimension()==2)
+              currentHist->GetYaxis()->UnZoom();
           }
         }
         TIter citer(gPad->GetCanvas()->GetListOfPrimitives());
@@ -444,21 +444,21 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       }  
       break;
     case kKey_p:
-      gHist = GrabHist();
-      if(gHist && gHist->InheritsFrom(GH1D::Class())) {
-        GH1D *ggHist = (GH1D*)gHist;
-        if(ggHist->GetParent() && ggHist->GetParent()->InheritsFrom(GH2D::Class())) {
-         std::vector<GMarker*> markers = GMarker::GetAll(ggHist);
+      currentHist = GrabHist();
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+        GH1D *gcurrentHist = (GH1D*)currentHist;
+        if(gcurrentHist->GetParent() && gcurrentHist->GetParent()->InheritsFrom(GH2D::Class())) {
+         std::vector<GMarker*> markers = GMarker::GetAll(gcurrentHist);
           if(markers.size()>1) {
             double xlow  = markers.at(0)->X();
             double xhigh = markers.at(1)->X();
             if(xlow>xhigh) std::swap(xlow,xhigh);
             GH1D *proj=0;
-				 		if(ggHist->TestBit(GH1D::kProjectionX))
-              proj = dynamic_cast<GH2D*>(ggHist->GetParent())->ProjectionY(xlow,xhigh);
+				 		if(gcurrentHist->TestBit(GH1D::kProjectionX))
+              proj = dynamic_cast<GH2D*>(gcurrentHist->GetParent())->ProjectionY(xlow,xhigh);
             else
-              proj = dynamic_cast<GH2D*>(ggHist->GetParent())->ProjectionX(xlow,xhigh);
-            GMarker::RemoveAll(ggHist);
+              proj = dynamic_cast<GH2D*>(gcurrentHist->GetParent())->ProjectionX(xlow,xhigh);
+            GMarker::RemoveAll(gcurrentHist);
             GCanvas *c = new GCanvas;
             proj->Draw();            
           }
@@ -466,24 +466,24 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       }
       break;
     case kKey_w:
-      gHist = GrabHist();
-      if(gHist && gHist->InheritsFrom(GH1D::Class())) {
-        double xlow = gHist->GetXaxis()->GetBinLowEdge(gHist->GetXaxis()->GetFirst());
-        double xup  = gHist->GetXaxis()->GetBinUpEdge(gHist->GetXaxis()->GetLast());
-        gHist->Rebin(2);
-        gHist->GetXaxis()->SetRangeUser(xlow,xup);
+      currentHist = GrabHist();
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+        double xlow = currentHist->GetXaxis()->GetBinLowEdge(currentHist->GetXaxis()->GetFirst());
+        double xup  = currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast());
+        currentHist->Rebin(2);
+        currentHist->GetXaxis()->SetRangeUser(xlow,xup);
         doUpdate = true;
         handled  = true;
       }
       break;
     case kKey_q:
-      gHist = GrabHist();
-      if(gHist && gHist->InheritsFrom(GH1D::Class())) {
-        GH1D *ggHist = dynamic_cast<GH1D*>(gHist);
-        double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
-        double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
-        ggHist->Unbin(2);
-        ggHist->GetXaxis()->SetRangeUser(xlow,xup);
+      currentHist = GrabHist();
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+        GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
+        double xlow = gcurrentHist->GetXaxis()->GetBinLowEdge(gcurrentHist->GetXaxis()->GetFirst());
+        double xup  = gcurrentHist->GetXaxis()->GetBinUpEdge(gcurrentHist->GetXaxis()->GetLast());
+        gcurrentHist->Unbin(2);
+        gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup);
         doUpdate = true;
         handled  = true;
       }
@@ -494,11 +494,11 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         TIter iter(gList);
         while(TObject *obj = iter.Next()) {
           if(obj->InheritsFrom(GH1D::Class())) {
-            GH1D *ggHist = dynamic_cast<GH1D*>(obj);
-            double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
-            double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
-            ggHist->Rebin(2);
-            ggHist->GetXaxis()->SetRangeUser(xlow,xup);
+            GH1D *gcurrentHist = dynamic_cast<GH1D*>(obj);
+            double xlow = gcurrentHist->GetXaxis()->GetBinLowEdge(gcurrentHist->GetXaxis()->GetFirst());
+            double xup  = gcurrentHist->GetXaxis()->GetBinUpEdge(gcurrentHist->GetXaxis()->GetLast());
+            gcurrentHist->Rebin(2);
+            gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup);
           }
         }
         doUpdate = true;
@@ -511,11 +511,11 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         TIter iter(gList);
         while(TObject *obj = iter.Next()) {
           if(obj->InheritsFrom(GH1D::Class())) {
-            GH1D *ggHist = dynamic_cast<GH1D*>(obj);
-            double xlow = ggHist->GetXaxis()->GetBinLowEdge(ggHist->GetXaxis()->GetFirst());
-            double xup  = ggHist->GetXaxis()->GetBinUpEdge(ggHist->GetXaxis()->GetLast());
-            ggHist->Unbin(2);
-            ggHist->GetXaxis()->SetRangeUser(xlow,xup);
+            GH1D *gcurrentHist = dynamic_cast<GH1D*>(obj);
+            double xlow = gcurrentHist->GetXaxis()->GetBinLowEdge(gcurrentHist->GetXaxis()->GetFirst());
+            double xup  = gcurrentHist->GetXaxis()->GetBinUpEdge(gcurrentHist->GetXaxis()->GetLast());
+            gcurrentHist->Unbin(2);
+            gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup);
           }
         }
         doUpdate = true;
@@ -524,28 +524,28 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       break;
     case kKey_l:
     case kKey_z:
-      gHist = GrabHist();
-      if(gHist && gHist->GetDimension()==1) {
+      currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==1) {
         if(GetLogy()){
           // Show full y range, not restricted to positive values.
-          gHist->GetYaxis()->UnZoom();
+          currentHist->GetYaxis()->UnZoom();
           SetLogy(0);
         } else {
           // Only show plot from 0 up when in log scale.
           if(gPad->GetUymin()<0) {
-            gHist->GetYaxis()->SetRangeUser(0,gPad->GetUymax());
+            currentHist->GetYaxis()->SetRangeUser(0,gPad->GetUymax());
           }
           SetLogy(1);
         }
-      } else if(gHist && gHist->GetDimension()==2) {
+      } else if(currentHist && currentHist->GetDimension()==2) {
         if(GetLogz()){
           // Show full y range, not restricted to positive values.
-          gHist->GetZaxis()->UnZoom();
+          currentHist->GetZaxis()->UnZoom();
           SetLogz(0);
         } else {
           // Only show plot from 0 up when in log scale.
-          if(gHist->GetMinimum()<0) {
-            gHist->GetZaxis()->SetRangeUser(0,gHist->GetMaximum());
+          if(currentHist->GetMinimum()<0) {
+            currentHist->GetZaxis()->SetRangeUser(0,currentHist->GetMaximum());
           }
           SetLogz(1);
         }
@@ -554,22 +554,22 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       handled  = true;
       break;
     case kKey_x:
-      gHist = GrabHist();
-      if(gHist && gHist->GetDimension()==2) {
-        if(gHist->InheritsFrom(GH2D::Class())) {
+      currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==2) {
+        if(currentHist->InheritsFrom(GH2D::Class())) {
           GCanvas * c = new GCanvas;
           // if not, make it...
-          dynamic_cast<GH2D*>(gHist)->ProjectionX()->Draw();
+          dynamic_cast<GH2D*>(currentHist)->ProjectionX()->Draw();
         }
       }
       break;
     case kKey_y:
-      gHist = GrabHist();
-      if(gHist && gHist->GetDimension()==2) {
-        if(gHist->InheritsFrom(GH2D::Class())) {
+      currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==2) {
+        if(currentHist->InheritsFrom(GH2D::Class())) {
           GCanvas * c = new GCanvas;
           // if not, make it...
-          dynamic_cast<GH2D*>(gHist)->ProjectionY()->Draw();
+          dynamic_cast<GH2D*>(currentHist)->ProjectionY()->Draw();
         }
       }
       break;

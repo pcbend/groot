@@ -14,6 +14,8 @@
 #pragma link C++ function GrabHist;
 #pragma link C++ function GrabFit;
 
+#pragma link C++ function GetSignals;
+
 #pragma link C++ class GCanvas+;
 #pragma link C++ class GMarker+;
 #pragma link C++ class GH1D+;
@@ -21,5 +23,7 @@
 
 #pragma link C++ class GGaus+;
 #pragma link C++ class GPeak+;
+
+#pragma link C++ class GEventTimer;
 
 #endif

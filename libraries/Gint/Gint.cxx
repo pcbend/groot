@@ -8,10 +8,9 @@
 #include <Histomatic.h>
 
 #include <globals.h>
+#include <GGlobals.h>
 
 Gint *Gint::fGint = 0;
-
-extern Histomatic *gHistomatic;
 
 //Gint::Gint(int argc, char **argv) : TRint("gint",&argc,argv,0,0,true,false) {
 Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false), fRootFilesOpened(0)  {

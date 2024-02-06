@@ -1,12 +1,14 @@
-//#ifndef __GGLOBALS_H__
-//#define __GGLOBALS_H__
+#ifndef __GGLOBALS_H__
+#define __GGLOBALS_H__
 
 class TH1;
+class Histomatic;
 
-//TH1 *gHist;
+extern TH1        *gHist;
+extern Histomatic *gHistomatic;
 
 
-//#endif
+#endif
 
 
 

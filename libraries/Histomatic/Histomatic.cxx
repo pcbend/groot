@@ -17,6 +17,8 @@
 #include <GH1D.h>
 #include <GH2D.h>
 
+#include <GGlobals.h>
+#include <GUtils.h>
 
 
 Histomatic *gHistomatic=0;
@@ -325,10 +327,20 @@ Histomatic::Histomatic() {
   //this->Resize(200,600);
   fMainWindow->MapWindow();
 
+  fEventTimer = new GEventTimer();
+  fEventTimer->Start();
+ 
   //this->DontCallClose();
 }
 
 Histomatic::~Histomatic() {
+  if(gHistomatic = this)
+    gHistomatic = 0;
+
+  if(fEventTimer) {
+    fEventTimer->Stop();
+    delete fEventTimer;
+  }
 
   delete fLH0;
   delete fLH1;
@@ -353,7 +365,7 @@ Histomatic::~Histomatic() {
   delete fGListTree;
   delete fGListTreeCanvas;
 
-  delete fStatusBar;
+  //delete fStatusBar;
 
   delete fButtonRow1;
   delete fButtonRow2;
@@ -421,6 +433,7 @@ void Histomatic::CreateWindow() {
   fGListTree = new GListTree(fGListTreeCanvas,this); 
 
   fStatusBar = new TGStatusBar(fVf,100,50);
+  fStatusBar->SetParts(4);
   {
     //fStatusBar->SetText("I AM A STATUS BAR");
     SetStatusText("some junk",0);
