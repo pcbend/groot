@@ -1,6 +1,9 @@
 #include <iostream>
 
 #include <TFile.h>
+#include <TROOT.h>
+#include <TStyle.h>
+
 
 #include <Gint.h>
 #include <Gtypes.h>
@@ -15,7 +18,7 @@ Gint *Gint::fGint = 0;
 //Gint::Gint(int argc, char **argv) : TRint("gint",&argc,argv,0,0,true,false) {
 Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false), fRootFilesOpened(0)  {
   LoadOptions(argc,argv);
-
+  LoadStyle();
   SetPrompt("groot [%d] ");
 
 }
@@ -33,6 +36,13 @@ void Gint::Terminate(int status) {
   SetPrompt("");
   TRint::Terminate(status);
 
+}
+
+void Gint::LoadStyle() {
+  // Load the ROOT style file
+  gStyle->SetPalette(kOcean);
+  gStyle->SetHistLineWidth(2);
+  gROOT->ForceStyle();
 }
 
 

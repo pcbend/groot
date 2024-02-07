@@ -12,6 +12,7 @@
 #include "TGButton.h"
 #include "TGListTree.h"
 #include "TGStatusBar.h"
+#include "TGComboBox.h"
 
 #include "TFile.h"
 #include "TKey.h"
@@ -23,7 +24,8 @@
 
 class Histomatic;
 class GEventTimer;
-
+class TH1;
+class TCanvas;
 
 class GListTreeCanvas : public TGCanvas {
   public:
@@ -61,6 +63,9 @@ class GListTree : public TGListTree {
   	bool HandleButton(Event_t *event) override;
 
   	bool IsDrawable(const TGListTreeItem *item) const;
+
+
+    std::vector<TGListTreeItem*> GetSelected() { return fSelected; }
 
   private:
     TGCanvas   *fCanvas;
@@ -101,7 +106,9 @@ class Histomatic { //: public TGMainFrame {
     void doUpdate();
     //void doDraw(TObject*,Option_t *opt="");
     //void doDraw(TList*,Option_t *opt="");
+    void doDraw();
     void doDraw(std::vector<TGListTreeItem*> selected,Option_t *opt="");
+    void drawHists(std::vector<TH1*> hists, TCanvas *g=0); 
 
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;
@@ -127,6 +134,19 @@ class Histomatic { //: public TGMainFrame {
     TGTextButton      *fButton6; 
     TGTextButton      *fButton7; 
     TGTextButton      *fButton8; 
+
+    TGHorizontalFrame *fDrawOptionContainer;
+    TGButtonGroup     *fDrawOptionGroup;
+
+    TGComboBox        *fDrawComboBox;
+    enum EDrawOption {
+      eDrawNew,
+      eDrawSame,
+      eDrawStacked
+    };
+    TGCheckButton     *fDrawNormalized;
+    TGCheckButton     *fDrawColz;
+
 
     //TGCanvas          *fListTreeCanvas;
     //TGListTree        *fListTree;

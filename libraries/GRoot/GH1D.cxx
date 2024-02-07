@@ -55,13 +55,23 @@ GH1D::~GH1D() {
   if(fOriginal)
     delete fOriginal;
 	if(fSubtract)
-		delete fSubtract;
+  	delete fSubtract;
+  //TH1D::~TH1D();
 } 
 
 void GH1D::Init() { 
   //this->SetBit(kNoTitle);
 	SetOriginal();
+  fParent = 0;
+  fSubtract = 0;
+  fIsNormalized = false;
 }
+
+
+//void GH1D::Copy(TObject &newHist) const { 
+//  TH1D::Copy(newHist);
+//  (*(static_cast<GH1D*>(&newHist))).Init();
+//}
 
 
 
@@ -294,5 +304,34 @@ void GH1D::Background() {
     this->GetXaxis()->SetRangeUser(x1,x2);
   }
 }
+
+void GH1D::Normalize() {
+  
+  if(!fIsNormalized) {
+
+    double sum = GetSumOfWeights();
+    if(sum==0) {
+      printf("GH1D::Normalize sum of weights is zero\n");
+      return;
+    }
+    double max = GetMaximum();
+    double min = GetMinimum();
+    this->Scale(1.0/sum);
+    if (TMath::Abs(max+1111) > 1e-3) SetMaximum(max*1.0/sum);
+    if (TMath::Abs(min+1111) > 1e-3) SetMinimum(min*1.0/sum);
+    Sumw2(false);  
+    fIsNormalized = true;
+  } else if(fIsNormalized) {
+    std::string fname = this->GetName();
+    fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
+    this->SetName(fname.c_str());
+    fIsNormalized = false;
+  }
+
+}
+
+
+
+
 
 

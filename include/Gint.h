@@ -25,7 +25,7 @@ class Gint : public TRint {
     //bool      FileAutoDetect(const std::string& filename);
     TFile*    OpenRootFile(const std::string& filename, Option_t *opt="");
 
-    
+    void      LoadStyle();    
 
   private:
     int fRootFilesOpened;

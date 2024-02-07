@@ -24,6 +24,8 @@ class GH1D : public TH1D { //, public TQObject {
 
     GH1D(const TVectorD &v);
     
+    //void Copy(TObject &newHist) const override;
+
     virtual ~GH1D(); 
 
     void Draw(Option_t *opt="") override;
@@ -55,6 +57,9 @@ class GH1D : public TH1D { //, public TQObject {
 		void SetScale(double scale) { fScale = scale; } 
 		void DoSubtract();
 
+    bool IsNormalized() const { return fIsNormalized; }
+    void Normalize();
+
   private:
     void Init();
 		void SetOriginal();
@@ -67,6 +72,8 @@ class GH1D : public TH1D { //, public TQObject {
 		double fScale;
 
 		int  fOriginalBins;
+    bool fIsNormalized;
+
 
     TH2  *fParent;
 

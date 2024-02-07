@@ -6,6 +6,8 @@
 #include<utils.h>
 
 #include<TEnv.h>
+//#include<TStyle.h>
+//#include<TROOT.h>
 
 void loadEnv() {
   // Set the GRUTSYS variable based on the executable path.
@@ -27,9 +29,11 @@ void loadEnv() {
     gEnv->ReadFile(grut_path.c_str(),kEnvChange);
   }
 }
- 
+
+
 int main(int argc, char **argv) {
-  
+
+  //loadStyle();
   loadEnv();
   Gint::Get(argc,argv)->Run(true);
  

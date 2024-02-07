@@ -8,6 +8,7 @@ bin/
 *.pcm
 a.out
 *.root
+*.swp
 
 .DS_Store
 .gint_history

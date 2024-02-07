@@ -11,6 +11,8 @@
 #include <TFrame.h>
 #include <THStack.h>
 #include <TGraph.h>
+#include <TF1.h>
+#include <TList.h>
 
 #include <GObjectManager.h>
 #include <GCanvas.h>
@@ -20,6 +22,7 @@
 #include <GGlobals.h>
 #include <GUtils.h>
 
+#include <GCommands.h>
 
 //extern Histomatic *gHistomatic;
 
@@ -111,8 +114,8 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
 
   ClearActive(); // clears fSelected.
   if((mask&kKeyShiftMask)  &&
-     fLastSelected         && 
-     item->GetParent() == fLastSelected->GetParent()) {
+      fLastSelected         && 
+      item->GetParent() == fLastSelected->GetParent()) {
 
     TGListTreeItem *pitem = fLastSelected; 
     int count=0;
@@ -142,24 +145,24 @@ void GListTree::DoubleClicked(TGListTreeItem *item, int btn, int x, int y) {
   //TObject *obj = GetObject(item);
   //THStack *hs = new THStack;
   //bool oneCanvas = true 
- 
+
   if(fSelected.size())
     fHistomatic->doDraw(fSelected);
   return;
 
-/*
-  if(fSelected.size()==1) {
-    TObject *obj = GetObject(item);
-    if(fHistomatic) fHistomatic->doDraw(obj);
-  } else if (fSelected.size()>1) {
-    TList *list = new TList;
-    for(auto it=fSelected.begin();it!=fSelected.end();it++) { 
-      TObject *obj = GetObject(*it);
-      list->Add(obj);
-    }
-    if(fHistomatic) fHistomatic->doDraw(list);
-  }
-*/
+  /*
+     if(fSelected.size()==1) {
+     TObject *obj = GetObject(item);
+     if(fHistomatic) fHistomatic->doDraw(obj);
+     } else if (fSelected.size()>1) {
+     TList *list = new TList;
+     for(auto it=fSelected.begin();it!=fSelected.end();it++) { 
+     TObject *obj = GetObject(*it);
+     list->Add(obj);
+     }
+     if(fHistomatic) fHistomatic->doDraw(list);
+     }
+   */
   //if(GetObject(item)->InheritsFrom(TH1::Class()) && fHistomatic) fHistomatic->doDraw(hs);
 } 
 
@@ -239,17 +242,17 @@ TKey *GListTree::GetKey(TGListTreeItem *item) const {
 
 
 /*
-TList *GListTree::GetAllActive(TGListTreeItem *item) {
-  if(!item) item = GetFirstItem();
-  while(item) { 
-    if(item->IsActive()) 
-      std::cout << item->GetText() << std::endl;
-    if(item->GetFirstChild()) GetAllActive(item->GetFirstChild());
-    item = item->GetNextSibling();    
-  }
-  return 0;
-}
-*/
+   TList *GListTree::GetAllActive(TGListTreeItem *item) {
+   if(!item) item = GetFirstItem();
+   while(item) { 
+   if(item->IsActive()) 
+   std::cout << item->GetText() << std::endl;
+   if(item->GetFirstChild()) GetAllActive(item->GetFirstChild());
+   item = item->GetNextSibling();    
+   }
+   return 0;
+   }
+ */
 
 void GListTree::ClearActive() {
   for(auto it=fSelected.begin();it!=fSelected.end();it++) 
@@ -264,14 +267,14 @@ bool GListTree::HandleButton(Event_t *event) {
   if(event->fType == EGEventType::kButtonPress) {
     //std::cout << "fcode:  " << event->fCode  << std::endl;
     //std::cout << "fstate: " << event->fState << std::endl;
-  
+
     TGListTreeItem *item = 0;
     item = FindItem(event->fY);
     //if(GetSelected()!=0) {
-      //std::cout<< "old: " << GetSelected()->GetText() << std::endl; 
+    //std::cout<< "old: " << GetSelected()->GetText() << std::endl; 
     //}
     //if(item!=0) {
-      //std::cout<< "new: " << item->GetText() << std::endl; 
+    //std::cout<< "new: " << item->GetText() << std::endl; 
     //}
   }  
   if(handled) SetUserControl(true);
@@ -285,7 +288,7 @@ bool GListTree::IsDrawable(const TGListTreeItem *item) const {
   //if(!item) return false; 
   //if(item->InheritsFrom(TH1::Class()) ||
   //   item->InheritsFrom(TGraph::Class()))
-    return true;
+  return true;
   //return false;
 
 }
@@ -329,7 +332,7 @@ Histomatic::Histomatic() {
 
   fEventTimer = new GEventTimer();
   fEventTimer->Start();
- 
+
   //this->DontCallClose();
 }
 
@@ -362,6 +365,10 @@ Histomatic::~Histomatic() {
   delete fButton7; 
   delete fButton8; 
 
+  delete fDrawComboBox;
+  delete fDrawColz;
+  delete fDrawNormalized;
+
   delete fGListTree;
   delete fGListTreeCanvas;
 
@@ -370,6 +377,7 @@ Histomatic::~Histomatic() {
   delete fButtonRow1;
   delete fButtonRow2;
   delete fButtonContainer;
+  delete fDrawOptionContainer;
 
   delete fVf;
 }
@@ -419,8 +427,10 @@ void Histomatic::CreateWindow() {
   fButton6->Connect("Clicked()","Histomatic",this,"buttonAction()");
   fButton7 = new TGTextButton(fButtonRow2,"button7");
   fButton7->Connect("Clicked()","Histomatic",this,"buttonAction()");
-  fButton8 = new TGTextButton(fButtonRow2,"button8");
-  fButton8->Connect("Clicked()","Histomatic",this,"buttonAction()");
+  fButton8 = new TGTextButton(fButtonRow2,"do Draw");
+  fButton8->Connect("Clicked()","Histomatic",this,"doDraw()");
+
+
   fButtonRow2->AddFrame(fButton5,fLH1);
   fButtonRow2->AddFrame(fButton6,fLH1);
   fButtonRow2->AddFrame(fButton7,fLH1);
@@ -428,6 +438,25 @@ void Histomatic::CreateWindow() {
 
   fButtonContainer->AddFrame(fButtonRow1,fLH1);  
   fButtonContainer->AddFrame(fButtonRow2,fLH1);  
+
+  fDrawOptionContainer = new TGHorizontalFrame(fVf,100,40);
+
+  fDrawComboBox = new TGComboBox(fDrawOptionContainer,100);
+  fDrawComboBox->AddEntry("new canvas ",EDrawOption::eDrawNew);
+  fDrawComboBox->AddEntry("same canvas",EDrawOption::eDrawSame);
+  fDrawComboBox->AddEntry("stacked    ",EDrawOption::eDrawStacked);
+  fDrawComboBox->Select(0);
+
+  fDrawNormalized = new TGCheckButton(fDrawOptionContainer,"normalized",1);
+  fDrawNormalized->SetState(kButtonUp);
+
+  fDrawColz = new TGCheckButton(fDrawOptionContainer,"colz",1);
+  fDrawColz->SetState(kButtonDown);
+
+  fDrawOptionContainer->AddFrame(fDrawComboBox,fLH1);
+  fDrawOptionContainer->AddFrame(fDrawNormalized,fLH1);
+  fDrawOptionContainer->AddFrame(fDrawColz,fLH0);
+
 
   fGListTreeCanvas = new GListTreeCanvas(fVf,10,10);
   fGListTree = new GListTree(fGListTreeCanvas,this); 
@@ -442,6 +471,7 @@ void Histomatic::CreateWindow() {
   }
 
   fVf->AddFrame(fButtonContainer,fLH0);
+  fVf->AddFrame(fDrawOptionContainer,fLH0);
   fVf->AddFrame(fGListTreeCanvas,fLH1);
   fVf->AddFrame(fStatusBar,fLH0);
 
@@ -465,96 +495,227 @@ void Histomatic::buttonAction() {
 
 }
 
+void Histomatic::doDraw() {
+  doDraw(fGListTree->GetSelected(),"");
+}
+
 void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
-  
+
+
   TList hList;
+
+  std::vector<TH1*>    hists1D;
+  std::vector<TH2*>    hists2D;
+  std::vector<TGraph*> graphs;
+  std::vector<TF1*>    functions;
+
+  int drawables = 0;
   for(auto item=selected.begin();item!=selected.end();item++) {
-    
+
     //std::string   file = fGListTree->GetFileName(*item);
     //std::string   path = fGListTree->GetPath(*item);
     TKey          *key = fGListTree->GetKey(*item);  
     /*
-    TObject      *obj  = fGListTree->GetObject(*item);
-    if(key)
-      printf("key:      %s\n",key->GetClassName());
-    if(obj)
-      printf("obj:      %s\n",obj->GetName());
-    printf("file:     %s\n",file.c_str());
-    printf("path:     %s\n",path.c_str());
-    printf("fullPath: %s\n\n",fGListTree->GetFullPath(*item).c_str());
-    */
+       TObject      *obj  = fGListTree->GetObject(*item);
+       if(key)
+       printf("key:      %s\n",key->GetClassName());
+       if(obj)
+       printf("obj:      %s\n",obj->GetName());
+       printf("file:     %s\n",file.c_str());
+       printf("path:     %s\n",path.c_str());
+       printf("fullPath: %s\n\n",fGListTree->GetFullPath(*item).c_str());
+     */
     if(!key) continue;
-    bool drawable =false;
-    if(TClass::GetClass(key->GetClassName())->InheritsFrom(TH1::Class())) // || 
-       //TClass::GetClass(key->GetClassName())->InheritsFrom(TGraph::Class())) 
-      drawable = true;
-    if(drawable) {
-      std::string fullPath = fGListTree->GetFullPath(*item);
-      if(GetListTree()->fObjReadMap.find(fullPath) == GetListTree()->fObjReadMap.end()) { //obj not in map.
-        TObject *obj = fGListTree->GetObject(*item);
-        if(obj) {
-          if(obj->InheritsFrom(TH2D::Class())) {
-            GetListTree()->fObjReadMap[fullPath] = new GH2D(*static_cast<TH2D*>(obj));
-          } else if(obj->InheritsFrom(TH1D::Class())) {
-            GH1D *gh1d = new GH1D(*static_cast<TH1D*>(obj));
-            gh1d->SetTitle(fullPath.c_str());
-            GetListTree()->fObjReadMap[fullPath] = gh1d;
-            //printf("I AM HERE\n");
-            //GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1D*>(obj));
-          } else if(obj->InheritsFrom(TH1F::Class())) {
-            GH1D *gh1d = new GH1D(*static_cast<TH1F*>(obj));
-            gh1d->SetTitle(fullPath.c_str());
-            //printf("I AM HERE\n");
-            GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1F*>(obj));
-          } else {
-            GetListTree()->fObjReadMap[fullPath] = obj;
+
+    std::string fullPath = fGListTree->GetFullPath(*item);
+
+    if(GetListTree()->fObjReadMap.find(fullPath) == GetListTree()->fObjReadMap.end()) { //obj not in map.
+      TObject *obj = fGListTree->GetObject(*item);
+      if(obj) {
+        if(obj->InheritsFrom(TH2D::Class())) {
+          GetListTree()->fObjReadMap[fullPath] = new GH2D(*static_cast<TH2D*>(obj));
+        } else if(obj->InheritsFrom(TH1D::Class())) {
+          GH1D *gh1d = new GH1D(*static_cast<TH1D*>(obj));
+          gh1d->SetTitle(fullPath.c_str());
+          GetListTree()->fObjReadMap[fullPath] = gh1d;
+          //printf("I AM HERE\n");
+          //GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1D*>(obj));
+        } else if(obj->InheritsFrom(TH1F::Class())) {
+          GH1D *gh1d = new GH1D(*static_cast<TH1F*>(obj));
+          gh1d->SetTitle(fullPath.c_str());
+          //printf("I AM HERE\n");
+          GetListTree()->fObjReadMap[fullPath] = new GH1D(*static_cast<TH1F*>(obj));
+        } else {
+          GetListTree()->fObjReadMap[fullPath] = obj;
+        }
+      }
+    }
+
+    TObject *obj = GetListTree()->fObjReadMap[fullPath];
+    if(obj->InheritsFrom(TH2::Class())) {
+      hists2D.push_back(static_cast<TH2*>(obj));
+      drawables++;
+    } else if(obj->InheritsFrom(TH1::Class())) {
+      hists1D.push_back(static_cast<TH1*>(obj));
+      drawables++;
+    } else if(obj->InheritsFrom(TGraph::Class())) {
+      graphs.push_back(static_cast<TGraph*>(obj));
+      drawables++;
+    } else if(obj->InheritsFrom(TF1::Class())) {
+      functions.push_back(static_cast<TF1*>(obj));
+      drawables++;
+    } else {
+      //pass;
+    }
+  }
+  if(drawables<1) return;
+
+  //TODO - do something with the opt....
+
+  //if(hList.GetSize()<1) return;
+
+  //printf("doDraw\n");
+  //printf("draw option: %i\n",fDrawComboBox->GetSelected());
+  //printf("normalized:  %i\n",fDrawNormalized->GetState());
+  //printf("colz:        %i\n",fDrawColz->GetState());
+
+
+
+
+  TCanvas *g = 0;
+  switch (fDrawComboBox->GetSelected()) {
+    case EDrawOption::eDrawNew:
+      //g = new GCanvas;
+      break;
+    case EDrawOption::eDrawSame:
+    case EDrawOption::eDrawStacked:
+      if(gPad)
+        g = gPad->GetCanvas();
+      else
+        g = new GCanvas;
+      break;
+  }
+
+
+  if(hists1D.size()>0) {
+
+    for(auto it=hists1D.begin();it!=hists1D.end();it++) {
+      if((*it)->InheritsFrom(GH1D::Class())) {
+        GH1D *current = static_cast<GH1D*>(*it);
+        if(fDrawNormalized->GetState() == kButtonDown) {
+          if(!current->IsNormalized()) {
+            current->Normalize();
+          }
+        } else {
+          if(current->IsNormalized()) {
+            current->Normalize(); // this will un-normalize the histogram.
           }
         }
       }
-      hList.Add(GetListTree()->fObjReadMap[fullPath]);
-    }    
+    }
+    drawHists(hists1D,g);
+
+    /*
+       if(hists1D.size()==1) {
+       hists1D.at(0)->Draw();
+       } else {
+       if(hists1D.size()<=5) {
+       g->Divide(1,hists1D.size(),0.01,0);
+       int padN=1;
+       for(auto it=hists1D.begin();it!=hists1D.end();it++) {
+       g->cd(padN++);
+       (*it)->Draw();
+       }
+       } else {
+       THStack hs;
+       for(auto it=hists1D.begin();it!=hists1D.end();it++) 
+       hs.Add(*it);
+
+       if(fDrawComboBox->GetSelected() == EDrawOption::eDrawSame)
+       hs.Draw();
+    //hs.DrawNormalized();
+    else
+    hs.Draw("pads");
+    //hs.DrawNormalized("pads");
+
+    }
+    }
+     */
   }
-  //TODO - do something with the opt....
-
-  if(hList.GetSize()<1) return;
-
-  bool only1D = true;
-  THStack hs;
-  TIter iter(&hList);
-
-  GCanvas *g = 0;
-  while(TObject *obj = iter.Next()) {
-    if(obj->InheritsFrom(TH2::Class())) { 
-      only1D = false;
-    }
-    if(obj->InheritsFrom(TH1::Class())) { //TODO: also draw non-histograms....
-      //printf("obj = 0x%p\n",obj);
-      hs.Add(dynamic_cast<TH1*>(obj));  
-    }
-  }
-//return;
-
-  if(only1D) {
-    if(!g)
+  if(hists2D.size()>0) {
+    if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
       g = new GCanvas;
-    if(hs.GetNhists()<=5) {
-      g->Divide(1,hs.GetNhists(),0.01,0);
-      TIter nexth(hs.GetHists());
-      int cpad=1;
-      while(TObject *h=nexth.Next()) {
-        g->cd(cpad++);
-        h->Draw();
-      }
-    } else {
-      hs.Draw("pads");
-    }
-  } else {  
-    if(!g)
-      g = new GCanvas;
+    THStack hs;
+    for(auto it=hists1D.begin();it!=hists1D.end();it++) 
+      hs.Add(*it);
     hs.Draw("pads");
   }
+
+
   doUpdate(); 
 }
+
+void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) {
+
+  if(fDrawComboBox->GetSelected() == EDrawOption::eDrawSame ||
+      fDrawComboBox->GetSelected() == EDrawOption::eDrawStacked) {
+    TList *found = GrabHists(gPad->GetCanvas());
+    if(found->GetEntries() > 0 ) { 
+      TIter iter(found);
+      while(TH1 *hist = (TH1*)iter.Next()) {
+        hists.push_back(hist);
+      }
+      g->Clear();
+    }
+  }
+
+  if(hists.size()==1) {   
+    if(!g) 
+      g = new GCanvas;
+    hists.at(0)->Draw();
+    return;
+  } 
+
+  switch(fDrawComboBox->GetSelected()) {
+    case EDrawOption::eDrawNew:
+      for (auto it=hists.begin();it!=hists.end();it++) {
+        drawHists(std::vector<TH1*>(it,it+1),0);
+      } 
+      break;
+    case EDrawOption::eDrawSame:
+      {
+      THStack *hs = new THStack("hs","");
+      for(auto it=hists.begin();it!=hists.end();it++) 
+        hs->Add(*it);
+      hs->Draw("pfc nostack");
+      gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
+      }
+      break;  
+    case EDrawOption::eDrawStacked:
+      if(hists.size()<=5) {
+        g->Divide(1,hists.size(),0.01,0);
+        int padN=1;
+        for(auto it=hists.begin();it!=hists.end();it++) {
+          g->cd(padN++);
+          (*it)->Draw();
+        }
+      } else {
+        THStack hs;
+        for(auto it=hists.begin();it!=hists.end();it++) 
+          hs.Add(*it);
+
+        hs.Draw("pads");
+
+      }
+      break;
+    default:
+      break;
+  };
+
+
+
+}
+
 
 void Histomatic::doUpdate() {
   if(gPad) {

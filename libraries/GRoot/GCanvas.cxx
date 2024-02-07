@@ -409,6 +409,14 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       doUpdate = true;
       handled  = true;
       break;
+    case kKey_N:
+     currentHist = GrabHist();
+     if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+      static_cast<GH1D*>(currentHist)->Normalize();
+      doUpdate = true;
+      handled  = true;
+     }
+     break;
     case kKey_o:
       //printf("\tkey: %i  %i  %i\n",event,px,py);
       currentHist = GrabHist();
