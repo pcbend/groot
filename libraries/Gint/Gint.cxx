@@ -3,7 +3,7 @@
 #include <TFile.h>
 #include <TROOT.h>
 #include <TStyle.h>
-
+#include <TEnv.h>
 
 #include <Gint.h>
 #include <Gtypes.h>
@@ -40,8 +40,10 @@ void Gint::Terminate(int status) {
 
 void Gint::LoadStyle() {
   // Load the ROOT style file
-  gStyle->SetPalette(kOcean);
+  //gStyle->SetPalette(kVisibleSpectrum);
+  gStyle->SetPalette(gEnv->GetValue("Gint.Style",kVisibleSpectrum));
   gStyle->SetHistLineWidth(2);
+  gStyle->SetHistFillStyle(0);
   gROOT->ForceStyle();
 }
 

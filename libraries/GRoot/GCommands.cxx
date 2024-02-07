@@ -6,6 +6,7 @@
 #include<TH1.h>
 #include<TGraph.h>
 #include<TF1.h>
+#include<THStack.h>
 #include<TCanvas.h>
 
 #include<GGaus.h>
@@ -67,10 +68,16 @@ TH1 *GrabHist(int i)  {
         break;
       }
       j++;
+    } else if(obj->InheritsFrom(THStack::Class())) {
+      hist = ((THStack*)obj)->GetHistogram();
+      break;
     }
   }
   return hist;
 }
+
+
+
 
 TList *GrabHists(TVirtualPad *p) {
   //return all histograms on a canvas or pad. (default is the gPad);

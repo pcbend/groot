@@ -687,6 +687,7 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) {
       THStack *hs = new THStack("hs","");
       for(auto it=hists.begin();it!=hists.end();it++) 
         hs->Add(*it);
+      //hs->Draw("pfc nostack");
       hs->Draw("pfc nostack");
       gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
       }

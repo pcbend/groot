@@ -12,6 +12,9 @@ Rint.BracketColor: bold green
 Rint.BadBracketColor: bold red underlined
 Rint.TabComColor: magenta
 
+#see https://root.cern.ch/doc/master/classTColor.html for color numbers
+Gint.Style: 107 #kVisibleSpectrum
+
 #default root variables form the grsi enviorment
 Canvas.MoveOpaque: false
 Canvas.ResizeOpaque: false
