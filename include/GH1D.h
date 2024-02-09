@@ -21,11 +21,10 @@ class GH1D : public TH1D { //, public TQObject {
     //GH1D(const GH1D &h1d);
     GH1D(const TH1D &h1d);
     GH1D(const TH1F &h1f);
+    //GH1D(const TH1 *h1);
 
     GH1D(const TVectorD &v);
     
-    //void Copy(TObject &newHist) const override;
-
     virtual ~GH1D(); 
 
     void Draw(Option_t *opt="") override;
@@ -41,9 +40,10 @@ class GH1D : public TH1D { //, public TQObject {
     void Background();
     void PeakSearch(double threshold=0.05,double sigma=1,Option_t *opt="") { }  
 
-
     int GetNbinsOriginal() const { return fOriginalBins; }
 
+    bool  Add(const TH1 *h1, Double_t c1=1) override;
+    //GH1D* AddNormalized(const TH1 *h1, Double_t c1=1);
     enum EstatusBits {
       kBackgroundRemoved = BIT(22),
       kProjectionX       = BIT(23)
@@ -53,9 +53,7 @@ class GH1D : public TH1D { //, public TQObject {
     void SetParent(TH2 *h)    { fParent = h;    }
 		TH2* GetParent() const    { return fParent;  }
 
-		void SetSubtract(TH1D *h,double scale=-1); 
 		void SetScale(double scale) { fScale = scale; } 
-		void DoSubtract();
 
     bool IsNormalized() const { return fIsNormalized; }
     void Normalize();
@@ -63,17 +61,17 @@ class GH1D : public TH1D { //, public TQObject {
   private:
     void Init();
 		void SetOriginal();
-		void ResetOriginal();
+		void ResetToOriginal();
 
   private:
     TH1D *fOriginal;    
 		
-		TH1D *fSubtract;
+		//TH1D *fSubtract;
 		double fScale;
 
 		int  fOriginalBins;
     bool fIsNormalized;
-
+    
 
     TH2  *fParent;
 

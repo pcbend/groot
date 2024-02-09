@@ -1,6 +1,7 @@
 
 #include <GCommands.h>
 
+#include<TROOT.h>
 #include<TVirtualPad.h>
 #include<TList.h>
 #include<TH1.h>

@@ -13,6 +13,7 @@
 #include <TGraph.h>
 #include <TF1.h>
 #include <TList.h>
+#include <TStyle.h>
 
 #include <GObjectManager.h>
 #include <GCanvas.h>
@@ -413,8 +414,8 @@ void Histomatic::CreateWindow() {
   fButton2->Connect("Clicked()","Histomatic",this,"buttonAction()");
   fButton3 = new TGTextButton(fButtonRow1,"button3");
   fButton3->Connect("Clicked()","Histomatic",this,"buttonAction()");
-  fButton4 = new TGTextButton(fButtonRow1,"button4");
-  fButton4->Connect("Clicked()","Histomatic",this,"buttonAction()");
+  fButton4 = new TGTextButton(fButtonRow1,"CloseAll");
+  fButton4->Connect("Clicked()","Histomatic",this,"closeAllCanvases()");
   fButtonRow1->AddFrame(fButton1,fLH1);
   fButtonRow1->AddFrame(fButton2,fLH1);
   fButtonRow1->AddFrame(fButton3,fLH1);
@@ -676,6 +677,7 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) {
     return;
   } 
 
+  int ic;
   switch(fDrawComboBox->GetSelected()) {
     case EDrawOption::eDrawNew:
       for (auto it=hists.begin();it!=hists.end();it++) {
@@ -683,14 +685,17 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) {
       } 
       break;
     case EDrawOption::eDrawSame:
-      {
-      THStack *hs = new THStack("hs","");
-      for(auto it=hists.begin();it!=hists.end();it++) 
-        hs->Add(*it);
-      //hs->Draw("pfc nostack");
-      hs->Draw("pfc nostack");
-      gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
+      //THStack *hs = new THStack("hs","");
+      ic = gStyle->GetColorPalette(0); 
+      for(auto it=hists.begin();it!=hists.end();it++) {
+        //gPad->IncrementPaletteColor(ic,"plc");
+        (*it)->SetLineColor(ic++);
+        if(GrabHist()) 
+          (*it)->Draw("plc same");
+        else 
+          (*it)->Draw("plc");
       }
+      gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
       break;  
     case EDrawOption::eDrawStacked:
       if(hists.size()<=5) {
@@ -712,9 +717,17 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) {
     default:
       break;
   };
+}
 
 
-
+void Histomatic::closeAllCanvases() {
+  TSeqCollection *l = gROOT->GetListOfCanvases();
+  TIter iter(l);
+  while(TObject *obj = iter.Next()) {
+    TCanvas *c = (TCanvas*)obj;
+    c->Close();
+  }
+  return;
 }
 
 

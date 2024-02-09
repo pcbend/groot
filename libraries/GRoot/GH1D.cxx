@@ -19,34 +19,50 @@ GH1D::GH1D(std::string name,int nbinsx,double xlow, double xhigh) :
   GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { }
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const double *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0), fSubtract(0)   { 
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
   Init();
 }
  
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const float  *xbins) :
-  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0), fSubtract(0)    { 
+  TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)    { 
   Init();
 } 
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,double xlow, double xhigh) :
-  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0), fSubtract(0)     { 
+  TH1D(name,title,nbinsx,xlow,xhigh), fOriginal(0), fParent(0)     { 
   Init();
 }
 
 //GH1D::GH1D(const GH1D &h1d);
 GH1D::GH1D(const TH1D &h1d) :
-  TH1D(h1d), fOriginal(0), fParent(0), fSubtract(0)     { 
+  TH1D(h1d), fOriginal(0), fParent(0)    { 
   Init();
 } 
 
 GH1D::GH1D(const TH1F &h1f) :
-   fOriginal(0), fParent(0), fSubtract(0)     {  
+   fOriginal(0), fParent(0)     {  
   h1f.Copy(*this); 
   Init();
 } 
 
+/*
+GH1D::GH1D(const TH1 *hist) {
+  if(!hist) return;
+  if(hist->InheritsFrom(TH1D::Class())) {
+    TH1D *h1d = (TH1D*)hist;
+    h1d->Copy(*this);
+  } else if(hist->InheritsFrom(TH1F::Class())) {
+    TH1F *h1f = (TH1F*)hist;
+    h1f->Copy(*this);
+  } else {
+  
+  }
+  Init();
+}
+*/
+
 GH1D::GH1D(const TVectorD &v) :
-  TH1D(v), fOriginal(0), fParent(0), fSubtract(0)     { 
+  TH1D(v), fOriginal(0), fParent(0)     { 
   Init();
 }
 
@@ -54,8 +70,6 @@ GH1D::~GH1D() {
   //printf("GH1D deleted\n"); fflush(stdout);  
   if(fOriginal)
     delete fOriginal;
-	if(fSubtract)
-  	delete fSubtract;
   //TH1D::~TH1D();
 } 
 
@@ -63,7 +77,6 @@ void GH1D::Init() {
   //this->SetBit(kNoTitle);
 	SetOriginal();
   fParent = 0;
-  fSubtract = 0;
   fIsNormalized = false;
 }
 
@@ -124,6 +137,10 @@ TH1* GH1D::DrawNormalized(Option_t *opt, double norm) const {
 } 
 
 void GH1D::SetOriginal()   {
+  if(fOriginal) {
+    delete fOriginal;
+    fOriginal = 0;
+  }
 	if(!fOriginal) {
   	fOriginal = new TH1D();  
     fOriginal->SetDirectory(0);
@@ -133,7 +150,7 @@ void GH1D::SetOriginal()   {
   }
 }
 
-void GH1D::ResetOriginal() { 
+void GH1D::ResetToOriginal() { 
 
   if(!fOriginal) return;
   //double xlow = GetXaxis()->GetBinLowEdge(GetXaxis()->GetFirst());
@@ -204,7 +221,7 @@ void GH1D::Unbin(int ngroup) {
   //printf("name3 = %s\n",this->GetName());
 	*/
 
-	ResetOriginal();
+	ResetToOriginal();
 
   if(ngroup>0) {
     int aim = oldBins*ngroup;
@@ -218,6 +235,7 @@ void GH1D::Unbin(int ngroup) {
   }
 }
 
+/*
 void GH1D::SetSubtract(TH1D *h, double scale) {
 	
   if(!fOriginal) {
@@ -261,7 +279,7 @@ void GH1D::DoSubtract() {
 	this->Add(fSubtract,fScale);
 
 }
-
+*/
 
 TH1* GH1D::ShowBackground(int niter,Option_t* opt) {
   return TH1D::ShowBackground(niter,opt);
@@ -296,7 +314,7 @@ void GH1D::Background() {
     }
     this->GetXaxis()->UnZoom();
     TH1 *bg = TSpectrum::StaticBackground(this,12,"");
-    this->Add(bg,-1); 
+    TH1D::Add(bg,-1); 
     this->SetBit(GH1D::kBackgroundRemoved);
   }
   if(x1==x1) {
@@ -304,6 +322,37 @@ void GH1D::Background() {
     this->GetXaxis()->SetRangeUser(x1,x2);
   }
 }
+
+
+bool GH1D::Add(const TH1 *h1, Double_t c1) {
+  ResetToOriginal();
+  bool result = TH1::Add(h1,c1);
+  SetOriginal();
+  return result;
+}
+/*
+GH1D *GH1D::AddNormalized(const TH1 *h1, Double_t c1) {
+  ResetToOriginal();
+  GH1D *temp = new GH1D(this);
+  if(!h1->InheritsFrom(GH1D::Class())) {
+    h1 = new GH1D(h1);
+  }
+  printf("here 1\n"); fflush(stdout);
+  temp->Normalize();
+  printf("here 2\n"); fflush(stdout);
+  ((GH1D*)h1)->Normalize();
+  printf("here 3\n"); fflush(stdout);
+  temp->Add(h1,c1);
+  printf("here 4\n"); fflush(stdout);
+  delete h1;
+  return temp;
+}
+*/
+
+
+
+
+
 
 void GH1D::Normalize() {
   

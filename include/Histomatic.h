@@ -110,6 +110,8 @@ class Histomatic { //: public TGMainFrame {
     void doDraw(std::vector<TGListTreeItem*> selected,Option_t *opt="");
     void drawHists(std::vector<TH1*> hists, TCanvas *g=0); 
 
+    void closeAllCanvases();
+
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;
     

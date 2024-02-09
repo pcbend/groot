@@ -11,6 +11,7 @@ class GPeak;
 
 typedef const char Option_t;
 
+
 GPeak *PhotoPeakFit(TH1*,double,double,Option_t *opt="");
 GGaus *GausFit(TH1*,double,double,Option_t *opt="");
 
