@@ -9,6 +9,8 @@ bin/
 a.out
 *.root
 *.swp
+*.log
+
 
 .DS_Store
 .gint_history
