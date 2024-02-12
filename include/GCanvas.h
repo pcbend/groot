@@ -21,11 +21,15 @@ class GCanvas : public TCanvas {
     void EventProcessed(Event_t *event);
 
     void UpdateAllPads();
- 
+
+    void SetLockPads(bool flag=true) { fLockPads = flag; }
+    bool GetLockPads() const { return fLockPads; }
+
+
+
   //private:
     void Init(const char* name="",const char* title="");
     TVirtualPad* GetSelectedPad() const override;
-
 
     //void doSelected(TVirtualPad *pad, TObject *obj, Int_t event);
 
@@ -33,6 +37,8 @@ class GCanvas : public TCanvas {
     EEventType fEvent;
     int        fEventX;
     int        fEventy;
+
+    bool fLockPads;
 
     static int fCanvasNumber;
 

@@ -48,6 +48,8 @@ void GCanvas::Init(const char* name, const char* title) {
   std::string sname  = name;  
   std::string stitle = title;
 
+  fLockPads = false;
+
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
@@ -166,7 +168,9 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
       currentHist = GrabHist();
       if(gPad != TCanvas::GetSelectedPad()) {
         TCanvas::HandleInput(kButton2Down,px,py);
-      } else if(currentHist && gPad) {
+      } 
+      /*
+      else if(currentHist && gPad) {
         //unzoom hist?
         TVirtualPad *current = gPad;
         GCanvas *c = new GCanvas;
@@ -175,13 +179,23 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
         currentHist->DrawCopy();
         gPad->Modified();
         gPad->Update();
-
       }
+      */
       break;
       break;
     case kButton1Up:
       break;
     case kButton1Double:
+      currentHist = GrabHist();
+      if(GrabHists(gPad->GetCanvas())->GetEntries()>1) {
+        printf("currentHist = 0x%p\n",currentHist);
+        TVirtualPad *current = gPad;
+        GCanvas *c = new GCanvas;
+        c->cd();
+        currentHist->Draw();  
+
+          
+      }
       break;
     default:
       break; 
@@ -208,7 +222,7 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
         if((gPad->GetUxmin() - halfWindow)<currentHist->GetXaxis()->GetXmin()) 
           halfWindow = fabs(gPad->GetUxmin()-currentHist->GetXaxis()->GetXmin());
-        if(mask&kKeyShiftMask) {
+        if((mask&kKeyShiftMask) || fLockPads )  {
           TIter iter(gList);
           while(TH1 *hist = dynamic_cast<TH1*>(iter())) 
             hist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
@@ -226,7 +240,7 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         double halfWindow = fabs(0.5*(gPad->GetUxmax() - gPad->GetUxmin()));
         if((gPad->GetUxmax() + halfWindow)>currentHist->GetXaxis()->GetXmax()) 
           halfWindow = fabs(currentHist->GetXaxis()->GetXmax() - gPad->GetUxmax());
-        if(mask&kKeyShiftMask) {
+        if((mask&kKeyShiftMask) || fLockPads ) {
           TIter iter(gList);
           while(TH1 *hist = dynamic_cast<TH1*>(iter())) 
             hist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
@@ -315,6 +329,18 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
           GMarker::RemoveAll(currentHist);
           doUpdate=true;
           handled=true;
+
+          if(fLockPads) {
+            gList = GrabHists(gPad->GetCanvas()); 
+            TIter iter(gList);
+            while(TH1 *hist = ((TH1*)iter.Next())) {
+              if(hist->GetDimension()==1) {
+                hist->GetXaxis()->SetRangeUser(xlow,xhigh);
+                //pad->Modified();
+                //pad->Update();
+              }
+            }
+          }
         }
       }
       break;

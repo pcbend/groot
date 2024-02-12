@@ -1,7 +1,8 @@
 #ifndef __HISTOMATIC_H__
 #define __HISTOMATIC_H__
 
-
+//#include "TQObject.h"
+//#include "RQ_OBJECT.h"
 #include "TGClient.h"
 #include "TGFrame.h"
 #include "TGTab.h"
@@ -26,6 +27,7 @@ class Histomatic;
 class GEventTimer;
 class TH1;
 class TCanvas;
+class TPad;
 
 class GListTreeCanvas : public TGCanvas {
   public:
@@ -86,8 +88,8 @@ class GListTree : public TGListTree {
 
 
 
-class Histomatic { //: public TGMainFrame {
-  //RQ_OBJECT("Histomatic")
+class Histomatic { //: public TQObject { //: public TGMainFrame {
+  //RQ_OBJECT("Histomatic");
   //Histomatic(const Histomatic&) = delete;
   //Histomatic& operator=(const Histomatic&) = delete;
 
@@ -99,7 +101,6 @@ class Histomatic { //: public TGMainFrame {
     GListTree *GetListTree() { return fGListTree; }
 
     void buttonAction();
-
     void SetStatusText(std::string text, int col) { fStatusBar->SetText(text.c_str(),col); }
 
   //private:
@@ -111,6 +112,9 @@ class Histomatic { //: public TGMainFrame {
     void drawHists(std::vector<TH1*> hists, TCanvas *g=0); 
 
     void closeAllCanvases();
+
+    void doLockPads(TPad *pad=0);
+
 
   protected:
     TGLayoutHints *fLH0, *fLH1, *fLH2;
@@ -148,6 +152,7 @@ class Histomatic { //: public TGMainFrame {
     };
     TGCheckButton     *fDrawNormalized;
     TGCheckButton     *fDrawColz;
+    TGCheckButton     *fLockPads;
 
 
     //TGCanvas          *fListTreeCanvas;
