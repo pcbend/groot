@@ -10,7 +10,7 @@ a.out
 *.root
 *.swp
 *.log
-
+*.dat
 
 .DS_Store
 .gint_history
