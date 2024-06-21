@@ -666,7 +666,7 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
       if(gPad)
         g = gPad->GetCanvas();
       else
-        g = new GCanvas;
+        g = gROOT->MakeDefCanvas();  //new GCanvas;
       break;
   }
 
@@ -718,13 +718,13 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
   }
   if(hists2D.size()==1) {
     if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
-      g = new GCanvas;
+      g = gROOT->MakeDefCanvas();//new GCanvas;
 
     GH2D *current = static_cast<GH2D*>(hists2D[0]);
     current->Draw();
-} else if(hists2D.size()>1) {
+  } else if(hists2D.size()>1) {
     if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
-      g = new GCanvas;
+      g = gROOT->MakeDefCanvas(); //new GCanvas;
     THStack hs;
     for(auto it=hists1D.begin();it!=hists1D.end();it++) 
       hs.Add(*it);
@@ -751,7 +751,7 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) {
 
   if(hists.size()==1) {   
     if(!g) 
-      g = new GCanvas;
+      g = gROOT->MakeDefCanvas(); //new GCanvas;
     hists.at(0)->Draw();
     return;
   } 

@@ -57,6 +57,16 @@ void GCanvas::Init(const char* name, const char* title) {
 
 }
 
+
+TCanvas *GCanvas::MakeDefCanvas() {
+
+  TCanvas *c =  new GCanvas();
+  ::Info("GCanvas::MakeDefCanvas"," created default GCanvas with name %s", c->GetName());
+  return c;
+}
+
+
+
 void GCanvas::EventProcessed(Event_t *event) {
 //ProcessedEvent(int event, int x, int y, TObject *selected) {
   /*

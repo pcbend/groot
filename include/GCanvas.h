@@ -12,6 +12,8 @@ class GCanvas : public TCanvas {
     GCanvas(const char* name, int ww, int wh, int winid);
     virtual ~GCanvas(); 
 
+    static TCanvas *MakeDefCanvas();// override;
+
     void HandleInput(EEventType event, int px, int py) override; 
     bool HandleMouseButton1(EEventType event, int px, int py);
     bool HandleKeyPress(EEventType event, int px, int py);
@@ -25,6 +27,7 @@ class GCanvas : public TCanvas {
     void SetLockPads(bool flag=true) { fLockPads = flag; }
     bool GetLockPads() const { return fLockPads; }
 
+    
 
 
   //private:
