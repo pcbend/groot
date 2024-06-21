@@ -22,6 +22,9 @@ find_package(ROOT REQUIRED)
 
 include(CMakePrintHelpers)
 cmake_print_variables(ROOT_CXX_FLAGS)
+cmake_print_variables(ROOT_CXX_STANDARD)
+
+set (CMAKE_CXX_STANDARD ${ROOT_CXX_STANDARD})
 
 #setting output paths in the build directory
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

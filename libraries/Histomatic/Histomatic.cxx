@@ -636,6 +636,14 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
       //pass;
     }
   }
+  
+  //printf("\n\nnum drawables: %i\n",drawables);
+  //printf("found  %lu TH1 to draw.\n",    hists1D.size());
+  //printf("found  %lu TH2 to draw.\n",    hists2D.size());
+  //printf("found  %lu TGraph to draw.\n", graphs.size());
+  //printf("found  %lu TF1    to draw.\n", functions.size());
+  //printf("\n\n");
+
   if(drawables<1) return;
 
   //TODO - do something with the opt....
@@ -646,8 +654,6 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
   //printf("draw option: %i\n",fDrawComboBox->GetSelected());
   //printf("normalized:  %i\n",fDrawNormalized->GetState());
   //printf("colz:        %i\n",fDrawColz->GetState());
-
-
 
 
   TCanvas *g = 0;
@@ -710,7 +716,13 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) {
     }
      */
   }
-  if(hists2D.size()>0) {
+  if(hists2D.size()==1) {
+    if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
+      g = new GCanvas;
+
+    GH2D *current = static_cast<GH2D*>(hists2D[0]);
+    current->Draw();
+} else if(hists2D.size()>1) {
     if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
       g = new GCanvas;
     THStack hs;

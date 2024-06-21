@@ -16,7 +16,9 @@
 Gint *Gint::fGint = 0;
 
 //Gint::Gint(int argc, char **argv) : TRint("gint",&argc,argv,0,0,true,false) {
-Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false), fRootFilesOpened(0)  {
+Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false), 
+  fRootFilesOpened(0), fTabLock(false), fMainThreadId(std::this_thread::get_id())  {
+
   LoadOptions(argc,argv);
   LoadStyle();
   SetPrompt("groot [%d] ");
@@ -203,5 +205,42 @@ TFile *Gint::OpenRootFile(const std::string& filename, Option_t* opt) {
 
   return file;
 }
+
+int Gint::TabCompletionHook(char* buf, int* pLoc, std::ostream& out) {
+  fTabLock = true;
+  int result = TRint::TabCompletionHook(buf,pLoc,out);
+  fTabLock = false;
+  return result;
+}
+
+
+long Gint::ProcessLine(const char* line, bool sync, int* error) {
+  long retval = 0;
+  if(fTabLock) {
+    return TRint::ProcessLine(line,sync,error);
+  }
+  TString sline(line);
+  if(!sline.Length()) {
+    return 0;
+  }
+  sline.ReplaceAll("TCanvas","GCanvas");
+
+  if(std::this_thread::get_id() != fMainThreadId){
+    printf("Not the main thread...  ");
+    fflush(stdout);
+  }           
+  
+  if(!sline.CompareTo("clear")) {
+    retval = TRint::ProcessLine(".! clear");
+  } else {
+    retval = TRint::ProcessLine(sline.Data(),sync,error);
+  }
+
+  if(retval < 0) {
+    //std::cerr << "Error processing line: " << line << std::endl;
+  }
+  return retval;
+}
+
 
 
