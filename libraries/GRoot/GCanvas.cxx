@@ -7,8 +7,10 @@
 #include <globals.h>
 #include <GCommands.h>
 #include <GMarker.h>
+#include <GROI.h>
 #include <GH1D.h>
 #include <GH2D.h>
+
 
 #include <KeySymbols.h>
 #include <TH1.h>
@@ -283,6 +285,15 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
   TList* gList = 0;
   //printf("HandleKey()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
   //printf("key: %i  %i  %i\n",event,px,py);
+  currentHist = GrabHist();
+  if(currentHist && currentHist->GetDimension()==1) {
+    printf("currentHist = 0x%p\n",currentHist);
+    printf("currentHist->GetDimension() = %i\n",currentHist->GetDimension());
+  }else if(currentHist && currentHist->GetDimension()==2) {
+    printf("currentHist = 0x%p\n",currentHist);
+    printf("currentHist->GetDimension() = %i\n",currentHist->GetDimension());
+  }
+
   switch(py) {
     case kKey_Space:
       printf("--space--\n");
@@ -446,12 +457,29 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
       handled  = true;
       break;
     case kKey_N:
-     currentHist = GrabHist();
-     if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
-      static_cast<GH1D*>(currentHist)->Normalize();
+      currentHist=GrabHist();
+      if(currentHist) {
+        TListIter iter(currentHist->GetListOfFunctions());
+        std::vector<TF1*> funcs;
+        while(TObject *obj=iter.Next()) {
+          if(obj->InheritsFrom(TF1::Class()))
+            funcs.push_back(((TF1*)obj));
+        }
+        for(auto i=funcs.begin();i!=funcs.end();i++)
+          currentHist->GetListOfFunctions()->Remove(*i);
+        GMarker::RemoveAll(currentHist);
+        GROI::RemoveAll(currentHist);
+        currentHist->Sumw2(false);
+
+      }
       doUpdate = true;
       handled  = true;
-     }
+     //currentHist = GrabHist();
+     //if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+     // static_cast<GH1D*>(currentHist)->Normalize();
+     // doUpdate = true;
+     // handled  = true;
+     //}
      break;
     case kKey_o:
       //printf("\tkey: %i  %i  %i\n",event,px,py);
@@ -532,6 +560,23 @@ bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
         handled  = true;
       }
       break;
+    case kKey_r:
+      currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==1) {
+        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+        if(markers.size()>1) {
+          GROI *roi = new GROI(markers.at(0),markers.at(1));
+          roi->SetParent(currentHist);
+          currentHist->GetListOfFunctions()->Add(roi);
+          GMarker::RemoveAll(currentHist);
+          doUpdate = true;
+          handled  = true;
+        } 
+      }
+      //doUpdate = true;
+      //handled  = true;
+      break;
+
     case kKey_W:
       gList = GrabHists(gPad->GetCanvas());    
       if(gList) {

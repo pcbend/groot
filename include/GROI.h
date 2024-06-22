@@ -1,0 +1,44 @@
+#ifndef __GROI_H__ 
+#define __GROI_H__ 
+
+#include<TNamed.h>
+
+class GMarker;
+class TH1;
+class TGraph;
+
+class GROI : public TNamed {
+
+  public:
+    GROI();
+    GROI(const char* name, const char* title="");
+    GROI(GMarker *m1, GMarker *m2, const char* name="ROI", const char* title="ROI");
+
+    virtual ~GROI();
+    
+    void SetParent(TH1* parent) { fParent = parent; }
+    TH1* GetParent()  const     { return fParent; }
+
+    void Draw(Option_t* opt="") override;
+    void Paint(Option_t* opt="") override;
+
+    int  DistancetoPrimitive(int px, int py) override;
+
+    static void RemoveAll(TH1* h);
+
+/////
+
+  private:
+    GMarker* fMarker1;
+    GMarker* fMarker2;
+    TGraph*  fFill;
+
+  private:
+    void CreateFill();
+    TH1* fParent; 
+
+  ClassDefOverride(GROI, 1)
+
+};
+
+#endif 

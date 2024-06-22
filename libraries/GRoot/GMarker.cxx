@@ -67,6 +67,12 @@ void GMarker::Remove() {
 void GMarker::Paint(Option_t *opt) {
   //printf("\t-in gmaker paint.\n");
   //fflush(stdout);
+  TString sopt(opt);
+  sopt.ToLower();
+  if(sopt.Length() == 0) sopt = this->GetDrawOption();
+
+  printf("sopt: %s\n",sopt.Data());
+
   if(gPad && fHist && fHist->GetDimension()==1) {
    if(!gPad->GetLogy()) {
       if(TestBit(kLineNDC))
@@ -80,7 +86,18 @@ void GMarker::Paint(Option_t *opt) {
       SetX1(fX);
       SetX2(fX);
       SetY1(gPad->GetUymin());
-      SetY2(gPad->GetUymax());
+      if(sopt.Contains("tohist"))  
+        SetY2(fHist->GetBinContent(fHist->FindBin(fX)));
+      else
+        SetY2(gPad->GetUymax());
+    
+
+      //double binval = fHist->GetBinContent(fHist->FindBin(fX));
+      //int    pybin  = gPad->YtoAbsPixel(gPad->YtoPad(binval));    
+      //printf("binval: %f\n",binval);
+      //printf("pybin: %i\n",pybin);
+      //printf("Uymin:  %f\n",gPad->GetUymin());
+      //printf("Uymax:  %f\n",gPad->GetUymax());
     } else {
       double lm = gPad->GetLeftMargin();
       double rm = 1.-gPad->GetRightMargin();
