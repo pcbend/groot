@@ -17,6 +17,8 @@ elseif(LINUX)
   add_compile_definitions(__linux__=TRUE)
 endif()
 
+set(CMAKE_BUILD_TYPE Debug)
+
 #find the root, set the various cmake variables.
 find_package(ROOT REQUIRED) 
 

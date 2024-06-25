@@ -7,6 +7,9 @@
 #include<TVirtualPad.h>
 #include<TBox.h>
 
+#include "GROI.h"
+
+
 GH1D::GH1D() : TH1D(), fOriginal(0) { }
 
 GH1D::GH1D(std::string name,int nbinsx,const double *xbins) :
@@ -195,6 +198,7 @@ TH1* GH1D::Rebin(int ngroup,const char *newname,const double *xbins) {
   //printf("original bins = %i\n\n",GetNbinsOriginal());  
   //if(sname.Length()==0) 
   //  GetXaxis()->SetRangeUser(xlow,xup);
+  UpdateFunctions();
   return temp;
 }
 
@@ -233,6 +237,7 @@ void GH1D::Unbin(int ngroup) {
       }
     }
   }
+  UpdateFunctions();
 }
 
 /*
@@ -379,7 +384,15 @@ void GH1D::Normalize() {
 
 }
 
+void GH1D::UpdateFunctions() {
+  TIter iter(this->GetListOfFunctions());
+  while(TObject *obj = iter.Next()) {
+    if(obj->InheritsFrom(GROI::Class())) {
+      static_cast<GROI*>(obj)->Update();
+    }
+  }
 
+}
 
 
 

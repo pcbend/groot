@@ -25,6 +25,7 @@
 
 #pragma link C++ class GGaus+;
 #pragma link C++ class GPeak+;
+#pragma link C++ class GPeak2+;
 #pragma link C++ class GROI+;
 
 #pragma link C++ class GEventTimer;

@@ -6,6 +6,7 @@
 class GMarker;
 class TH1;
 class TGraph;
+class TF1;
 
 class GROI : public TNamed {
 
@@ -16,12 +17,18 @@ class GROI : public TNamed {
 
     virtual ~GROI();
     
-    void SetParent(TH1* parent) { fParent = parent; }
+    void SetParent(TH1* parent); // { fParent = parent; }
     TH1* GetParent()  const     { return fParent; }
+
+    void SetFit(TF1* fit) { fFit = fit; }
+    TF1* GetFit() const { return fFit; }
+
 
     void Draw(Option_t* opt="") override;
     void Paint(Option_t* opt="") override;
+    void Update();
 
+    void ExecuteEvent(int event, int px, int py) override;
     int  DistancetoPrimitive(int px, int py) override;
 
     static void RemoveAll(TH1* h);
@@ -31,7 +38,9 @@ class GROI : public TNamed {
   private:
     GMarker* fMarker1;
     GMarker* fMarker2;
+    GMarker* fCurrentMarker;
     TGraph*  fFill;
+    TF1*     fFit;
 
   private:
     void CreateFill();

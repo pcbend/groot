@@ -58,6 +58,8 @@ class GH1D : public TH1D { //, public TQObject {
     bool IsNormalized() const { return fIsNormalized; }
     void Normalize();
 
+    void UpdateFunctions();
+
   private:
     void Init();
 		void SetOriginal();

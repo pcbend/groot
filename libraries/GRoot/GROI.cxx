@@ -3,15 +3,18 @@
 #include "GMarker.h"
 #include "TGraph.h"
 #include "TH1.h"
+#include "TF1.h"
+#include "TButton.h"
 
-GROI::GROI() : TNamed(), fMarker1(0), fMarker2(0), fFill(0), fParent(0) {  }
+
+GROI::GROI() : TNamed(), fMarker1(0), fMarker2(0),fCurrentMarker(0), fFill(0), fFit(0), fParent(0) {  }
 
 GROI::GROI(const char* name, const char* title) : TNamed(name, title), 
-  fMarker1(0), fMarker2(0),fFill(0),fParent(0) {  }
+  fMarker1(0), fMarker2(0),fCurrentMarker(0),fFill(0),fFit(0),fParent(0) {  }
 
 
 GROI::GROI(GMarker *m1, GMarker *m2, const char* name, const char* title) : TNamed(name, title), 
-  fFill(0),fParent(0) { 
+  fCurrentMarker(0), fFill(0),fFit(0),fParent(0) { 
   fMarker1 = new GMarker(*m1);
   fMarker2 = new GMarker(*m2);
   //fMarker1->SetDrawOption("tohist");
@@ -25,16 +28,28 @@ GROI::~GROI() {
   if (fMarker1) delete fMarker1;
   if (fMarker2) delete fMarker2;
   if (fFill)    delete fFill;
+  if (fFit)     delete fFit;
 }
 
+void GROI::SetParent(TH1* parent) {
+  fParent = parent;
+}
+
+void GROI::Update() {
+  //printf("Updating ROI %s\n", GetName());
+  CreateFill();
+  if(fFit) {
+  }
+} 
 
 void GROI::Draw(Option_t* opt) {
-  if(fParent) {
-    this->Paint("same");
-  }
-  else {
-    this->Paint();
-  }
+  //if(fParent) {
+  //  this->Paint("same");
+  //}
+  //else {
+  //  this->Paint();
+  //}
+  this->Paint();
 }
 
 void GROI::CreateFill() {
@@ -79,6 +94,32 @@ void GROI::Paint(Option_t* opt) {
       this->CreateFill();
     }
     fFill->Paint("F");
+  }
+}
+
+void GROI::ExecuteEvent(int event, int px, int py) {
+  if(!fMarker1 || !fMarker2) {
+    return;
+  }
+  printf("event = %i\n",event);
+  printf("marker1 dist = %i\n",fMarker1->DistancetoPrimitive(px,py));
+  printf("marker2 dist = %i\n",fMarker2->DistancetoPrimitive(px,py));
+  
+  if(event == EEventType::kMouseMotion) {
+    if (fMarker1->DistancetoPrimitive(px,py) < fMarker2->DistancetoPrimitive(px,py)) {
+      fCurrentMarker = fMarker1;
+    } else {
+      fCurrentMarker = fMarker2;
+    }
+  } else {
+    if(fCurrentMarker)
+      fCurrentMarker->ExecuteEvent(event, px, py);
+      //Paint();
+      CreateFill();
+      if(gPad) {
+        gPad->Modified();
+        gPad->Update();
+      }
   }
 }
 

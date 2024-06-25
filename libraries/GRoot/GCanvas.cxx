@@ -136,6 +136,7 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     case kButton1Up:
     case kButton1Double:
       //printf("clicked on %s\n",GetSelected()->IsA()->GetName());
+      if(!GetSelected()) break;
       if(GetSelected()->InheritsFrom(TH1::Class()) ||
          GetSelected()->InheritsFrom(TFrame::Class()) )
         handled = HandleMouseButton1(event,px,py);
