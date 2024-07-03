@@ -60,29 +60,42 @@ GListTree::~GListTree() {
   //delete fListTree;
 }
 
+
+
+///
+// This is the soul method to get contents from a root file into the list-tree
+///
 void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
   if(obj->InheritsFrom("TTree")) return;
-
-  //bool checkBox = false;
-  //if(obj->InheritsFrom(TH1::Class()))
-  //  checkBox = true;
-  //TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(obj->IsA()),GetIcon(obj->IsA()),checkBox);
-  //item->CheckItem(false);
-  TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(obj->IsA()),GetIcon(obj->IsA()));
+ 
+  TClass *cls = 0;
+  if(obj->IsA()==TKey::Class()) 
+    cls = TClass::GetClass(static_cast<TKey*>(obj)->GetClassName());
+  else 
+    cls = obj->IsA();
+  TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(cls),GetIcon(cls));
   if(obj->IsFolder()) {
+    if(obj->IsA() == TKey::Class()) //now read the object... 
+      obj = ((TKey*)obj)->ReadObj(); 
     TIter iter(((TDirectory*)obj)->GetListOfKeys());
     while(TKey *key = (TKey*)iter.Next()) { 
-      TObject *keyObject = NULL;
-      try{      
+      //TObject *keyObject = NULL;
+      //try{      
         //InsertObject(key->ReadObj(),item);
-        keyObject = key->ReadObj();
-      } catch(std::exception const &e) {
-        std::cout << "caught: " << e.what() << std::endl;
-      }
-      if(keyObject) InsertObject(keyObject,item);
+      //  keyObject = key->ReadObj();
+      //} catch(std::exception const &e) {
+      //  std::cout << "caught: " << e.what() << std::endl;
+      //}
+      //if(keyObject) InsertObject(keyObject,item);
+      if(key) InsertObject(key,item);
     }
   }
 }
+
+
+
+
+
 
 const TGPicture *GListTree::GetIcon(TClass *cls) {
   std::string path = programPath();
