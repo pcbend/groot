@@ -187,6 +187,8 @@ void GMarker::ExecuteEvent(int event, int px, int py) {
   return;
 } 
 
+
+//TODO: Currently events are not being sent to the lines...
 int GMarker::DistancetoPrimitive(int px, int py) { 
   int d1 = 9999;
   int d2 = 9999;
