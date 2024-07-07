@@ -6,7 +6,8 @@
 
 class TH1;
 
-class GMarker : public TLine { //, public TQObject {
+class GMarker : public TNamed {
+// public TLine { //, public TQObject {
   public:
     GMarker();
     ~GMarker();  
@@ -18,17 +19,31 @@ class GMarker : public TLine { //, public TQObject {
     //void doUpdate();
 
     void Paint(Option_t *opt="") override;
-    void ExecuteEvent(int event, int px, int py) override;
 
     static void                  RemoveAll(TH1 *h);  //remove all markers from h
     static std::vector<GMarker*> GetAll(TH1 *h); //return all markers in h
-    
+
+    void SetX(double x) { fX = x; }
+    void SetY(double y) { fY = y; }
+
+    double GetX() const { return fX; }
+    double GetY() const { return fY; }
+
+    void SetLineColor(Color_t color);
+
+    void ExecuteEvent(int event, int px, int py) override;
+    int  DistancetoPrimitive(int px, int py) override;
+
+
   public:
     double X() const { return fX; }
     double Y() const { return fY; }
 
   private:
     TH1 *fHist;
+    TLine *fLineX;
+    TLine *fLineY;  
+
     double fX;
     double fY;  
 

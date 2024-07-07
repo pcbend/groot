@@ -9,26 +9,46 @@
 #include<TPad.h>
 //#include<TTimer.h>
 
-GMarker::GMarker() : fX(sqrt(-1)), fY(sqrt(-1)) { 
-  SetLineWidth(2);
-  SetLineColor(kRed);
+GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0), fX(sqrt(-1)), fY(sqrt(-1)) { 
+  //SetLineWidth(2);
+  //SetLineColor(kRed);
+  SetName("GMarker");
+
+
 }
 
 GMarker::~GMarker() {
   //printf("gmarker deleted\n");
+  if(fHist) fHist->GetListOfFunctions()->Remove(this);
+  if(fLineX) delete fLineX;
+  if(fLineY) delete fLineY;
 } 
 
 void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   if(!h) return;
   fHist = h;
+  //if(h && h->GetDimension() == 1) {
   x = fHist->GetBinLowEdge(fHist->FindBin(x));
-  
-
-  SetX1(x);
-  SetX2(x);
-  fX =x;  
-  SetVertical();
-
+  if(!fLineX) fLineX = new TLine;
+  fLineX->SetLineWidth(2);
+  fLineX->SetLineColor(kRed);
+  fLineX->SetX1(x);
+  fLineX->SetX2(x);
+  //fX =x;
+  SetX(x);
+  fLineX->SetVertical();
+  //} else if(h && h->GetDimension() == 2) {
+  if(h->GetDimension() == 2) {
+    //x = fHist->GetXaxis()->GetBinLowEdge(fHist->GetXaxis()->FindBin(x));
+    y = fHist->GetYaxis()->GetBinLowEdge(fHist->GetYaxis()->FindBin(y));
+    if(!fLineY) fLineY = new TLine;
+    fLineY->SetLineWidth(2);
+    fLineY->SetLineColor(kRed);
+    fLineY->SetY1(y);
+    fLineY->SetY2(y);
+    SetY(y);
+    fLineY->SetHorizontal();
+  }
   //we want to limit how many marks are on the histogram.  
   //lets start with two....
   int fMaxMarkers=2;
@@ -41,56 +61,47 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
         ((GMarker*)obj)->Remove();
     }
   }
-    
-
   
   fHist->GetListOfFunctions()->Add(this);
 
-
-
-  /*   this doesn't work.  One can change the range without setting the gPad...
-  if(gPad && gPad->GetPrimitive(fHist->GetName())) { // the histogram is active and drawn to the screen
-    //TQObject::Connect("TPad","RangeChanged()","GMarker",this,"Update()"); // this would connect all TPad::RangeChangeds
-    TQObject::Connect(gPad,"RangeChanged()","GMarker",this,"Update()");
-  }
-  */
   return;
 } 
 
 void GMarker::Remove() {
   if(!fHist) return;
-  fHist->GetListOfFunctions()->Remove(this);
+  //fHist->GetListOfFunctions()->Remove(this);
   this->Delete();
 }
 
 
 void GMarker::Paint(Option_t *opt) {
-  //printf("\t-in gmaker paint.\n");
-  //fflush(stdout);
   TString sopt(opt);
   sopt.ToLower();
-  if(sopt.Length() == 0) sopt = this->GetDrawOption();
+  //if(sopt.Length() == 0) sopt = this->GetDrawOption();
 
-  printf("sopt: %s\n",sopt.Data());
 
-  if(gPad && fHist && fHist->GetDimension()==1) {
-   if(!gPad->GetLogy()) {
-      if(TestBit(kLineNDC))
-        SetBit(kLineNDC,false);
-      else
-        if(fX != GetX1()) {
+  if(!gPad || !fHist) return;
+
+  if(fHist->GetDimension()==1) {
+    if(!fLineX) 
+      return;  // this should not be possible
+    
+  /*  if(!gPad->GetLogy()) {
+      if(fLineX->TestBit(TLine::kLineNDC))
+        fLineX->SetBit(TLine::kLineNDC,false);
+      //else
+      //  if(fX != fLineX->GetX1()) {
           //someone has moved the marker...
           //printf("GMarker X: %.02f\n",GetX1());
-          fX = GetX1();
-        }
-      SetX1(fX);
-      SetX2(fX);
-      SetY1(gPad->GetUymin());
+          fX = fLineX->GetX1();
+      //  }
+      fLineX->SetX1(fX);
+      fLineX->SetX2(fX);
+      fLineX->SetY1(gPad->GetUymin());
       if(sopt.Contains("tohist"))  
-        SetY2(fHist->GetBinContent(fHist->FindBin(fX)));
+        fLineX->SetY2(fHist->GetBinContent(fHist->FindBin(fX)));
       else
-        SetY2(gPad->GetUymax());
-    
+        fLineX->SetY2(gPad->GetUymax());
 
       //double binval = fHist->GetBinContent(fHist->FindBin(fX));
       //int    pybin  = gPad->YtoAbsPixel(gPad->YtoPad(binval));    
@@ -98,32 +109,37 @@ void GMarker::Paint(Option_t *opt) {
       //printf("pybin: %i\n",pybin);
       //printf("Uymin:  %f\n",gPad->GetUymin());
       //printf("Uymax:  %f\n",gPad->GetUymax());
-    } else {
+    } else {  */
+      if(!fLineX->TestBit(TLine::kLineNDC))
+        fLineX->SetBit(TLine::kLineNDC,true);
+
       double lm = gPad->GetLeftMargin();
       double rm = 1.-gPad->GetRightMargin();
       double tm = 1.-gPad->GetTopMargin();
       double bm = gPad->GetBottomMargin();
-      if(!TestBit(kLineNDC)) {
-        double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(gPad->GetUxmax()-gPad->GetUxmin()))+lm;
-        SetX1(xndc);
-        SetX2(xndc);
-      }
-      SetBit(kLineNDC,true);
-      double xuser = ((GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
+      double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(gPad->GetUxmax()-gPad->GetUxmin()))+lm;
+      fLineX->SetX1(xndc);
+      fLineX->SetX2(xndc);
+      double xuser = ((fLineX->GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
       if(fX !=xuser) {
         fX= xuser;
       }
-      SetX1(GetX1());    
-      SetX2(GetX1());    
-      SetY1(bm);    
-      SetY2(tm);    
-      SetBit(kLineNDC,true);
-    }  
-  
+      fLineX->SetY1(bm);    
+      fLineX->SetY2(tm);    
+      fLineX->SetBit(TLine::kLineNDC,true);
+//    }  
     //std::cout<<"\t\tuymin: " << gPad->GetUymin() << std::endl;
     //std::cout<<"\t\tuymax: " << gPad->GetUymax() << std::endl;
+  } else if (fHist->GetDimension()==2) {
+    
+
+
+
   }
-  TLine::Paint(opt);
+  
+  if(fLineX) fLineX->Paint(sopt.Data());
+  if(fLineY) fLineY->Paint(sopt.Data());
+
 }
 
 void GMarker::RemoveAll(TH1 *h) {
@@ -146,11 +162,50 @@ std::vector<GMarker*> GMarker::GetAll(TH1 *h) {
   return toReturn;
 }
 
-void GMarker::ExecuteEvent(int event, int px, int py) {
-  TLine::ExecuteEvent(event,px,py);
-  //printf("GMarker X: %.02f\n",GetX1());
-  return;
+void GMarker::SetLineColor(Color_t color) {
+  if(fLineX) fLineX->SetLineColor(color);
+  if(fLineY) fLineY->SetLineColor(color);
 }
+
+void GMarker::ExecuteEvent(int event, int px, int py) { 
+  if(!fLineX || fLineY) return;
+
+  int d1 = 9999;
+  int d2 = 9999;
+  if(fLineX)
+    d1 = fLineX->DistancetoPrimitive(px,py);
+  if(fLineY)
+    d2 = fLineY->DistancetoPrimitive(px,py);
+   if(d1<d2) { 
+     if(fLineX) 
+       fLineX->ExecuteEvent(event,px,py);
+   } else {
+     if(fLineY)
+       fLineY->ExecuteEvent(event,px,py);
+   } 
+
+  return;
+} 
+
+int GMarker::DistancetoPrimitive(int px, int py) { 
+  int d1 = 9999;
+  int d2 = 9999;
+  if(fLineX)
+    d1 = fLineX->DistancetoPrimitive(px,py);
+  if(fLineY)
+    d2 = fLineY->DistancetoPrimitive(px,py);
+  return (d1 < d2) ? d1 : d2;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

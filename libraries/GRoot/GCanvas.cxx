@@ -67,7 +67,18 @@ TCanvas *GCanvas::MakeDefCanvas() {
   return c;
 }
 
+/*
+  //  Event Processing Order:
+    1 Event Processed 
+      - Finds Arrow Keys, otherwise does nothing.
+        - HandleArrowPress
+    2 HandleInput
+      // look for histograms - check that GetSelected() is Inherits from TH1 or TFrame, then check dimensions.
+      - switch yard to
+        - HandleKeyPress
+        - HandleMouseButton1
 
+*/
 
 void GCanvas::EventProcessed(Event_t *event) {
 //ProcessedEvent(int event, int x, int y, TObject *selected) {
@@ -94,9 +105,6 @@ void GCanvas::EventProcessed(Event_t *event) {
   char str[2];
   gVirtualX->LookupString(event, str, sizeof(str), keysym);
 
-
-  //bool GCanvas::HandleArrowPress(EEventType event, int px, int py) {
-  //switch(event->fCode) {
   switch(keysym) {
     case kKey_Left:
     case kKey_Up:
@@ -104,15 +112,16 @@ void GCanvas::EventProcessed(Event_t *event) {
     case kKey_Down:
       //printf("arrow key pressed.\n");
       //printf("keysym = 0x%08x\n",keysym);
-      HandleArrowPress(kArrowKeyPress,keysym,keysym,event->fState);
+      TH1 *currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==1) 
+        HandleArrowPress_1d(kArrowKeyPress,keysym,keysym,event->fState);
+      else if(currentHist && currentHist->GetDimension()==2)
+        HandleArrowPress_2d(kArrowKeyPress,keysym,keysym,event->fState);
+      //HandleArrowPress_1d(kArrowKeyPress,keysym,keysym,event->fState);
       break;
     defualt:
       break;
   }
-  
-  //printf("\tobject = %s\n",selected ? selected->GetName() : "");
-  
-  
   return;
 }
 
@@ -120,26 +129,37 @@ void GCanvas::EventProcessed(Event_t *event) {
 
 void GCanvas::HandleInput(EEventType event, int px, int py) {
   bool handled = false;
+  
+  if(!GetSelected()) 
+    return TCanvas::HandleInput(event,px,py);
 
+    //|| !GetSelected()->InheritsFrom(TH1::Class()) ||
+    // !GetSelected()->InheritsFrom(TFrame::Class()) )
+
+  TH1 *currentHist = GrabHist();
+  if(!currentHist)
+    return TCanvas::HandleInput(event,px,py);
 
   //check the event,
   switch(event) {
     case kKeyPress:
-      handled = HandleKeyPress(event,px,py);
+      if(currentHist->GetDimension()==1) 
+        handled = HandleKeyPress_1d(event,px,py);
+      else if(currentHist->GetDimension()==2)
+        handled = HandleKeyPress_2d(event,px,py);
       break;
-    //case kArrowKeyPress:
-    //case kArrowKeyRelease:
-    //  handled = HandleArrowPress(event,px,py);
-    //  break;
     case kButton1Shift:
     case kButton1Down:
     case kButton1Up:
     case kButton1Double:
       //printf("clicked on %s\n",GetSelected()->IsA()->GetName());
-      if(!GetSelected()) break;
-      if(GetSelected()->InheritsFrom(TH1::Class()) ||
-         GetSelected()->InheritsFrom(TFrame::Class()) )
-        handled = HandleMouseButton1(event,px,py);
+      //if(!GetSelected()) break;
+      //if(GetSelected()->InheritsFrom(TH1::Class()) ||
+      //   GetSelected()->InheritsFrom(TFrame::Class()) )
+      if(currentHist->GetDimension()==1) 
+        handled = HandleMouseButton1_1d(event,px,py);
+      else if(currentHist->GetDimension()==2)
+        handled = HandleMouseButton1_2d(event,px,py);
       break;
     case kButton1Motion:
     case kButton1ShiftMotion: 
@@ -153,8 +173,40 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     TCanvas::HandleInput(event,px,py);
 }
 
+bool GCanvas::HandleMouseButton1_2d(EEventType event, int px, int py) { 
+  bool handled = false;
+  TH1 *currentHist = GrabHist();
+  switch(event) {
+    case kButton1Down:
+      if(gPad != TCanvas::GetSelectedPad()) {
+        //switch the gPad to the clicked pad... 
+        TCanvas::HandleInput(kButton2Down,px,py);
+      } else if(currentHist && gPad) {
+        GMarker *m = new GMarker();
+        //printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
+        double xx = gPad->AbsPixeltoX(px);
+        double x  = gPad->PadtoX(xx);
+        double yy = gPad->AbsPixeltoX(py);
+        double y  = gPad->PadtoX(yy);
+        m->AddTo(currentHist,x,y);
+        handled = true;
+        gPad->Modified();
+        gPad->Update();
+      }
+      break;
+    case kButton1Shift:
+      break;
+    case kButton1Up:
+      break;
+    case kButton1Double:
+      break;
+    default:
+      break;
+  }
+  return handled;
+}
 
-bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) { 
+bool GCanvas::HandleMouseButton1_1d(EEventType event, int px, int py) { 
   bool handled = false;
   TH1 *currentHist = 0;
   switch(event) {
@@ -217,7 +269,17 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
   return handled;
 }
 
-bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
+bool GCanvas::HandleArrowPress_2d(EEventType event, int px, int py, int mask) { 
+  bool handled = false;
+  TH1 *currentHist = 0;
+  switch(event) {
+    default:
+      break;
+  }
+  return handled;
+}
+
+bool GCanvas::HandleArrowPress_1d(EEventType event, int px, int py,int mask) {
   bool handled  = false;
   bool doUpdate = false;
   TH1   *currentHist = 0;
@@ -278,8 +340,17 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
   return handled;
 }
 
+bool GCanvas::HandleKeyPress_2d(EEventType event, int px, int py) { 
+  bool handled = false;
+  TH1 *currentHist = 0;
+  switch(event) {
+    default:
+      break;
+  }
+  return handled;
+}
 
-bool GCanvas::HandleKeyPress(EEventType event, int px, int py) {
+bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
   bool handled  = false;
   bool doUpdate = false;
   TH1*   currentHist = 0;
