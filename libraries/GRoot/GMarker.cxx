@@ -168,26 +168,30 @@ void GMarker::SetLineColor(Color_t color) {
 }
 
 void GMarker::ExecuteEvent(int event, int px, int py) { 
+  printf("GMarker::ExecuteEvent(%i,%i,%i)\n",event,px,py);
   if(!fLineX || fLineY) return;
-
+  printf("here\n");
   int d1 = 9999;
   int d2 = 9999;
   if(fLineX)
     d1 = fLineX->DistancetoPrimitive(px,py);
   if(fLineY)
     d2 = fLineY->DistancetoPrimitive(px,py);
-   if(d1<d2) { 
-     if(fLineX) 
+  printf("d1 = %i, d2 = %i\n",d1,d2);
+  //if(d1<d2) { 
+     if(fLineX) {
+       printf("here!"); 
        fLineX->ExecuteEvent(event,px,py);
-   } else {
-     if(fLineY)
-       fLineY->ExecuteEvent(event,px,py);
-   } 
+     }
+  // } else {
+  //   if(fLineY)
+  //     fLineY->ExecuteEvent(event,px,py);
+  // } 
 
   return;
 } 
 
-
+/*
 //TODO: Currently events are not being sent to the lines...
 int GMarker::DistancetoPrimitive(int px, int py) { 
   int d1 = 9999;
@@ -198,7 +202,7 @@ int GMarker::DistancetoPrimitive(int px, int py) {
     d2 = fLineY->DistancetoPrimitive(px,py);
   return (d1 < d2) ? d1 : d2;
 }
-
+*/
 
 
 

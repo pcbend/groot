@@ -133,12 +133,15 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   if(!GetSelected()) 
     return TCanvas::HandleInput(event,px,py);
 
-    //|| !GetSelected()->InheritsFrom(TH1::Class()) ||
-    // !GetSelected()->InheritsFrom(TFrame::Class()) )
+  //printf("GetSelected()->IsA()->GetName() = %s\n",GetSelected()->IsA()->GetName());
+
+  if( GetSelected()->InheritsFrom(TH1::Class()) ||
+      GetSelected()->InheritsFrom(TFrame::Class()) ) {
+    //return TCanvas::HandleInput(event,px,py);
 
   TH1 *currentHist = GrabHist();
   if(!currentHist)
-    return TCanvas::HandleInput(event,px,py);
+    return; //TCanvas::HandleInput(event,px,py);
 
   //check the event,
   switch(event) {
@@ -169,6 +172,7 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
       break;
   }
   //printf(RED "handled = %i" RESET_COLOR  "\n",handled);
+  }
   if(!handled) 
     TCanvas::HandleInput(event,px,py);
 }
@@ -209,13 +213,14 @@ bool GCanvas::HandleMouseButton1_2d(EEventType event, int px, int py) {
 bool GCanvas::HandleMouseButton1_1d(EEventType event, int px, int py) { 
   bool handled = false;
   TH1 *currentHist = 0;
+  TObject *selected = GetSelected();
   switch(event) {
     case kButton1Down:
       currentHist = GrabHist();
       //TVirtualPad *sPad = TCanvas::GetSelectedPad();
       if(gPad != TCanvas::GetSelectedPad()) {
         //switch the gPad to the clicked pad... 
-        TCanvas::HandleInput(kButton2Down,px,py);
+        TCanvas::HandleInput(kButton2Down,px,py);  
       } else if(currentHist && gPad) {
         GMarker *m = new GMarker();
         //printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);

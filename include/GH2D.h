@@ -33,6 +33,8 @@ class GH2D : public TH2D {
     GH2D(const TMatrixDBase &m);
     //GH2D(const GH2D &h2d);
     GH2D(const TH2D &h2d);
+    GH2D(const TH2F &h2f);
+    GH2D(const TH2  *h2);
     virtual ~GH2D();
     
     

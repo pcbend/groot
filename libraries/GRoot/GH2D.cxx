@@ -48,6 +48,10 @@ GH2D::GH2D(const TMatrixDBase &m) : TH2D(m) { }
 //GH2D::GH2D(const GH2D &h2d);
 GH2D::GH2D(const TH2D &h2d) : TH2D(h2d) { } 
 
+GH2D::GH2D(const TH2F &h2f) { h2f.Copy(*this); } 
+
+GH2D::GH2D(const TH2 *h2) { if(h2) h2->Copy(*this); }  
+
 GH2D::~GH2D() { }
 
 
