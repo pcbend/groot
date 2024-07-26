@@ -96,6 +96,10 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\ty      = 0x%08x\n",event->fY);
   */
 
+  if(!event->fWindow) return;
+  if(!this->GetCanvasID()) return;
+  if(!gVirtualX->GetWindowID(this->GetCanvasID())) return;
+
   if(static_cast<unsigned long>(event->fWindow) != 
      static_cast<unsigned long>(gVirtualX->GetWindowID(this->GetCanvasID()))) 
     return;
