@@ -32,7 +32,7 @@ std::vector<std::string> tokenizeString(std::string path,char delimiter='/') {
 }
 
 
-#ifdef __linux__
+#ifdef __LINUX__
 #include <unistd.h>
 std::string programPath(){
   char buff[PATH_MAX+1];
@@ -44,7 +44,7 @@ std::string programPath(){
 }
 #endif
 
-#ifdef __darwin__ 
+#ifdef __DARWIN__ 
 #include <mach-o/dyld.h>
 std::string programPath(){
   char buff[PATH_MAX];

@@ -11,10 +11,10 @@ project(groot
 
 if(APPLE) 
   message("Building for Darwin")
-  add_compile_definitions(__darwin__=TRUE)
+  add_compile_definitions(__DARWIN__=TRUE)
 elseif(LINUX) 
   message("Building for Linux")
-  add_compile_definitions(__linux__=TRUE)
+  add_compile_definitions(__LINUX__=TRUE)
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
