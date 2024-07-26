@@ -43,7 +43,9 @@ GCanvas::GCanvas(const char* name, const char* title,int form) :
 GCanvas::GCanvas(const char* name, int ww, int wh, int winid) :
   TCanvas(name,ww,wh,winid) { Init(name); }
 
-GCanvas::~GCanvas() { }  
+GCanvas::~GCanvas() { 
+  gClient->Disconnect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+}  
 
 void GCanvas::Init(const char* name, const char* title) {
   std::string temp   = Form("canvas_%i",fCanvasNumber++); 
