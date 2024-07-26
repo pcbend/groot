@@ -19,6 +19,7 @@ GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100), fMatrix(0) {
 } 
 
 GG::~GG() { 
+  TGMainFrame::~TGMainFrame();
 }
 
 void GG::CreateWindow() {
