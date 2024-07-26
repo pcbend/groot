@@ -8,6 +8,7 @@
 #pragma link C++ namespace GFunctions;
 
 #pragma link C++ global gHist;
+#pragma link C++ global gHistomatic;
 
 #pragma link C++ function GausFit;
 #pragma link C++ function PhotoPeakFit;

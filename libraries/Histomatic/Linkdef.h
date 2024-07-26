@@ -4,7 +4,6 @@
 #pragma link off all class;
 #pragma link off all function;
 
-#pragma link C++ global gHistomatic;
 
 #pragma link C++ class Histomatic+;
 #pragma link C++ class GListTreeCanvas+;

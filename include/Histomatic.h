@@ -88,7 +88,7 @@ class GListTree : public TGListTree {
 
 
 
-class Histomatic { //: public TQObject { //: public TGMainFrame {
+class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainFrame {
   //RQ_OBJECT("Histomatic");
   //Histomatic(const Histomatic&) = delete;
   //Histomatic& operator=(const Histomatic&) = delete;
@@ -172,14 +172,16 @@ class Histomatic { //: public TQObject { //: public TGMainFrame {
 
     void CreateWindow();
     void CloseWindow();
-    
+
+    void Show(int width=350,int height=780);
+
     void AddRootFile(TFile *file) { fGListTree->InsertObject(file); }
     //TList *GetAllActive();
 
     TGStatusBar *GetStatusBar() { return fStatusBar; } 
 
   private:
-    TGMainFrame *fMainWindow;
+    //TGMainFrame *fMainWindow;
     //TGVerticalFrame   *fVf;
 
     bool fDrawNew;
@@ -187,7 +189,6 @@ class Histomatic { //: public TQObject { //: public TGMainFrame {
     TList *fTrash;
     //std::map<std::string, TObject*> fObjReadMap;
     GEventTimer *fEventTimer;
-
 
   //ClassDefOverride(Histomatic,0)
   ClassDef(Histomatic,0)

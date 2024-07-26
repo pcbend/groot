@@ -5,12 +5,16 @@
 //#include <TGFrame.h>
 #include <TRootEmbeddedCanvas.h>
 #include <TGButton.h>
+#include <TSystem.h>
+#include <TVirtualX.h>
 
 #include <Histomatic.h>
 #include <GCanvas.h>
 #include <GH2D.h>
 
-GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100), fMatrix(0) {   
+
+
+GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100), fMatrix(0),fVFrame(0),fButtonFrame(0),fButton1(0),fButton2(0),fButton3(0),fButton4(0),fEmCanvas(0),fTotalX(0),fTotalY(0) {   
   //fMatrix = new GH2D(*mat);
   fMatrix = new GH2D(mat);
   fTotalX = fMatrix->ProjectionX();
@@ -39,12 +43,23 @@ GG::~GG() {
   if(fButtonFrame) delete fButtonFrame;
   if(fVFrame) delete fVFrame;
 
+  //gVirtualX->DestroyWindow(fId);
+ 
+ 
 }
 
 void GG::CreateWindow() {
   //fMain = new TGMainFrame(gClient->GetRoot(), 100, 100);
   //fMain = new TGMainFrame(0, 100, 100);
   //fMain->SetWindowName("GG");
+  if(fVFrame) {
+    MapSubwindows();
+    //fMain->Resize(fMain->GetDefaultSize());
+    Resize(401,401);
+    MapWindow();
+    return;
+  }
+
   SetWindowName("GG");
 
   fVFrame = new TGVerticalFrame(this, 100, 100);
@@ -98,12 +113,23 @@ void GG::DoButtonPress() {
 
 
 void GG::CloseWindow() {
+  gVirtualX->UnmapWindow(fId);
+  //gClient->WaitForUnmap(this);
+
+/*
   printf("i am here\n");
   //TGMainFrame::CloseWindow();
   DeleteWindow();
+  gVirtualX->CloseWindow();
+
   gClient->WaitForUnmap(this);
+  gSystem->Sleep(150);
+  TGMainFrame::CloseWindow();
+  gSystem->Sleep(150);
+  gSystem->ProcessEvents();
   //fMain->CloseWindow();
   //fMain->DontCallClose();
+*/
 }
 
 void GG::ReallyDelete() {

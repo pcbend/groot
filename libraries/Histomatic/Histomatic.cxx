@@ -16,6 +16,7 @@
 #include <TList.h>
 #include <TStyle.h>
 #include <TPad.h>
+#include <TVirtualX.h>
 
 #include <GObjectManager.h>
 #include <GCanvas.h>
@@ -331,12 +332,12 @@ bool GListTree::IsDrawable(const TGListTreeItem *item) const {
 ClassImp(Histomatic);
 
 //Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),200,600) {   
-Histomatic::Histomatic() {
+Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),350,780), fVf(0) {
 
   int width  = 350;
   int height = 780;
 
-  fMainWindow = new TGMainFrame(0,width,height);
+  //fMainWindow = new TGMainFrame(0,width,height);
 
   //TGLayoutHints *hints = new TGLayoutHints(kLHintsExpandX | kLHintsExpandY,1,1,1,1);
 
@@ -352,20 +353,22 @@ Histomatic::Histomatic() {
 
 
   CreateWindow();
-  fMainWindow->SetWindowName("hist-o-matic");
+  this->SetWindowName("hist-o-matic");
 
-  //MoveResize(1,1,200,600);
-  fMainWindow->Resize(width,height);
-  //SetWMPosition(1,1);
-
-
-  //this->Resize(200,600);
-  fMainWindow->MapWindow();
+  Show(width,height);
 
   fEventTimer = new GEventTimer();
   fEventTimer->Start();
 
   //this->DontCallClose();
+}
+
+void Histomatic::Show(int width, int height) {
+  //MoveResize(1,1,200,600);
+  this->Resize(width,height);
+  //SetWMPosition(1,1);
+  //this->Resize(200,600);
+  this->MapWindow();
 }
 
 Histomatic::~Histomatic() {
@@ -416,7 +419,13 @@ Histomatic::~Histomatic() {
 
 void Histomatic::CreateWindow() {
 
-  fVf = new TGVerticalFrame(fMainWindow,100,100);
+  if(fVf) {
+    Show();
+    return;
+  }
+
+
+  fVf = new TGVerticalFrame(this,100,100);
 
   fLH0 = new TGLayoutHints(kLHintsExpandX,0,0,0,0);
   fLH1 = new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 0, 0);
@@ -522,9 +531,9 @@ void Histomatic::CreateWindow() {
   fVf->AddFrame(fGListTreeCanvas,fLH1);
   fVf->AddFrame(fStatusBar,fLH0);
 
-  fMainWindow->AddFrame(fVf,fLH1);
-  fMainWindow->MapSubwindows();
-  fMainWindow->Resize(fMainWindow->GetDefaultSize());
+  this->AddFrame(fVf,fLH1);
+  this->MapSubwindows();
+  this->Resize(this->GetDefaultSize());
 
 
 }
@@ -565,7 +574,8 @@ void Histomatic::doLockPads(TPad *pad) {
 
 
 void Histomatic::CloseWindow() {
-  fMainWindow->CloseWindow();  
+  gVirtualX->UnmapWindow(fId);
+  //fMainWindow->CloseWindow();  
   //  DeleteWindow();
 }
 
