@@ -82,6 +82,7 @@ void GG::CloseWindow() {
   printf("i am here\n");
   //TGMainFrame::CloseWindow();
   DeleteWindow();
+  gClient->WaitForUnmap(this);
   //fMain->CloseWindow();
   //fMain->DontCallClose();
 }
