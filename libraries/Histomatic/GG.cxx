@@ -19,7 +19,26 @@ GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100), fMatrix(0) {
 } 
 
 GG::~GG() { 
-  TGMainFrame::~TGMainFrame();
+  //TGMainFrame::~TGMainFrame();
+  fEmCanvas->GetCanvas()->SetCanvasImp(0);
+  fEmCanvas->GetCanvas()->Clear();
+  fEmCanvas->GetCanvas()->SetName("");
+  if(gPad && gPad->GetCanvas() == fEmCanvas->GetCanvas()) {
+    gPad = 0;
+  }
+  
+  fTotalX = 0;
+  fTotalX = 0;
+  if(fMatrix) delete fMatrix;
+
+  if(fEmCanvas) delete fEmCanvas;
+  if(fButton1) delete fButton1;
+  if(fButton2) delete fButton2;
+  if(fButton3) delete fButton3;
+  if(fButton4) delete fButton4;
+  if(fButtonFrame) delete fButtonFrame;
+  if(fVFrame) delete fVFrame;
+
 }
 
 void GG::CreateWindow() {
@@ -89,8 +108,8 @@ void GG::CloseWindow() {
 
 void GG::ReallyDelete() {
   printf("i am here 2\n");
-  //TGMainFrame::ReallyDelete();
-
+  TGMainFrame::ReallyDelete();
+/*
   //fEmCanvas->GetCanvas()->Close();
   fEmCanvas->GetCanvas()->SetCanvasImp(0);
   fEmCanvas->GetCanvas()->Clear();
@@ -99,7 +118,7 @@ void GG::ReallyDelete() {
     gPad = 0;
   }
   delete this;
-
+*/
   //TGMainFrame::ReallyDelete();
 
 
