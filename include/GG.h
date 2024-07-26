@@ -2,8 +2,9 @@
 #define __GG_H__
 
 #include<TObject.h>
+#include<TGFrame.h>
 
-class TGMainFrame;
+//class TGMainFrame;
 class TRootEmbeddedCanvas;
 class TH1; 
 class TH2;
@@ -11,22 +12,24 @@ class TGVerticalFrame;
 class TGHorizontalFrame;
 class TGTextButton;
 
-class fListTree;
+class GListTree;
 
-class GG {
+class GG : public TGMainFrame {
 
   public:
     GG(TH2 *mat);
     virtual ~GG();
 
     void CreateWindow();
-    void CloseWindow();
+    void CloseWindow() override;
+
+    void ReallyDelete() override;
 
     void DoButtonPress();
 
   private: 
     
-    TGMainFrame *fMain;
+    //TGMainFrame *fMain;
  
     TGVerticalFrame *fVFrame;
     TGHorizontalFrame *fButtonFrame;
@@ -48,7 +51,7 @@ class GG {
 
 
 
-  ClassDef(GG,0)
+  ClassDefOverride(GG,0)
 };
 
 
