@@ -39,6 +39,8 @@ class GCanvas : public TCanvas {
 
     //void doSelected(TVirtualPad *pad, TObject *obj, Int_t event);
 
+    void Close(Option_t *opti="") override;
+
   private:
     EEventType fEvent;
     int        fEventX;
