@@ -48,7 +48,12 @@ GCanvas::~GCanvas() {
 
 
 void GCanvas::Close(Option_t *opt) {
-  gClient->Disconnect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  //gClient->Disconnect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  //GetCanvasImp()->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
+  //                           this,"EventProcessed(Event_t*)");
+  if(GetCanvasImp()->IsA() == TRootCanvas::Class())
+    static_cast<TRootCanvas*>(GetCanvasImp())->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
+                                                          this,"EventProcessed(Event_t*)");
   TCanvas::Close(opt);
 }
 
@@ -62,8 +67,11 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
-  gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
-
+  //gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  //GetCanvasImp()->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  if(GetCanvasImp()->IsA() == TRootCanvas::Class())
+    static_cast<TRootCanvas*>(GetCanvasImp())->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,
+                                                       "EventProcessed(Event_t*)");
 }
 
 
