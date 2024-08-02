@@ -95,7 +95,8 @@ void Gint::LoadOptions(int argc, char **argv) {
   }
   if(doGui) {
     printf("starting gui...\n"); 
-    gHistomatic = new Histomatic;
+    Histomatic::Get(); 
+    //gHistomatic = new Histomatic;
   }
 
   

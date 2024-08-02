@@ -69,9 +69,9 @@ void GCanvas::Init(const char* name, const char* title) {
 
   //gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //GetCanvasImp()->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
-  if(GetCanvasImp()->IsA() == TRootCanvas::Class())
-    static_cast<TRootCanvas*>(GetCanvasImp())->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,
-                                                       "EventProcessed(Event_t*)");
+  //if(GetCanvasImp()->IsA() == TRootCanvas::Class())
+  //  static_cast<TRootCanvas*>(GetCanvasImp())->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,
+  //                                                     "EventProcessed(Event_t*)");
 }
 
 

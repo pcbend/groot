@@ -32,6 +32,7 @@ class GH1D : public TH1D { //, public TQObject {
     TH1* DrawNormalized(Option_t *opt="", double norm=1) const override; 
 
     void Paint(Option_t *opt="") override;
+    int DistancetoPrimitive(int px, int py) override;
 
     TH1* Rebin(int ngroup=2,const char *newname="",const double *xbins=nullptr) override;
     void Unbin(int ngroup=-1);

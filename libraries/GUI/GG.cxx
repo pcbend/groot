@@ -8,17 +8,34 @@
 #include <TSystem.h>
 #include <TVirtualX.h>
 
+//#include <TDirectoryFile.h>
+
 #include <Histomatic.h>
 #include <GCanvas.h>
 #include <GH2D.h>
+#include <GH1D.h>
 
 
 
-GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100), fMatrix(0),fVFrame(0),fButtonFrame(0),fButton1(0),fButton2(0),fButton3(0),fButton4(0),fEmCanvas(0),fTotalX(0),fTotalY(0) {   
+GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100),
+                  fMatrix(0),fVFrame(0),
+                  fButtonFrame(0),fButton1(0),fButton2(0),fButton3(0),fButton4(0),
+                  fEmCanvas(0),
+                  fProjections(0),fTotalX(0),fTotalY(0) {   
   //fMatrix = new GH2D(*mat);
+  fProjections = new TDirectory(Form("%s_Projections",mat->GetName()),"",0);
   fMatrix = new GH2D(mat);
-  fTotalX = fMatrix->ProjectionX();
-  fTotalY = fMatrix->ProjectionY();
+  fTotalX = fMatrix->ProjectionX(sqrt(-1));
+  fTotalY = fMatrix->ProjectionY(sqrt(-1));
+
+  printf("fTotalX: %s\n",fTotalX->IsA()->GetName());
+
+
+  fProjections->Add(fTotalX);
+  fProjections->Add(fTotalY);
+
+  CreateWindow();
+  fGListTree->InsertObject(fProjections);
 
 } 
 
@@ -55,7 +72,7 @@ void GG::CreateWindow() {
   if(fVFrame) {
     MapSubwindows();
     //fMain->Resize(fMain->GetDefaultSize());
-    Resize(401,401);
+    Resize(801,401);
     MapWindow();
     return;
   }
@@ -80,12 +97,24 @@ void GG::CreateWindow() {
 
   fVFrame->AddFrame(fButtonFrame, new TGLayoutHints(kLHintsExpandX, 0, 0, 0, 0));
 
-  fEmCanvas = new TRootEmbeddedCanvas("fEmCanvas", fVFrame, 100, 100);
+
+  fHFrame = new TGHorizontalFrame(fVFrame, 100, 100);
+
+
+  fEmCanvas = new TRootEmbeddedCanvas("fEmCanvas", fHFrame, 100, 100);
   int wid = fEmCanvas->GetCanvasWindowId();
   GCanvas *gc = new GCanvas("gcanvas",10,10,wid);
   fEmCanvas->AdoptCanvas(gc);
+  fHFrame->AddFrame(fEmCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY,0,0,0,0));
 
-  fVFrame->AddFrame(fEmCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY,0,0,0,0));
+  fGListTreeCanvas = new GListTreeCanvas(fHFrame,100,10);
+  fGListTree = new GListTree(fGListTreeCanvas); 
+  fHFrame->AddFrame(fGListTreeCanvas, new TGLayoutHints(kLHintsExpandY,0,0,0,0));
+
+
+
+
+  fVFrame->AddFrame(fHFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY,0,0,0,0));
 
   //fMain->AddFrame(fVFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 10, 10, 10, 10));
   AddFrame(fVFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 10, 10, 10, 10));
@@ -155,6 +184,23 @@ void GG::ReallyDelete() {
   //fMain->DontCallClose();
 }
 
+
+void GG::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) const {
+  //printf("GG::doDraw() called\n");
+  for(auto item=selected.begin();item!=selected.end();item++) {
+    TObject *obj = GetListTree()->GetObject(*item);
+    //printf("obj->GetName() = 0x%08x\n",obj);
+    if(obj->InheritsFrom("TH1")) {
+      TH1 *h = (TH1*)obj;
+      cd();
+      printf("class: %s\n",h->IsA()->GetName());
+      h->Draw(opt);
+      GetCanvas()->Modified();
+      GetCanvas()->Update();
+    }
+  }
+
+}
 
 
 

@@ -11,80 +11,23 @@
 #include "TGSplitter.h"
 #include "TGStatusBar.h"
 #include "TGButton.h"
-#include "TGListTree.h"
 #include "TGStatusBar.h"
 #include "TGComboBox.h"
 
 #include "TFile.h"
-#include "TKey.h"
 #include "TList.h"
+
+#include <GListTree.h>
 
 #include<exception>
 #include<iostream>
 #include<map>
 
-class Histomatic;
+//class Histomatic;
 class GEventTimer;
 class TH1;
 class TCanvas;
 class TPad;
-
-class GListTreeCanvas : public TGCanvas {
-  public:
-    GListTreeCanvas(const TGWindow *p=nullptr, UInt_t w=10, UInt_t h=10, UInt_t options=kSunkenFrame|kDoubleBorder, Pixel_t back=GetDefaultFrameBackground());
-    ~GListTreeCanvas();
-
-    bool HandleButton(Event_t *event);
-
-  private:
-
-  ClassDef(GListTreeCanvas,0)
-};
-
-
-class GListTree : public TGListTree {
-  public: 
-    //GListTree(TGWindow *parent=0,UInt_t w=1,UInt_t h=1, UInt_t options=kSunkenFrame|kDoubleBorder,Pixel_t back=GetDefaultFrameBackground());
-    GListTree(TGCanvas *parent=0,Histomatic *hist=0);
-    ~GListTree();
-
-	  void ClearActive();
-
-  	void InsertObject(TObject *obj,TGListTreeItem *parent=0);
-  	const TGPicture *GetIcon(TClass *cls);
-  
- 	 	void Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x, int y) override; 
- 	 	void DoubleClicked(TGListTreeItem *item, int btn, int x, int y) override; 
-
-  	std::string GetPath(TGListTreeItem *item) const;
- 		std::string GetFullPath(TGListTreeItem *item) const;
-  	std::string GetFileName(TGListTreeItem *item) const;
- 	 	TObject*    GetObject(TGListTreeItem *item) const;
-  	TKey*       GetKey(TGListTreeItem *item) const;
-
-  	bool HandleButton(Event_t *event) override;
-
-  	bool IsDrawable(const TGListTreeItem *item) const;
-
-
-    std::vector<TGListTreeItem*> GetSelected() { return fSelected; }
-
-  private:
-    TGCanvas   *fCanvas;
-    //TGListTree *fListTree;
-    TGListTreeItem *fLastSelected;
-    int fLastY; 
-    int fLastX; 
-
-    std::vector<TGListTreeItem*> fSelected;
-  public:  
-		std::map<std::string, TObject*> fObjReadMap;
-	private:
-		Histomatic *fHistomatic;
-  
-  ClassDefOverride(GListTree,0)
-};
-
 
 
 
@@ -93,12 +36,15 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
   //Histomatic(const Histomatic&) = delete;
   //Histomatic& operator=(const Histomatic&) = delete;
 
-  public:
+  private:
+    static Histomatic* fInstance;
     Histomatic();
+  public:
+    static Histomatic* Get();
     virtual ~Histomatic();    
 
     //TGListTree *GetListTree() { return fGListTree; }
-    GListTree *GetListTree() { return fGListTree; }
+    GListTree *GetListTree() const { return fGListTree; }
 
     void buttonAction();
     void SetStatusText(std::string text, int col) { fStatusBar->SetText(text.c_str(),col); }
@@ -108,12 +54,19 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     //void doDraw(TObject*,Option_t *opt="");
     //void doDraw(TList*,Option_t *opt="");
     void doDraw();
-    void doDraw(std::vector<TGListTreeItem*> selected,Option_t *opt="");
-    void drawHists(std::vector<TH1*> hists, TCanvas *g=0); 
+    void doDraw(std::vector<TGListTreeItem*> selected,Option_t *opt="") const;
+    void drawHists(std::vector<TH1*> hists, TCanvas *g=0) const; 
 
     void closeAllCanvases();
 
     void doLockPads(TPad *pad=0);
+
+
+    //bool HandleKey(Event_t *event)       override { printf("HandleKey\n"); return false; }
+    //bool HandleSelection(Event_t *event) override { printf("HandleSelection\n"); return false; }
+    //bool HandleSelectionRequest(Event_t *event) override { printf("HandleSelectioniRequest\n"); return false; }
+    //bool HandleEvent(Event_t *event) override { printf("Event\n"); return false; }
+
 
 
   protected:
@@ -145,11 +98,6 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     TGButtonGroup     *fDrawOptionGroup;
 
     TGComboBox        *fDrawComboBox;
-    enum EDrawOption {
-      eDrawNew,
-      eDrawSame,
-      eDrawStacked
-    };
     TGCheckButton     *fDrawNormalized;
     TGCheckButton     *fDrawColz;
     TGCheckButton     *fLockPads;
@@ -163,6 +111,11 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     TGStatusBar        *fStatusBar;
 
   public:
+    enum EDrawOption {
+      eDrawNew,
+      eDrawSame,
+      eDrawStacked
+    };
     enum EHistMessages {
       kThing1,
       kThing2,
@@ -170,8 +123,12 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
       kCloseWindow
     };
 
+
+    int GetDrawOption() { return (EDrawOption)fDrawComboBox->GetSelected(); }
+
+
     void CreateWindow();
-    void CloseWindow();
+    void CloseWindow() override;
 
     void Show(int width=350,int height=780);
 
@@ -190,8 +147,8 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     //std::map<std::string, TObject*> fObjReadMap;
     GEventTimer *fEventTimer;
 
-  //ClassDefOverride(Histomatic,0)
-  ClassDef(Histomatic,0)
+  ClassDefOverride(Histomatic,0)
+  //ClassDef(Histomatic,0)
 };
 
 

@@ -5,6 +5,7 @@
 #include<TSpectrum.h>
 #include<TString.h>
 #include<TVirtualPad.h>
+#include<TROOT.h>
 #include<TBox.h>
 
 #include "GROI.h"
@@ -116,6 +117,17 @@ void GH1D::Paint(Option_t *opt) {
   }
 }
 
+int GH1D::DistancetoPrimitive(int px, int py) {
+
+  if(gROOT->GetSelectedPad() && gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject(this)) {
+    TObject *frame = gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject("TFrame");
+    if(frame) 
+      return frame->DistancetoPrimitive(px,py);
+  }
+  return TH1D::DistancetoPrimitive(px,py);
+}
+
+
 void GH1D::Draw(Option_t *opt) {
   //printf("GH1D Draw!\n"); fflush(stdout);
   TH1D::Draw(opt);
@@ -123,8 +135,10 @@ void GH1D::Draw(Option_t *opt) {
     //gPad->Modified(); 
     gPad->Update();
     TBox *frame = (TBox*)gPad->GetListOfPrimitives()->FindObject("TFrame");
-    if(frame)
+    if(frame) {
       frame->SetBit(TBox::kCannotMove); 
+      frame->SetBit(TObject::EStatusBits::kCannotPick);
+    }
   }
   return; 
 }
