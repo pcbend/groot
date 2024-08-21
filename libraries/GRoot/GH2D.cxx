@@ -2,6 +2,10 @@
 #include<GH2D.h>
 #include<GH1D.h>
 
+#include <TPad.h>
+
+#include <GEventHandler.h>
+
 GH2D::GH2D() : TH2D() { }
 GH2D::GH2D(std::string name,int nbinsx,double xlow,double xup
                         ,int nbinsy,double ylow,double yup) :
@@ -52,9 +56,13 @@ GH2D::GH2D(const TH2F &h2f) { h2f.Copy(*this); }
 
 GH2D::GH2D(const TH2 *h2) { if(h2) h2->Copy(*this); }  
 
-GH2D::~GH2D() { }
+GH2D::~GH2D() { 
+  if(fEventHandler) delete fEventHandler;
+}
 
-
+void GH2D::Init() {
+  fEventHandler = new GH2DEventHandler(this); 
+}
 
 void GH2D::Draw(Option_t *opt) {
   TH2D::Draw(opt);
@@ -84,7 +92,7 @@ GH1D* GH2D::ProjectionX(double low,double up,Option_t *option) {
   double last  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
  
   //unzoom y - otherwise the projection will be truncated.
-  GetXaxis()->UnZoom();
+  if(gPad) GetXaxis()->UnZoom();
 
   int blow,bup;
   if(low!=low) 
@@ -116,7 +124,7 @@ GH1D* GH2D::ProjectionY(double low,double up,Option_t *option) {
   double last  = GetYaxis()->GetBinUpEdge(GetYaxis()->GetLast());
  
   //unzoom y - otherwise the projection will be truncated.
-  GetYaxis()->UnZoom();
+  if(gPad) GetYaxis()->UnZoom();
 
   int blow,bup;
   if(low!=low) 

@@ -32,7 +32,7 @@ class GMarker : public TNamed {
     void SetLineColor(Color_t color);
 
     void ExecuteEvent(int event, int px, int py) override;
-    //int  DistancetoPrimitive(int px, int py) override;
+    int  DistancetoPrimitive(int px, int py) override;
 
 
   public:
@@ -43,6 +43,16 @@ class GMarker : public TNamed {
     TH1 *fHist;
     TLine *fLineX;
     TLine *fLineY;  
+
+    enum ESelected {
+      kNone,
+      kX,
+      kY,
+    };
+
+    ESelected fSelected;
+
+
 
     double fX;
     double fY;  

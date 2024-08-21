@@ -10,6 +10,7 @@
 
 #include "GROI.h"
 
+#include <GEventHandler.h>
 
 GH1D::GH1D() : TH1D(), fOriginal(0) { }
 
@@ -74,6 +75,9 @@ GH1D::~GH1D() {
   //printf("GH1D deleted\n"); fflush(stdout);  
   if(fOriginal)
     delete fOriginal;
+
+  if(fEventHandler)  
+    delete fEventHandler;
   //TH1D::~TH1D();
 } 
 
@@ -82,6 +86,7 @@ void GH1D::Init() {
 	SetOriginal();
   fParent = 0;
   fIsNormalized = false;
+  fEventHandler = new GH1DEventHandler(this);
 }
 
 
@@ -120,9 +125,9 @@ void GH1D::Paint(Option_t *opt) {
 int GH1D::DistancetoPrimitive(int px, int py) {
 
   if(gROOT->GetSelectedPad() && gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject(this)) {
-    TObject *frame = gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject("TFrame");
-    if(frame) 
-      return frame->DistancetoPrimitive(px,py);
+    //TObject *frame = gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject("TFrame");
+    //if(frame) 
+    //  return frame->DistancetoPrimitive(px,py);
   }
   return TH1D::DistancetoPrimitive(px,py);
 }

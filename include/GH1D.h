@@ -7,6 +7,8 @@
 #include<TH2.h>
 //#include<TQObject.h>
 
+class GH1DEventHandler;
+
 class GH1D : public TH1D { //, public TQObject {
   public:
     GH1D();
@@ -75,6 +77,7 @@ class GH1D : public TH1D { //, public TQObject {
 		int  fOriginalBins;
     bool fIsNormalized;
     
+    GH1DEventHandler *fEventHandler;
 
     TH2  *fParent;
 

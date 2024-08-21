@@ -32,3 +32,10 @@ Root.Fitter: Fumili2
 Gui.IconPath:      $(GSYS)/icons:$(ROOTSYS)/icons
 #$(ROOTSYS)/etc/root.mimes
 Gui.MimeTypeFile:  $(GSYS)/.gint.mimes
+
+
+GRoot.MaxMarkers: 2
+
+
+
+

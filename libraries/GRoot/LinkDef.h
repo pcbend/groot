@@ -24,6 +24,11 @@
 #pragma link C++ class GH1D+;
 #pragma link C++ class GH2D+;
 
+#pragma link C++ class GEventHandler+;
+#pragma link C++ class GH1DEventHandler+;
+#pragma link C++ class GH2DEventHandler+;
+
+
 #pragma link C++ class GGaus+;
 #pragma link C++ class GPeak+;
 #pragma link C++ class GPeak2+;

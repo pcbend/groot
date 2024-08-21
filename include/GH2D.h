@@ -4,6 +4,7 @@
 #include<TH2D.h>
 
 class GH1D;
+class GH2DEventHandler;
 
 class GH2D : public TH2D {
   public:
@@ -36,8 +37,7 @@ class GH2D : public TH2D {
     GH2D(const TH2F &h2f);
     GH2D(const TH2  *h2);
     virtual ~GH2D();
-    
-    
+   
     void Draw(Option_t *opt="") override;
     TH1* DrawCopy(Option_t *opt="", const char *name_postfix="_copy") const override; 
     TH1* DrawNormalized(Option_t *opt="", double norm=1) const override; 
@@ -51,7 +51,8 @@ class GH2D : public TH2D {
 
 
   private:
-    
+    void Init();
+    GH2DEventHandler *fEventHandler;
 
   ClassDefOverride(GH2D,100)
 };

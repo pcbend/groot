@@ -48,12 +48,12 @@ GCanvas::~GCanvas() {
 
 
 void GCanvas::Close(Option_t *opt) {
-  //gClient->Disconnect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  gClient->Disconnect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //GetCanvasImp()->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
   //                           this,"EventProcessed(Event_t*)");
-  if(GetCanvasImp()->IsA() == TRootCanvas::Class())
-    static_cast<TRootCanvas*>(GetCanvasImp())->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
-                                                          this,"EventProcessed(Event_t*)");
+  //if(GetCanvasImp()->IsA() == TRootCanvas::Class())
+  //  static_cast<TRootCanvas*>(GetCanvasImp())->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
+  //                                                        this,"EventProcessed(Event_t*)");
   TCanvas::Close(opt);
 }
 
@@ -67,7 +67,9 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
-  //gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  fParent = 0;
+
+  gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //GetCanvasImp()->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //if(GetCanvasImp()->IsA() == TRootCanvas::Class())
   //  static_cast<TRootCanvas*>(GetCanvasImp())->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,
@@ -85,7 +87,7 @@ TCanvas *GCanvas::MakeDefCanvas() {
 /*
   //  Event Processing Order:
     1 Event Processed 
-      - Finds Arrow Keys, otherwise does nothing.
+       - Finds Arrow Keys, otherwise does nothing.
         - HandleArrowPress
     2 HandleInput
       // look for histograms - check that GetSelected() is Inherits from TH1 or TFrame, then check dimensions.
@@ -108,6 +110,8 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\tx      = 0x%08x\n",event->fX);
   printf("\ty      = 0x%08x\n",event->fY);
   */
+ 
+  //printf("this should be called???\n");
 
   if(!event->fWindow) return;
   if(!this->GetCanvasID()) return;
@@ -148,14 +152,30 @@ void GCanvas::EventProcessed(Event_t *event) {
 
 void GCanvas::HandleInput(EEventType event, int px, int py) {
   bool handled = false;
-  
+  //printf("handle input\n\n"); 
+
   if(!GetSelected()) 
     return TCanvas::HandleInput(event,px,py);
 
-  //printf("GetSelected()->IsA()->GetName() = %s\n",GetSelected()->IsA()->GetName());
 
-  if( GetSelected()->InheritsFrom(TH1::Class()) ||
-      GetSelected()->InheritsFrom(TFrame::Class()) ) {
+  bool inside = false;
+  if(GetSelected()->InheritsFrom(GCanvas::Class())) {
+    if(((TCanvas*)GetSelected())->GetFrame()) {
+     //inside = ((TCanvas*)GetSelected())->GetFrame()->IsInside(px,py);
+      if(((TCanvas*)GetSelected())->GetFrame()->DistancetoPrimitive(px,py)<1) {
+        //printf("inside frame\n");
+        inside = true;
+      }
+    }
+  }
+  //if(!inside) {
+  //  printf("GetSelected()->IsA()->GetName() = %s\n",GetSelected()->IsA()->GetName());
+  //  printf("px = %i, py = %i\n",px,py);
+  //}
+
+  if( GetSelected()->InheritsFrom(TH1::Class())    ||
+      GetSelected()->InheritsFrom(TFrame::Class()) ||
+      inside ) {
     //return TCanvas::HandleInput(event,px,py);
 
   TH1 *currentHist = GrabHist();
@@ -236,6 +256,8 @@ bool GCanvas::HandleMouseButton1_1d(EEventType event, int px, int py) {
   switch(event) {
     case kButton1Down:
       currentHist = GrabHist();
+      //printf("currentHist = 0x%p\n",currentHist);
+      //printf("currentHist->IsA()->GetName(): %s\n",currentHist->IsA()->GetName());
       //TVirtualPad *sPad = TCanvas::GetSelectedPad();
       if(gPad != TCanvas::GetSelectedPad()) {
         //switch the gPad to the clicked pad... 
@@ -277,7 +299,7 @@ bool GCanvas::HandleMouseButton1_1d(EEventType event, int px, int py) {
     case kButton1Double:
       currentHist = GrabHist();
       if(GrabHists(gPad->GetCanvas())->GetEntries()>1) {
-        printf("currentHist = 0x%p\n",currentHist);
+        //printf("currentHist = 0x%p\n",currentHist);
         TVirtualPad *current = gPad;
         GCanvas *c = new GCanvas;
         c->cd();

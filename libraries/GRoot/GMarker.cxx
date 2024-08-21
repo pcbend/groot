@@ -8,8 +8,10 @@
 #include<TVirtualPad.h>
 #include<TPad.h>
 //#include<TTimer.h>
+#include <TEnv.h>
 
-GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0), fX(sqrt(-1)), fY(sqrt(-1)) { 
+
+GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0),fSelected(ESelected::kNone), fX(sqrt(-1)), fY(sqrt(-1)) { 
   //SetLineWidth(2);
   //SetLineColor(kRed);
   SetName("GMarker");
@@ -51,7 +53,9 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   }
   //we want to limit how many marks are on the histogram.  
   //lets start with two....
-  int fMaxMarkers=2;
+  int fMaxMarkers;
+  fMaxMarkers = gEnv->GetValue("GRoot.MaxMarkers",fMaxMarkers);
+  //printf("fMaxMarkers = %i\n",fMaxMarkers);
   int markerCount = 0;
   TIter iter(fHist->GetListOfFunctions(),kIterBackward);
   while(TObject *obj=iter.Next()) {
@@ -79,7 +83,7 @@ void GMarker::Paint(Option_t *opt) {
   sopt.ToLower();
   //if(sopt.Length() == 0) sopt = this->GetDrawOption();
 
-
+  //printf("HERE!!!!\n");
   if(!gPad || !fHist) return;
 
   if(fHist->GetDimension()==1) {
@@ -117,6 +121,7 @@ void GMarker::Paint(Option_t *opt) {
       double rm = 1.-gPad->GetRightMargin();
       double tm = 1.-gPad->GetTopMargin();
       double bm = gPad->GetBottomMargin();
+      //double xndc  = (rm-lm)*((fLineX->GetX1()-gPad->GetUxmin())/(gPad->GetUxmax()-gPad->GetUxmin()))+lm;
       double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(gPad->GetUxmax()-gPad->GetUxmin()))+lm;
       fLineX->SetX1(xndc);
       fLineX->SetX2(xndc);
@@ -168,8 +173,28 @@ void GMarker::SetLineColor(Color_t color) {
 }
 
 void GMarker::ExecuteEvent(int event, int px, int py) { 
-  printf("GMarker::ExecuteEvent(%i,%i,%i)\n",event,px,py);
-  if(!fLineX || fLineY) return;
+  //printf("GMarker::ExecuteEvent(%i,%i,%i)\n",event,px,py);
+  if(!fSelected) return;
+  //printf("here\n");
+  if(fSelected==ESelected::kX) {
+    if(fLineX) 
+      fLineX->ExecuteEvent(event,px,py);
+    //fX = fLineX->GetX1();
+    //double lm = gPad->GetLeftMargin();
+    //double rm = 1.-gPad->GetRightMargin();
+    //double xuser = ((fLineX->GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
+    //if(fX !=xuser) {
+    //  fX= xuser;
+    //}
+  } else if(fSelected==ESelected::kY) {
+    if(fLineY)
+      fLineY->ExecuteEvent(event,px,py);
+  }
+ 
+  
+
+  /*
+  if(!fLineX && !fLineY) return;
   printf("here\n");
   int d1 = 9999;
   int d2 = 9999;
@@ -178,20 +203,21 @@ void GMarker::ExecuteEvent(int event, int px, int py) {
   if(fLineY)
     d2 = fLineY->DistancetoPrimitive(px,py);
   printf("d1 = %i, d2 = %i\n",d1,d2);
-  //if(d1<d2) { 
-     if(fLineX) {
-       printf("here!"); 
+  if(d1<d2) { 
+    if(fLineX) {
+       printf("here!\n"); 
        fLineX->ExecuteEvent(event,px,py);
      }
-  // } else {
-  //   if(fLineY)
-  //     fLineY->ExecuteEvent(event,px,py);
-  // } 
+  } else {
+     if(fLineY)
+       fLineY->ExecuteEvent(event,px,py);
+  } 
 
   return;
+  */
 } 
 
-/*
+
 //TODO: Currently events are not being sent to the lines...
 int GMarker::DistancetoPrimitive(int px, int py) { 
   int d1 = 9999;
@@ -200,9 +226,16 @@ int GMarker::DistancetoPrimitive(int px, int py) {
     d1 = fLineX->DistancetoPrimitive(px,py);
   if(fLineY)
     d2 = fLineY->DistancetoPrimitive(px,py);
-  return (d1 < d2) ? d1 : d2;
+  //return (d1 < d2) ? d1 : d2;
+  if(d1<d2) {
+    fSelected = ESelected::kX;
+    return d1;
+  } else {
+    fSelected = ESelected::kY;
+    return d2;
+  }
 }
-*/
+
 
 
 

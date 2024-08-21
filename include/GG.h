@@ -47,6 +47,8 @@ class GG : public TGMainFrame {
     TCanvas *GetCanvas() const  { return fEmCanvas->GetCanvas(); }
     void cd(int i=0) const { fEmCanvas->GetCanvas()->cd(i); }
 
+    bool HandleEvent(Event_t *event) override;
+
   private: 
     
     //TGMainFrame *fMain;

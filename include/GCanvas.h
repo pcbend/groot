@@ -3,6 +3,8 @@
 
 #include <TCanvas.h>
 
+class TGFrame;
+
 class GCanvas : public TCanvas {
   public:
     GCanvas(bool build=true);
@@ -41,10 +43,16 @@ class GCanvas : public TCanvas {
 
     void Close(Option_t *opti="") override;
 
+    void     SetParent(TGFrame *p) { fParent = p; }
+    TGFrame *GetParent() { return fParent; }
+
+
   private:
     EEventType fEvent;
     int        fEventX;
     int        fEventy;
+
+    TGFrame *fParent;
 
     bool fLockPads;
 

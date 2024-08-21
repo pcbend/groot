@@ -16,7 +16,6 @@
 #include <GH1D.h>
 
 
-
 GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100),
                   fMatrix(0),fVFrame(0),
                   fButtonFrame(0),fButton1(0),fButton2(0),fButton3(0),fButton4(0),
@@ -35,6 +34,9 @@ GG::GG(TH2 *mat) : TGMainFrame(gClient->GetRoot(),100,100),
   fProjections->Add(fTotalY);
 
   CreateWindow();
+  
+  
+
   fGListTree->InsertObject(fProjections);
 
 } 
@@ -105,6 +107,7 @@ void GG::CreateWindow() {
   int wid = fEmCanvas->GetCanvasWindowId();
   GCanvas *gc = new GCanvas("gcanvas",10,10,wid);
   fEmCanvas->AdoptCanvas(gc);
+  gc->SetParent(this);
   fHFrame->AddFrame(fEmCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY,0,0,0,0));
 
   fGListTreeCanvas = new GListTreeCanvas(fHFrame,100,10);
@@ -182,6 +185,11 @@ void GG::ReallyDelete() {
   //DeleteWindow();
   //fMain->CloseWindow();
   //fMain->DontCallClose();
+}
+
+bool GG::HandleEvent(Event_t *event) {
+  printf("GG::HandleEvnet: 0x%p\n",event);
+  return TGMainFrame::HandleEvent(event);
 }
 
 
