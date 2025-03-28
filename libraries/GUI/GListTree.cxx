@@ -10,6 +10,8 @@
 #include <TF1.h>
 #include <TPad.h>
 
+#include <TClass.h>
+
 #include<GH1D.h>
 #include<GH2D.h>
 #include <GObjectManager.h>
@@ -54,7 +56,10 @@ void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
     cls = TClass::GetClass(static_cast<TKey*>(obj)->GetClassName());
   else 
     cls = obj->IsA();
-  TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(cls),GetIcon(cls));
+  if(cls==TClass::GetClass("TTree")) return;
+
+
+ TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(cls),GetIcon(cls));
   if(obj->IsFolder()) {
     if(obj->IsA() == TKey::Class()) //now read the object... 
       obj = ((TKey*)obj)->ReadObj(); 
