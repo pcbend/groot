@@ -46,11 +46,17 @@ Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),350,780), fVf(0) {
 
   CreateWindow();
   this->SetWindowName("hist-o-matic");
+
+  int dh = gClient->GetDisplayHeight();
+  int dw = gClient->GetDisplayWidth();
+  //printf("dh = %i\ndw = %i\n\n",dh,dw);
+
   Show(width,height);
 
   fEventTimer = new GEventTimer();
   fEventTimer->Start();
 
+  this->Move(dw-width*1.1,50);
 }
 
 Histomatic *Histomatic::Get() {
@@ -227,11 +233,10 @@ void Histomatic::CreateWindow() {
   fVf->AddFrame(fGListTreeCanvas,fLH1);
   fVf->AddFrame(fStatusBar,fLH0);
 
+
   this->AddFrame(fVf,fLH1);
   this->MapSubwindows();
   this->Resize(this->GetDefaultSize());
-
-
 }
 
 void Histomatic::doLockPads(TPad *pad) {
