@@ -119,12 +119,21 @@ void GH1D::Paint(Option_t *opt) {
 
 int GH1D::DistancetoPrimitive(int px, int py) {
 
+  /*
   if(gROOT->GetSelectedPad() && gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject(this)) {
     TObject *frame = gROOT->GetSelectedPad()->GetListOfPrimitives()->FindObject("TFrame");
     if(frame) 
       return frame->DistancetoPrimitive(px,py);
   }
+  */
   return TH1D::DistancetoPrimitive(px,py);
+}
+
+
+void GH1D::Print(Option_t *opt) const {
+  printf("this: 0x%08x\n",this->GetDirectory());
+  printf("org: 0x%08x\n",fOriginal->GetDirectory());
+  return;
 }
 
 
@@ -137,7 +146,7 @@ void GH1D::Draw(Option_t *opt) {
     TBox *frame = (TBox*)gPad->GetListOfPrimitives()->FindObject("TFrame");
     if(frame) {
       frame->SetBit(TBox::kCannotMove); 
-      frame->SetBit(TObject::EStatusBits::kCannotPick);
+      //frame->SetBit(TObject::EStatusBits::kCannotPick);
     }
   }
   return; 
@@ -160,11 +169,13 @@ void GH1D::SetOriginal()   {
   }
 	if(!fOriginal) {
   	fOriginal = new TH1D();  
-    fOriginal->SetDirectory(0);
+    //fOriginal->SetDirectory(0);
     fOriginalBins = GetNbinsX();
     dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
     fOriginal->SetName(Form("_%s_copy",this->GetName()));
   }
+  fOriginal->SetDirectory(0);
+  //Print();
 }
 
 void GH1D::ResetToOriginal() { 
@@ -181,9 +192,8 @@ void GH1D::ResetToOriginal() {
   TDirectory *current = this->GetDirectory();
   fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
   this->SetName(fname.c_str());
-  //printf("name2 = %s\n",this->GetName());
   this->SetDirectory(current);
-  //printf("name3 = %s\n",this->GetName());
+  //Print();
 } 
 
 

@@ -50,6 +50,8 @@ class GH1D : public TH1D { //, public TQObject {
       kProjectionX       = BIT(23)
     };
 
+    void Print(Option_t *opt="") const override;
+
   public:
     void SetParent(TH2 *h)    { fParent = h;    }
 		TH2* GetParent() const    { return fParent;  }
