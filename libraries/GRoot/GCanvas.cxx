@@ -67,7 +67,7 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
-  //gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
+  gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //GetCanvasImp()->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //if(GetCanvasImp()->IsA() == TRootCanvas::Class())
   //  static_cast<TRootCanvas*>(GetCanvasImp())->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,
@@ -108,7 +108,6 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\tx      = 0x%08x\n",event->fX);
   printf("\ty      = 0x%08x\n",event->fY);
   */
-
   if(!event->fWindow) return;
   if(!this->GetCanvasID()) return;
   if(!gVirtualX->GetWindowID(this->GetCanvasID())) return;
@@ -308,7 +307,7 @@ bool GCanvas::HandleArrowPress_1d(EEventType event, int px, int py,int mask) {
   bool doUpdate = false;
   TH1   *currentHist = 0;
   TList *gList = 0;
-  //printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
+  printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
   currentHist = GrabHist();
   gList = GrabHists(gPad->GetCanvas());
   switch(px) {
@@ -383,11 +382,11 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
   //printf("key: %i  %i  %i\n",event,px,py);
   currentHist = GrabHist();
   if(currentHist && currentHist->GetDimension()==1) {
-    printf("currentHist = 0x%p\n",currentHist);
-    printf("currentHist->GetDimension() = %i\n",currentHist->GetDimension());
+    //printf("currentHist = 0x%p\n",currentHist);
+    //printf("currentHist->GetDimension() = %i\n",currentHist->GetDimension());
   }else if(currentHist && currentHist->GetDimension()==2) {
-    printf("currentHist = 0x%p\n",currentHist);
-    printf("currentHist->GetDimension() = %i\n",currentHist->GetDimension());
+    //printf("currentHist = 0x%p\n",currentHist);
+    //printf("currentHist->GetDimension() = %i\n",currentHist->GetDimension());
   }
 
   switch(py) {
