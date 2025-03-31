@@ -131,8 +131,8 @@ int GH1D::DistancetoPrimitive(int px, int py) {
 
 
 void GH1D::Print(Option_t *opt) const {
-  printf("this: 0x%08x\n",this->GetDirectory());
-  printf("org: 0x%08x\n",fOriginal->GetDirectory());
+  printf("this: %p\n",this->GetDirectory());
+  printf("org:  %p\n",fOriginal->GetDirectory());
   return;
 }
 
