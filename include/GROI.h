@@ -7,6 +7,7 @@ class GMarker;
 class TH1;
 class TGraph;
 class TF1;
+class TLine;
 
 class GROI : public TNamed {
 
@@ -14,6 +15,7 @@ class GROI : public TNamed {
     GROI();
     GROI(const char* name, const char* title="");
     GROI(GMarker *m1, GMarker *m2, const char* name="ROI", const char* title="ROI");
+    GROI(double x1, double x2, const char* name="ROI", const char* title="ROI");
 
     virtual ~GROI();
     
@@ -36,11 +38,18 @@ class GROI : public TNamed {
 /////
 
   private:
-    GMarker* fMarker1;
-    GMarker* fMarker2;
-    GMarker* fCurrentMarker;
-    TGraph*  fFill;
-    TF1*     fFit;
+    //GMarker* fMarker1;
+    //GMarker* fMarker2;
+    //GMarker* fCurrentMarker;
+    double xlow;
+    double xhigh;
+
+    TH1*    fFill;
+    TF1*    fFit;
+
+    //TLine*  fLow;
+    //TLine*  fHigh;
+
 
   private:
     void CreateFill();

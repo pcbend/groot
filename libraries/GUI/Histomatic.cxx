@@ -474,7 +474,8 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
         drawHists(std::vector<TH1*>(it,it+1),0);
       } 
       break;
-    case EDrawOption::eDrawSame:
+    case EDrawOption::eDrawStacked:
+    //case EDrawOption::eDrawSame:
       //THStack *hs = new THStack("hs","");
       ic = gStyle->GetColorPalette(0); 
       for(auto it=hists.begin();it!=hists.end();it++) {
@@ -487,7 +488,8 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
       }
       gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
       break;  
-    case EDrawOption::eDrawStacked:
+    case EDrawOption::eDrawSame:
+    //case EDrawOption::eDrawStacked:
       if(hists.size()<=5) {
         g->Divide(1,hists.size(),0.01,0);
         int padN=1;

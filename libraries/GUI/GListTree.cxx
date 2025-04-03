@@ -115,8 +115,8 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
   //  printf("last:    %s\n",fLastSelected->GetText());
 
   if((mask&kKeyControlMask) && 
-    fLastSelected && 
-    item->GetParent() == fLastSelected->GetParent()) {
+    fLastSelected) { //&& 
+    //item->GetParent() == fLastSelected->GetParent()) {
   
     //item->SetActive(true);
     //fSelected.push_back(item);
