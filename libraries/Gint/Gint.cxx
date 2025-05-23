@@ -46,6 +46,17 @@ void Gint::LoadStyle() {
   gStyle->SetPalette(gEnv->GetValue("Gint.Style",kVisibleSpectrum));
   gStyle->SetHistLineWidth(2);
   gStyle->SetHistFillStyle(0);
+ 
+  gStyle->SetFrameBorderMode(1);
+  //gStyle->SetFrameFillColor(1);
+  gStyle->SetPadBorderMode(1);
+  gStyle->SetPadBorderSize(5);
+  gStyle->SetPadColor(2);
+
+//canvas.SetBorderSize(6);
+//canvas.SetHighLightColor(kBlue); //or whatever color
+
+
   gROOT->ForceStyle();
 }
 

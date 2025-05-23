@@ -18,12 +18,12 @@ class GCanvas : public TCanvas {
     void EventProcessed(Event_t *event);
 
     void HandleInput(EEventType event, int px, int py) override; 
-    bool HandleMouseButton1_1d(EEventType event, int px, int py);
-    bool HandleMouseButton1_2d(EEventType event, int px, int py);
+    bool HandleMouseButton1(EEventType event, int px, int py);
+    //bool HandleMouseButton1_2d(EEventType event, int px, int py);
     bool HandleKeyPress_1d(EEventType event, int px, int py);
     bool HandleKeyPress_2d(EEventType event, int px, int py);
-    bool HandleArrowPress_1d(EEventType event, int px, int py,int mask);
-    bool HandleArrowPress_2d(EEventType event, int px, int py,int mask);
+    bool HandleArrowPress(EEventType event, int px, int py,int mask);
+    //bool HandleArrowPress_2d(EEventType event, int px, int py,int mask);
 
     void UpdateAllPads();
 

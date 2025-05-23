@@ -132,9 +132,8 @@ void GListTree::Clicked(TGListTreeItem *item, int btn, unsigned int mask, int x,
 
 
   if((mask&kKeyShiftMask)  &&
-      fLastSelected         && 
+      fLastSelected        && 
       item->GetParent() == fLastSelected->GetParent()) {
-
     TGListTreeItem *pitem = fLastSelected; 
     int count=0;
     while(pitem != item) {
@@ -256,13 +255,9 @@ void GListTree::doDraw(std::vector<TGListTreeItem*> selected,Option_t *opt) {
     hists1D.at(i)->Draw();
   }
 
-
   for(size_t i=0;i<hists2D.size();i++) {
     hists2D.at(i)->Draw();
   }
-
-
-
 }
 
 
