@@ -50,7 +50,7 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     void SetStatusText(std::string text, int col) { fStatusBar->SetText(text.c_str(),col); }
 
   //private:
-    void doUpdate();
+    void doUpdate() const;
     //void doDraw(TObject*,Option_t *opt="");
     //void doDraw(TList*,Option_t *opt="");
     void doDraw();

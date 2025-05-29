@@ -443,7 +443,7 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
   }
 
 
-  //doUpdate(); 
+  doUpdate(); 
 }
 
 void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
@@ -522,7 +522,7 @@ void Histomatic::closeAllCanvases() {
 }
 
 
-void Histomatic::doUpdate() {
+void Histomatic::doUpdate() const {
   if(gPad) {
     gPad->Modified();
     gPad->Update();
