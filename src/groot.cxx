@@ -14,6 +14,8 @@ void loadEnv() {
   // If GRUTSYS has already been defined, don't overwrite.
   setenv("GSYS", (programPath()+"/..").c_str(), 0);
 
+  printf("GSYS has been set to: %s\n",getenv("GSYS"));
+
   // Load $GRUTSYS/.grutrc
   std::string grut_path = Form("%s/.gintrc",getenv("GRUTSYS"));
   gEnv->ReadFile(grut_path.c_str(),kEnvChange);
