@@ -17,7 +17,7 @@ void loadEnv() {
   printf("GSYS has been set to: %s\n",getenv("GSYS"));
 
   // Load $GRUTSYS/.grutrc
-  std::string grut_path = Form("%s/.gintrc",getenv("GRUTSYS"));
+  std::string grut_path = Form("%s/.gintrc",getenv("GSYS"));
   gEnv->ReadFile(grut_path.c_str(),kEnvChange);
 
   // Load $HOME/.grutrc
