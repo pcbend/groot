@@ -386,7 +386,10 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
 bool GCanvas::HandleKeyPress_2d(EEventType event, int px, int py) { 
   bool handled = false;
   TH1 *currentHist = 0;
-  switch(event) {
+  switch(py) {
+    case kKey_x:
+      printf("HELLO!\n");
+      break;
     default:
       break;
   }

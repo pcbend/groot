@@ -51,15 +51,21 @@ GListTree::~GListTree() {
 void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
   if(obj->InheritsFrom("TTree")) return;
  
+  if(obj->InheritsFrom("TChannel")) return;
+
   TClass *cls = 0;
   if(obj->IsA()==TKey::Class()) 
     cls = TClass::GetClass(static_cast<TKey*>(obj)->GetClassName());
   else 
     cls = obj->IsA();
   if(cls==TClass::GetClass("TTree")) return;
+  if(cls==TClass::GetClass("TChannel")) return;
 
 
- TGListTreeItem *item = this->AddItem(parent,obj->GetName(),GetIcon(cls),GetIcon(cls));
+  const TGPicture *icon = GetIcon(cls);
+  if(icon==0) return;
+
+  TGListTreeItem *item = this->AddItem(parent,obj->GetName(),icon,icon);
   if(obj->IsFolder()) {
     if(obj->IsA() == TKey::Class()) //now read the object... 
       obj = ((TKey*)obj)->ReadObj(); 
@@ -79,6 +85,10 @@ void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
        }
       }
     }
+  } else {
+    item->SetDNDSource(kTRUE);
+
+    //item->SetDNDdata(/*data*/);i
 
   }
 }
@@ -86,6 +96,8 @@ void GListTree::InsertObject(TObject *obj,TGListTreeItem *parent) {
 const TGPicture *GListTree::GetIcon(TClass *cls) {
   std::string path = programPath();
   path+="/../icons";
+  //printf("GetIcon:\t%s\n",cls->GetName());
+
   if(cls->InheritsFrom(TFile::Class())) {
     path+="/rootdb_t.gif";
     return gClient->GetPicture(path.c_str());
@@ -99,7 +111,8 @@ const TGPicture *GListTree::GetIcon(TClass *cls) {
     path+="/hdb_t.gif";
     return gClient->GetPicture(path.c_str());
   }
-  return 0;//gClient->GetPicture(path.c_str());
+  path+="/folder_t.gif";
+  return gClient->GetPicture(path.c_str());
 
 }
 

@@ -203,11 +203,11 @@ void Histomatic::CreateWindow() {
   //Connect("TCanvas","Picked()",this,"doLockPads()");
   TQObject::Connect("TCanvas","Picked(TPad*,TObject*,Int_t)","Histomatic",this,"doLockPads(TPad*)");
   /*
-  Connect (const char *sender_class, 
-           const char *signal, 
-           const char *receiver_class, 
-           void *receiver, c
-           onst char *slot) */
+     Connect (const char *sender_class, 
+     const char *signal, 
+     const char *receiver_class, 
+     void *receiver, c
+     onst char *slot) */
 
 
 
@@ -347,7 +347,7 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
       //pass;
     }
   }
-  
+
   //printf("\n\nnum drawables: %i\n",drawables);
   //printf("found  %lu TH1 to draw.\n",    hists1D.size());
   //printf("found  %lu TH2 to draw.\n",    hists2D.size());
@@ -366,13 +366,17 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
   //printf("normalized:  %i\n",fDrawNormalized->GetState());
   //printf("colz:        %i\n",fDrawColz->GetState());
 
-
   TCanvas *g = 0;
+
   switch (fDrawComboBox->GetSelected()) {
     case EDrawOption::eDrawNew:
-      //g = new GCanvas;
+      g = gROOT->MakeDefCanvas();
       break;
     case EDrawOption::eDrawSame:
+      if(gPad)
+        g = gPad->GetCanvas();
+      else
+        g = gROOT->MakeDefCanvas();  //new GCanvas;
     case EDrawOption::eDrawStacked:
       if(gPad)
         g = gPad->GetCanvas();
@@ -428,18 +432,82 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
      */
   }
   if(hists2D.size()==1) {
-    if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
-      g = gROOT->MakeDefCanvas();//new GCanvas;
-
     GH2D *current = static_cast<GH2D*>(hists2D[0]);
-    current->Draw();
+    if(fDrawComboBox->GetSelected() == EDrawOption::eDrawNew) {
+      if(!g)
+        g = gROOT->MakeDefCanvas();//new GCanvas;
+      g->cd();
+
+      current->Draw();
+    }else if(fDrawComboBox->GetSelected() == EDrawOption::eDrawSame) {
+      g = g->GetCanvas(); // let's make sure we are not starting from a subpad.
+
+      std::map<int,std::vector<TObject*> > fPadMap;
+
+      int nPad = 0;
+      int mPad = 0;
+      TVirtualPad *cpad = g->cd(0);
+      TVirtualPad *lastPad = cpad;
+      do {
+        TList *prim = cpad->GetListOfPrimitives();
+        for(int i=0;i<prim->GetSize();i++) {
+          TObject *obj = prim->At(i);
+          if(obj  && (obj->InheritsFrom(TH1::Class()) || obj->InheritsFrom(TGraph::Class()))) {
+            printf("found obj %s\n",obj->GetName());
+            fPadMap[mPad].push_back(obj);
+          }
+        }
+        nPad++;
+        printf("fPadMap[%i].size() = %lu\n",mPad,fPadMap[mPad].size());
+        if(mPad==0 || fPadMap[mPad].size()>0)
+          mPad++;
+        lastPad = cpad;
+        cpad = g->cd(nPad);
+      } while(cpad!=lastPad);
+
+      nPad=mPad;
+
+      if(nPad==1 && fPadMap[0].size()>0) {
+        g->Clear();
+        g->DivideSquare(2);
+        g->cd(1); 
+        for(auto obj : fPadMap[0]) 
+          obj->Draw("same");
+        g->cd(2);
+      } else if(nPad>1) {
+        g->Clear();
+        g->DivideSquare(nPad);
+        for(int i=1;i<=nPad;i++) {
+          g->cd(i); 
+          for(size_t j=0;j<fPadMap[i].size();j++) { 
+            fPadMap[i][j]->Draw("same");
+            //printf("pad[%i]: %s\n",i,fPadMap[i][j]->GetName());
+          }
+        }
+        g->cd(nPad+1);
+      }
+
+      current->Draw();
+      g->cd();
+    }
   } else if(hists2D.size()>1) {
-    if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
+
+    //ignoring combo box for the momenet.
+    if(!g)
       g = gROOT->MakeDefCanvas(); //new GCanvas;
-    THStack hs;
-    for(auto it=hists1D.begin();it!=hists1D.end();it++) 
-      hs.Add(*it);
-    hs.Draw("pads");
+    g->DivideSquare(hists2D.size());
+    for(int i=0;i<(int)hists2D.size();i++) {
+      g->cd(i+1);
+      hists2D[i]->Draw();
+    }
+    g->cd(0);
+
+    //if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
+    //  g = gROOT->MakeDefCanvas(); //new GCanvas;
+    //THStack hs;
+    //for(auto it=hists1D.begin();it!=hists1D.end();it++) 
+    //  hs.Add(*it);
+    //hs.Draw("pads");
   }
 
 
@@ -475,7 +543,7 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
       } 
       break;
     case EDrawOption::eDrawStacked:
-    //case EDrawOption::eDrawSame:
+      //case EDrawOption::eDrawSame:
       //THStack *hs = new THStack("hs","");
       ic = gStyle->GetColorPalette(0); 
       for(auto it=hists.begin();it!=hists.end();it++) {
@@ -489,7 +557,7 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
       gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
       break;  
     case EDrawOption::eDrawSame:
-    //case EDrawOption::eDrawStacked:
+      //case EDrawOption::eDrawStacked:
       if(hists.size()<=5) {
         g->Divide(1,hists.size(),0.01,0);
         int padN=1;
