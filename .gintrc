@@ -25,11 +25,10 @@ Canvas.ShowGuideLines: false
 
 #Canvas.HighLightColor: 2
 
-
+Hists.Stats: "neiou"
 
 Root.Fitter: Fumili2
 #Root.Fitter: Minuit
-
 
 #Gui.Backend: qt
 #Gui.Factory: qt

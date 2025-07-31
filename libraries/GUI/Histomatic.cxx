@@ -12,6 +12,7 @@
 #include <TFrame.h>
 #include <THStack.h>
 #include <TGraph.h>
+#include <TCutG.h>
 #include <TF1.h>
 #include <TList.h>
 #include <TStyle.h>
@@ -368,6 +369,7 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
 
   TCanvas *g = 0;
 
+  if(hists1D.size()>0 || hists2D.size()>0) {
   switch (fDrawComboBox->GetSelected()) {
     case EDrawOption::eDrawNew:
       g = gROOT->MakeDefCanvas();
@@ -384,7 +386,7 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
         g = gROOT->MakeDefCanvas();  //new GCanvas;
       break;
   }
-
+  }
 
   if(hists1D.size()>0) {
 
@@ -510,6 +512,14 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
     //hs.Draw("pads");
   }
 
+  if(graphs.size()>0) {
+    for(int i=0;i<(int)graphs.size();i++) {
+      if(graphs[i]->InheritsFrom(TCutG::Class()))
+        graphs[i]->Draw("same");
+      else 
+        graphs[i]->Draw("A*");
+    }
+  }
 
   doUpdate(); 
 }

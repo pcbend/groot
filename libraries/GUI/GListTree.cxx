@@ -110,6 +110,9 @@ const TGPicture *GListTree::GetIcon(TClass *cls) {
   } else if(cls->InheritsFrom(TH1::Class())) { 
     path+="/hdb_t.gif";
     return gClient->GetPicture(path.c_str());
+  } else if(cls->InheritsFrom(TGraph::Class())) {
+    path+="/selection_t.gif";
+    return gClient->GetPicture(path.c_str());
   }
   path+="/folder_t.gif";
   return gClient->GetPicture(path.c_str());

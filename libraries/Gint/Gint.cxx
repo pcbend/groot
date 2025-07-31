@@ -57,6 +57,12 @@ void Gint::LoadStyle() {
 //canvas.SetHighLightColor(kBlue); //or whatever color
 
 
+  //Hists.Stats: "nemri"
+  gStyle->SetOptStat(gEnv->GetValue("Hists.Stats","nemri"));
+
+  //gEnv->Print();
+
+
   gROOT->ForceStyle();
 }
 

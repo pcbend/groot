@@ -112,6 +112,7 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\tx      = 0x%08x\n",event->fX);
   printf("\ty      = 0x%08x\n",event->fY);
   */
+
   if(!event->fWindow) return;
   if(!this->GetCanvasID()) return;
   if(!gVirtualX->GetWindowID(this->GetCanvasID())) return;
@@ -151,11 +152,16 @@ void GCanvas::EventProcessed(Event_t *event) {
 
 void GCanvas::HandleInput(EEventType event, int px, int py) {
   bool handled = false;
-  
+ 
   if(!GetSelected()) 
     return TCanvas::HandleInput(event,px,py);
 
+  
   //printf("GetSelected()->IsA()->GetName() = %s\n",GetSelected()->IsA()->GetName());
+  //if(GetSelected()->IsA()->Class() == TFrame::Class())
+    //printf("GetSelected's Pad is %p\n",GetSelectedPad());
+
+
 
   if( GetSelected()->InheritsFrom(TH1::Class()) ||
       GetSelected()->InheritsFrom(TFrame::Class()) ) {
@@ -197,42 +203,10 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   }
   if(!handled) 
     TCanvas::HandleInput(event,px,py);
-}
+  else 
+    UpdateAllPads();
 
-/*
-bool GCanvas::HandleMouseButton1_2d(EEventType event, int px, int py) { 
-  bool handled = false;
-  TH1 *currentHist = GrabHist();
-  switch(event) {
-    case kButton1Down:
-      if(gPad != TCanvas::GetSelectedPad()) {
-        //switch the gPad to the clicked pad... 
-        TCanvas::HandleInput(kButton2Down,px,py);
-      } else if(currentHist && gPad) {
-        GMarker *m = new GMarker();
-        //printf(RED "adding marker\n" RESET_COLOR "\n"); fflush(stdout);
-        double xx = gPad->AbsPixeltoX(px);
-        double x  = gPad->PadtoX(xx);
-        double yy = gPad->AbsPixeltoX(py);
-        double y  = gPad->PadtoX(yy);
-        m->AddTo(currentHist,x,y);
-        handled = true;
-        gPad->Modified();
-        gPad->Update();
-      }
-      break;
-    case kButton1Shift:
-      break;
-    case kButton1Up:
-      break;
-    case kButton1Double:
-      break;
-    default:
-      break;
-  }
-  return handled;
 }
-*/
 
 
 bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) { 
@@ -257,9 +231,6 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
           //int  binx = h->GetXaxis()->FindBin(x);
           m->AddTo(currentHist,x,y);
           handled = true;
-          
-          gPad->Modified();
-          gPad->Update();
         }
         break;
       case kButton1Shift:
@@ -385,10 +356,28 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
 
 bool GCanvas::HandleKeyPress_2d(EEventType event, int px, int py) { 
   bool handled = false;
-  TH1 *currentHist = 0;
+  TH1 *currentHist = GrabHist();
   switch(py) {
     case kKey_x:
       printf("HELLO!\n");
+      if(!currentHist || !currentHist->InheritsFrom(GH2D::Class())) 
+        return handled;
+      {  
+        GH1D *px = ((GH2D*)currentHist)->ProjectionX();
+        new GCanvas;
+        px->Draw();
+      }
+      handled = true;
+      break;
+    case kKey_y:
+      if(!currentHist || !currentHist->InheritsFrom(GH2D::Class()))
+        return handled;
+      {  
+        GH1D *py = ((GH2D*)currentHist)->ProjectionY();
+        new GCanvas;
+        py->Draw();
+      }
+      handled = true;
       break;
     default:
       break;
@@ -569,7 +558,10 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
           currentHist->GetListOfFunctions()->Remove(*i);
         GMarker::RemoveAll(currentHist);
         currentHist->Sumw2(false);
-
+        if(currentHist->InheritsFrom(GH1D::Class())) {
+          GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
+          gcurrentHist->RemovePeaks();
+        }  
       }
       doUpdate = true;
       handled  = true;
@@ -728,6 +720,15 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
         doUpdate = true;
         handled = true;
       }  
+      break;
+    case kKey_s:
+      currentHist = GrabHist();
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+        GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
+        gcurrentHist->ShowPeaks();
+        doUpdate = true;
+        handled  = true;
+      } 
       break;
     case kKey_l:
     case kKey_z:

@@ -62,6 +62,8 @@ class GH1D : public TH1D { //, public TQObject {
     void Normalize();
 
     void UpdateFunctions();
+    int  ShowPeaks(double thresh=.10,double sigma=1.0);
+    bool RemovePeaks();
 
   private:
     void Init();

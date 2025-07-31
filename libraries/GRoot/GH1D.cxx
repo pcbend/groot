@@ -3,6 +3,8 @@
 #include<cstdio>
 
 #include<TSpectrum.h>
+#include<TPolyMarker.h>
+#include<TText.h>
 #include<TString.h>
 #include<TVirtualPad.h>
 #include<TROOT.h>
@@ -418,6 +420,58 @@ void GH1D::UpdateFunctions() {
 
 }
 
+
+bool GH1D::RemovePeaks() {
+  bool flag = false;
+  if(TObject *obj = GetListOfFunctions()->FindObject("PeakLabels")) {
+    GetListOfFunctions()->Remove(obj);
+    ((TObjArray*)obj)->Delete();
+    flag = true;
+  }
+  return flag;
+}
+
+
+
+int GH1D::ShowPeaks(double thresh,double sigma) {
+  RemovePeaks();
+
+  TSpectrum::StaticSearch(this,sigma,"Qnodraw",thresh);
+  TPolyMarker *pm = (TPolyMarker*)GetListOfFunctions()->FindObject("TPolyMarker");
+  if(!pm) {
+    //something has gone wrong....
+    return 0;
+  }
+  TObjArray *array = new TObjArray();
+  array->SetName("PeakLabels");
+  int n = pm->GetN();
+  if(n==0)
+    return n;
+  TText *text;
+  double *x = pm->GetX();
+  //  double *y = pm->GetY();
+  for(int i=0;i<n;i++) {
+    //y[i] += y[i]*0.15;
+    double y = 0;
+    for(int i_x = x[i]-3;i_x<x[i]+3;i_x++){
+      if((GetBinContent(GetXaxis()->FindBin(i_x)))>y){
+	      y = GetBinContent(GetXaxis()->FindBin(i_x));
+      }
+    }
+    y+=y*0.1;
+    text = new TText(x[i],y,Form("%.1f",x[i]));
+    text->SetTextSize(0.025);
+    text->SetTextAngle(90);
+    text->SetTextAlign(12);
+    text->SetTextFont(42);
+    text->SetTextColor(GetLineColor());
+    array->Add(text);
+  }
+  GetListOfFunctions()->Remove(pm);
+  pm->Delete();
+  GetListOfFunctions()->Add(array);
+  return n;
+}
 
 
 
