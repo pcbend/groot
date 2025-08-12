@@ -23,7 +23,6 @@ Canvas.ShowToolBar: true
 Canvas.UseScreenFactor: true
 Canvas.ShowGuideLines: false
 
-#Canvas.HighLightColor: 2
 
 Hists.Stats: "neiou"
 

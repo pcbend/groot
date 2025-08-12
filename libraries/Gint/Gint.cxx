@@ -51,7 +51,7 @@ void Gint::LoadStyle() {
   //gStyle->SetFrameFillColor(1);
   gStyle->SetPadBorderMode(1);
   gStyle->SetPadBorderSize(5);
-  gStyle->SetPadColor(2);
+  //gStyle->SetPadColor(2);
 
 //canvas.SetBorderSize(6);
 //canvas.SetHighLightColor(kBlue); //or whatever color

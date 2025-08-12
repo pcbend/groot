@@ -3,6 +3,7 @@
 #include <GCanvas.h>
 
 #include <string>
+#include <regex>
 
 #include <globals.h>
 #include <GCommands.h>
@@ -24,6 +25,7 @@
 #include <TRootCanvas.h>
 #include <TVirtualX.h>
 
+#include<TROOT.h>
 
 int GCanvas::fCanvasNumber = 0;
 
@@ -88,9 +90,10 @@ TCanvas *GCanvas::MakeDefCanvas() {
       - Check that the class is one I want to deal with, otherwise pass back to base root?
 
 
-    1 Event Processed 
+    1 Event Processed  || this goes to all canvases(?) 
       - Finds Arrow Keys, otherwise does nothing.
         - HandleArrowPress
+    
     2 HandleInput
       // look for histograms - check that GetSelected() is Inherits from TH1 or TFrame, then check dimensions.
       - switch yard to
@@ -101,6 +104,7 @@ TCanvas *GCanvas::MakeDefCanvas() {
 
 void GCanvas::EventProcessed(Event_t *event) {
 //ProcessedEvent(int event, int x, int y, TObject *selected) {
+  
   /*
   printf("-------------\n");
   printf("Event Processed\n");
@@ -113,6 +117,19 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\ty      = 0x%08x\n",event->fY);
   */
 
+  unsigned int keysym;
+  char str[2];
+  gVirtualX->LookupString(event, str, sizeof(str), keysym);
+
+  /*
+  if(keysym==kKey_Space) {
+    printf("space bar pressed!\n");
+    printf("\twindow = %lu\n",event->fWindow);
+    printf("this:  %p\n",this);
+    printf("gPad:  %p\n",gPad);
+  }
+  */
+
   if(!event->fWindow) return;
   if(!this->GetCanvasID()) return;
   if(!gVirtualX->GetWindowID(this->GetCanvasID())) return;
@@ -123,10 +140,6 @@ void GCanvas::EventProcessed(Event_t *event) {
   //switch(event->fCode) {
 
   if(event->fType!=0) return; // only look for key down...
-
-  unsigned int keysym;
-  char str[2];
-  gVirtualX->LookupString(event, str, sizeof(str), keysym);
 
   switch(keysym) {
     case kKey_Left:
@@ -148,11 +161,20 @@ void GCanvas::EventProcessed(Event_t *event) {
   return;
 }
 
-
-
 void GCanvas::HandleInput(EEventType event, int px, int py) {
   bool handled = false;
- 
+
+  if(event==kKeyPress && px==kKey_Space) {
+    if(GetSelectedPad()) {
+      if(GetSelectedPad() != gPad) {
+        GetSelectedPad()->cd();
+        UpdateAllPads();
+      }
+    }
+  }
+
+
+
   if(!GetSelected()) 
     return TCanvas::HandleInput(event,px,py);
 
@@ -160,6 +182,8 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   //printf("GetSelected()->IsA()->GetName() = %s\n",GetSelected()->IsA()->GetName());
   //if(GetSelected()->IsA()->Class() == TFrame::Class())
     //printf("GetSelected's Pad is %p\n",GetSelectedPad());
+
+
 
 
 
@@ -205,11 +229,10 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
     TCanvas::HandleInput(event,px,py);
   else 
     UpdateAllPads();
-
 }
 
 
-bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) { 
+bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
   bool handled = false;
   TH1 *currentHist = 0;
   TObject *selected = GetSelected();
@@ -221,7 +244,7 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
         currentHist = GrabHist();
         if(gPad != TCanvas::GetSelectedPad()) {
           //switch the gPad to the clicked pad... 
-          TCanvas::HandleInput(kButton2Down,px,py);  
+          //TCanvas::HandleInput(kButton2Down,px,py); // i don't like this.... 
         } //else 
         if(currentHist && gPad) {
           GMarker *m = new GMarker();
@@ -229,6 +252,7 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
           double x  = gPad->PadtoX(gPad->AbsPixeltoX(px));
           double y  = gPad->PadtoY(gPad->AbsPixeltoY(py));
           //int  binx = h->GetXaxis()->FindBin(x);
+          this->Modified();
           m->AddTo(currentHist,x,y);
           handled = true;
         }
@@ -323,6 +347,57 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
       doUpdate = true;
       break;
     case kKey_Up:
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+        printf("currentHist: %s\n", currentHist->GetName());
+        GH1D *ghist = dynamic_cast<GH1D*>(currentHist);
+        if(!ghist->GetParent()) break;
+        //of, we have a GH1D & it is a projection.
+        //name should be _x_###_###;
+        std::string temps(ghist->GetName());
+        static std::regex  re("_(\\w)_(\\d+)_(\\d+)$");
+        std::smatch match;
+        std::regex_search(temps,match,re);
+        if(match.size()==4) {
+          double low = std::atoi(match[2].str().c_str());
+          double high = std::atoi(match[2].str().c_str());
+          //printf("low:high\t%.1f%.1f\n",low,high);
+          while(true) {
+            low++; high++;
+            //search for projection first!!
+            GH1D *p = 0;
+            if(match[1].str()=="x") {
+              int nh = ghist->GetParent()->GetYaxis()->FindBin(high);
+              int nl = ghist->GetParent()->GetYaxis()->FindBin(low);
+              if(nh>=ghist->GetParent()->GetNbinsY()) {
+                int diff = nh-nl;
+                nl = 1;
+                nh = nl + diff;
+                low = ghist->GetParent()->GetYaxis()->GetBinLowEdge(nl);
+                low = ghist->GetParent()->GetYaxis()->GetBinLowEdge(nh);
+              }
+              p = dynamic_cast<GH2D*>(ghist->GetParent())->ProjectionX(low,high);
+            }
+            if(match[1].str()=="y") {
+              int nh = ghist->GetParent()->GetXaxis()->FindBin(high);
+              int nl = ghist->GetParent()->GetXaxis()->FindBin(low);
+              if(nh>=ghist->GetParent()->GetNbinsX()) {
+                int diff = nh-nl;
+                nl = 1;
+                nh = nl + diff;
+                low = ghist->GetParent()->GetXaxis()->GetBinLowEdge(nl);
+                low = ghist->GetParent()->GetXaxis()->GetBinLowEdge(nh);
+              }
+              p = dynamic_cast<GH2D*>(ghist->GetParent())->ProjectionY(low,high);
+            }
+            if(p && p->Integral()>0) {
+              p->Draw();
+              break;
+            }
+          }
+        }
+      }
+      handled  = true;
+      doUpdate = true;
       break;
     case kKey_Right:
       if(currentHist && currentHist->GetDimension()==1) {
@@ -356,6 +431,7 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
 
 bool GCanvas::HandleKeyPress_2d(EEventType event, int px, int py) { 
   bool handled = false;
+  bool doUpdate = false;
   TH1 *currentHist = GrabHist();
   switch(py) {
     case kKey_x:
@@ -379,8 +455,32 @@ bool GCanvas::HandleKeyPress_2d(EEventType event, int px, int py) {
       }
       handled = true;
       break;
+    case kKey_l:
+    case kKey_z:
+      currentHist = GrabHist();
+      if(currentHist && currentHist->GetDimension()==2) {
+        if(GetLogz()){
+          // Show full y range, not restricted to positive values.
+          currentHist->GetZaxis()->UnZoom();
+          SetLogz(0);
+        } else {
+          // Only show plot from 0 up when in log scale.
+          if(currentHist->GetMinimum()<0) {
+            currentHist->GetZaxis()->SetRangeUser(0,currentHist->GetMaximum());
+          }
+          SetLogz(1);
+        }
+      }
+      doUpdate = true;
+      handled  = true;
+      break;
     default:
       break;
+  }
+  if(gPad && doUpdate) {
+    UpdateAllPads();//gPad);
+    //gPad->Modified();
+    //gPad->Update();
   }
   return handled;
 }
@@ -786,6 +886,10 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
 
 
   }
+  if(handled)
+    this->Modified();
+
+
   if(gPad && doUpdate) {
     UpdateAllPads();//gPad);
     //gPad->Modified();
@@ -806,6 +910,7 @@ TVirtualPad* GCanvas::GetSelectedPad() const {
 void GCanvas::UpdateAllPads() {
   //TIter iter(this->GetListOfPrimitives());
   //while(TObject *obj = iter()) printf("\t\t%s\n",obj->GetName());  
+  /*
   TIter iter1(this->GetListOfPrimitives());
   while(TObject *obj1 = iter1()) {
     if(!obj1->InheritsFrom(TVirtualPad::Class())) continue;
@@ -820,7 +925,8 @@ void GCanvas::UpdateAllPads() {
     pad1->Modified();
     pad1->Update();
   }
-  this->Modified();
+  */
+  //this->Modified();
   this->Update();
 }
 

@@ -71,7 +71,7 @@ TH1* GH2D::DrawNormalized(Option_t *opt, double norm) const {
 void GH2D::Paint(Option_t *opt) {
   TString sopt(opt);
   if(sopt.Length()==0)  
-    sopt.Append("colz");
+    sopt.Append("colz2");
   TH2D::Paint(sopt.Data());
   return;
 }

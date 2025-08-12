@@ -502,7 +502,7 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
       g->cd(i+1);
       hists2D[i]->Draw();
     }
-    g->cd(0);
+    g->cd(1);
 
     //if(fDrawComboBox->GetSelected() != EDrawOption::eDrawNew)
     //  g = gROOT->MakeDefCanvas(); //new GCanvas;
@@ -555,14 +555,14 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
     case EDrawOption::eDrawStacked:
       //case EDrawOption::eDrawSame:
       //THStack *hs = new THStack("hs","");
-      ic = gStyle->GetColorPalette(0); 
+      //ic = gStyle->GetColorPalette(0); 
       for(auto it=hists.begin();it!=hists.end();it++) {
         //gPad->IncrementPaletteColor(ic,"plc");
         (*it)->SetLineColor(ic++);
         if(GrabHist()) 
-          (*it)->Draw("plc same");
+          (*it)->Draw("same");
         else 
-          (*it)->Draw("plc");
+          (*it)->Draw("");
       }
       gPad->BuildLegend(0.75,0.75,0.95,0.95,"");
       break;  
@@ -575,12 +575,14 @@ void Histomatic::drawHists(std::vector<TH1*> hists, TCanvas *g) const {
           g->cd(padN++);
           (*it)->Draw();
         }
+        g->cd(1);
       } else {
         THStack *hs = new THStack(Form("hs_%s",gPad->GetTitle()),"");
         for(auto it=hists.begin();it!=hists.end();it++) 
           hs->Add(*it);
         //printf("hs.GetNhists() = %i\n",hs.GetNhists());
         hs->Draw("pads");
+        g->cd(1);
       }
       break;
     default:
