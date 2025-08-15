@@ -21,6 +21,8 @@ TF1   *GrabFit(int i=0);            //return the ith fit from the current canvas
  
 double GetChi2(TObject*,TF1*);
 
-
+void Interact();
+bool InteractMouseButton(int event, int px, int py);
+bool InteractKeyPress(int event,int px, int py);
 
 #endif

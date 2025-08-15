@@ -13,7 +13,10 @@ class GCanvas : public TCanvas {
     virtual ~GCanvas(); 
 
     static TCanvas *MakeDefCanvas();// override;
-    
+
+    void Divide(int nx=1,int ny=1,float xmargin=0.01,float ymargin=0.01,int color=0) override;
+
+
     //void ProcessedEvent(int event, int x, int y, TObject *selected) override;
     void EventProcessed(Event_t *event);
 
@@ -41,7 +44,11 @@ class GCanvas : public TCanvas {
 
     void Close(Option_t *opti="") override;
 
+    static Event_t GetCurrentEvent() { return fCurrentEvent; }
+
   private:
+    static Event_t fCurrentEvent;
+
     EEventType fEvent;
     int        fEventX;
     int        fEventy;

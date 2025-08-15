@@ -28,27 +28,23 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   if(!h) return;
   fHist = h;
   //if(h && h->GetDimension() == 1) {
-  x = fHist->GetBinLowEdge(fHist->FindBin(x));
+  x = fHist->GetXaxis()->GetBinLowEdge(fHist->GetXaxis()->FindBin(x));
+
   if(!fLineX) fLineX = new TLine;
   fLineX->SetLineWidth(2);
   fLineX->SetLineColor(kRed);
-  fLineX->SetX1(x);
-  fLineX->SetX2(x);
-  //fX =x;
   SetX(x);
-  fLineX->SetVertical();
-  //} else if(h && h->GetDimension() == 2) {
   if(h->GetDimension() == 2) {
-    //x = fHist->GetXaxis()->GetBinLowEdge(fHist->GetXaxis()->FindBin(x));
     y = fHist->GetYaxis()->GetBinLowEdge(fHist->GetYaxis()->FindBin(y));
     if(!fLineY) fLineY = new TLine;
     fLineY->SetLineWidth(2);
     fLineY->SetLineColor(kRed);
-    fLineY->SetY1(y);
-    fLineY->SetY2(y);
     SetY(y);
-    fLineY->SetHorizontal();
   }
+  //printf("fLineX: %p\n",fLineX);
+  //printf("fLineY: %p\n",fLineY);
+
+
   //we want to limit how many marks are on the histogram.  
   //lets start with two....
   int fMaxMarkers=2;
@@ -79,66 +75,75 @@ void GMarker::Paint(Option_t *opt) {
   sopt.ToLower();
   //if(sopt.Length() == 0) sopt = this->GetDrawOption();
 
+  sopt.Append("ndc");
 
   if(!gPad || !fHist) return;
 
-  if(fHist->GetDimension()==1) {
-    if(!fLineX) 
-      return;  // this should not be possible
+
+  double lm = gPad->GetLeftMargin();
+  double rm = 1.-gPad->GetRightMargin();
+  double tm = 1.-gPad->GetTopMargin();
+  double bm = gPad->GetBottomMargin();
     
-  /*  if(!gPad->GetLogy()) {
-      if(fLineX->TestBit(TLine::kLineNDC))
-        fLineX->SetBit(TLine::kLineNDC,false);
-      //else
-      //  if(fX != fLineX->GetX1()) {
-          //someone has moved the marker...
-          //printf("GMarker X: %.02f\n",GetX1());
-          fX = fLineX->GetX1();
-      //  }
-      fLineX->SetX1(fX);
-      fLineX->SetX2(fX);
-      fLineX->SetY1(gPad->GetUymin());
-      if(sopt.Contains("tohist"))  
-        fLineX->SetY2(fHist->GetBinContent(fHist->FindBin(fX)));
-      else
-        fLineX->SetY2(gPad->GetUymax());
+  double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(abs(gPad->GetUxmax()-gPad->GetUxmin())))+lm;
+  double yndc  = (tm-bm)*((fY-gPad->GetUymin())/(abs(gPad->GetUymax()-gPad->GetUymin())))+bm;
 
-      //double binval = fHist->GetBinContent(fHist->FindBin(fX));
-      //int    pybin  = gPad->YtoAbsPixel(gPad->YtoPad(binval));    
-      //printf("binval: %f\n",binval);
-      //printf("pybin: %i\n",pybin);
-      //printf("Uymin:  %f\n",gPad->GetUymin());
-      //printf("Uymax:  %f\n",gPad->GetUymax());
-    } else {  */
-      if(!fLineX->TestBit(TLine::kLineNDC))
-        fLineX->SetBit(TLine::kLineNDC,true);
+/*
+  printf("lm:  %.04f\n",lm);
+  printf("rm:  %.04f\n",rm);
+  printf("tm:  %.04f\n",tm);
+  printf("bm:  %.04f\n",bm);
 
-      double lm = gPad->GetLeftMargin();
-      double rm = 1.-gPad->GetRightMargin();
-      double tm = 1.-gPad->GetTopMargin();
-      double bm = gPad->GetBottomMargin();
-      double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(gPad->GetUxmax()-gPad->GetUxmin()))+lm;
-      fLineX->SetX1(xndc);
-      fLineX->SetX2(xndc);
-      double xuser = ((fLineX->GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
-      if(fX !=xuser) {
-        fX= xuser;
-      }
-      fLineX->SetY1(bm);    
-      fLineX->SetY2(tm);    
+  printf("fX:  %.04f\n",fX);
+  printf("fY:  %.04f\n",fY);
+  printf("Uxmin: %.04f\n",gPad->GetUxmin());
+  printf("Uxmax: %.04f\n",gPad->GetUxmax());
+  printf("Uymin: %.04f\n",gPad->GetUymin());
+  printf("Uymax: %.04f\n",gPad->GetUymax());
+
+
+
+  printf("xndc:  %.04f\n",xndc);
+  printf("yndc:  %.04f\n",yndc);
+*/
+
+
+
+  if(fLineX) {
+    if(!fLineX->TestBit(TLine::kLineNDC))
       fLineX->SetBit(TLine::kLineNDC,true);
-//    }  
-    //std::cout<<"\t\tuymin: " << gPad->GetUymin() << std::endl;
-    //std::cout<<"\t\tuymax: " << gPad->GetUymax() << std::endl;
-  } else if (fHist->GetDimension()==2) {
-    
-
-
-
+   
+    fLineX->SetX1(xndc);
+    fLineX->SetX2(xndc);
+    /*
+    double xuser = ((fLineX->GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
+    if(fX !=xuser) {
+      fX= xuser;
+    }
+    */
+    fLineX->SetY1(bm);    
+    fLineX->SetY2(tm);    
+    fLineX->SetBit(TLine::kLineNDC,true);
   }
-  
-  if(fLineX) fLineX->Paint(sopt.Data());
-  if(fLineY) fLineY->Paint(sopt.Data());
+  if(fLineY) {
+    if(!fLineY->TestBit(TLine::kLineNDC))
+      fLineY->SetBit(TLine::kLineNDC,true);
+
+    fLineY->SetY1(yndc);
+    fLineY->SetY2(yndc);
+    /*
+    double yuser = ((fLineY->GetY1()-tm)/(bm-tm))*(gPad->GetUymax()-gPad->GetUymin())+gPad->GetUymin();
+    if(fY !=yuser) {
+      fY= yuser;
+    }
+    */
+    fLineY->SetX1(lm);    
+    fLineY->SetX2(rm);    
+    fLineY->SetBit(TLine::kLineNDC,true);
+  }
+
+  if(fLineX) {  fLineX->Paint(sopt.Data()); }
+  if(fLineY) {  fLineY->Paint(sopt.Data()); }
 
 }
 

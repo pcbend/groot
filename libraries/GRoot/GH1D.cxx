@@ -83,6 +83,7 @@ void GH1D::Init() {
   //this->SetBit(kNoTitle);
 	SetOriginal();
   fParent = 0;
+  fBg = 0;
   fIsNormalized = false;
 }
 
@@ -312,11 +313,27 @@ void GH1D::DoSubtract() {
 }
 */
 
-TH1* GH1D::ShowBackground(int niter,Option_t* opt) {
-  return TH1D::ShowBackground(niter,opt);
+
+void GH1D::SetBackground(int niter,Option_t* opt) {
+  if(!fBg)
+    fBg = (TH1D*)TSpectrum::StaticBackground(this,20,"");
+  if(fBg->GetNbinsX() != this->GetNbinsX()) {
+    fBg->Delete();
+    fBg = (TH1D*)TSpectrum::StaticBackground(this,20,"");
+  }
 }
 
-void GH1D::Background() {
+void GH1D::ShowBackground() {
+  SetBackground();
+  if(gPad) {
+    if(gPad->GetListOfPrimitives()->FindObject(fBg)) // the bg is already drawn...
+      gPad->GetListOfPrimitives()->Remove(fBg);
+    else
+      fBg->Draw("same");
+  }
+}
+
+void GH1D::ToggleBackground() {
   double x1=sqrt(-1);
   double x2=sqrt(-1);
   if(this->GetXaxis()) {
@@ -344,8 +361,9 @@ void GH1D::Background() {
       fOriginal->SetDirectory(0);
     }
     this->GetXaxis()->UnZoom();
-    TH1 *bg = TSpectrum::StaticBackground(this,12,"");
-    TH1D::Add(bg,-1); 
+    //TH1 *bg = TSpectrum::StaticBackground(this,12,"COMPTON");
+    SetBackground();
+    TH1D::Add(fBg,-1); 
     this->SetBit(GH1D::kBackgroundRemoved);
   }
   if(x1==x1) {

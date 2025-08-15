@@ -2,6 +2,9 @@
 #include<GH2D.h>
 #include<GH1D.h>
 
+#include<TVirtualPad.h>
+
+
 GH2D::GH2D() : TH2D() { }
 GH2D::GH2D(std::string name,int nbinsx,double xlow,double xup
                         ,int nbinsy,double ylow,double yup) :
@@ -84,7 +87,8 @@ GH1D* GH2D::ProjectionX(double low,double up,Option_t *option) {
   double last  = GetXaxis()->GetBinUpEdge(GetXaxis()->GetLast());
  
   //unzoom y - otherwise the projection will be truncated.
-  GetXaxis()->UnZoom();
+  if(gPad)
+    GetXaxis()->UnZoom();
 
   int blow,bup;
   if(low!=low) 
@@ -96,14 +100,23 @@ GH1D* GH2D::ProjectionX(double low,double up,Option_t *option) {
   else
     bup  = GetYaxis()->FindBin(up);
 
-  std::string pname = Form("%s_x_%i_%i",GetName(),blow,bup);
-  projection = new GH1D(*(dynamic_cast<TH2D*>(this)->ProjectionX(pname.c_str(),blow,bup)));
+  std::string pname      = Form("%s_x_%i_%i",GetName(),blow,bup);
+  std::string pname_temp = Form("%s_x_%i_%i_temp",GetName(),blow,bup);
+  //projection = new GH1D(*(dynamic_cast<TH2D*>(this)->ProjectionX(pname.c_str(),blow,bup)));
+  TH1D* temp = TH2D::ProjectionX(pname_temp.c_str(),blow,bup);
+  projection = new GH1D(*temp);
+  projection->SetNameTitle(pname.c_str(),pname.c_str());
+  temp->Delete();
   projection->SetParent(this);  
   projection->SetBit(GH1D::kProjectionX,true);
 
+
+  if(gPad) {
   //reset x axis.
-  GetXaxis()->SetRangeUser(first,last);        
-  projection->GetXaxis()->SetRangeUser(first,last);        
+    GetXaxis()->SetRangeUser(first,last);        
+    projection->GetXaxis()->SetRangeUser(first,last);        
+  }
+  fProjections.Add(projection);
 
   return projection;
 }    
@@ -136,9 +149,38 @@ GH1D* GH2D::ProjectionY(double low,double up,Option_t *option) {
   //reset y axis.
   GetYaxis()->SetRangeUser(first,last);        
   projection->GetXaxis()->SetRangeUser(first,last);        
+  fProjections.Add(projection);
 
   return projection;
 } 
 
 
+GH1D* GH2D::Next(const GH1D* current) const { 
+ if(fProjections.GetEntries()==0)
+   return 0;
+ TObject *obj = fProjections.FindObject(current);
+ if(!obj) 
+   return 0;
+ obj = fProjections.After(current);
+ if(!obj)
+   obj = fProjections.First();
+ return dynamic_cast<GH1D*>(obj); 
+
+}
+
+
+GH1D* GH2D::Previous(const GH1D* current) const {
+
+ if(fProjections.GetEntries()==0)
+   return 0;
+ TObject *obj = fProjections.FindObject(current);
+ if(!obj) 
+   return 0;
+ obj = fProjections.Before(current);
+ if(!obj)
+   obj = fProjections.Last();
+ return dynamic_cast<GH1D*>(obj); 
+
+
+  }
 

@@ -37,8 +37,17 @@ class GH1D : public TH1D { //, public TQObject {
     TH1* Rebin(int ngroup=2,const char *newname="",const double *xbins=nullptr) override;
     void Unbin(int ngroup=-1);
 
-    TH1  *ShowBackground(int niter=12,Option_t* opt="same") override;
-    void Background();
+    
+
+    void SetBackground(int niter=12,Option_t* opt="compton");
+    void ShowBackground();
+    void ToggleBackground();
+    TH1* GetBackground() const { return fBg; }
+
+    //TH1  *ShowBackground(int niter=12,Option_t* opt="same") override;
+    //void Background();
+    
+
     void PeakSearch(double threshold=0.05,double sigma=1,Option_t *opt="") { }  
 
     int GetNbinsOriginal() const { return fOriginalBins; }
@@ -72,7 +81,8 @@ class GH1D : public TH1D { //, public TQObject {
 
   private:
     TH1D *fOriginal;    
-		
+	  TH1D *fBg;
+
 		//TH1D *fSubtract;
 		double fScale;
 

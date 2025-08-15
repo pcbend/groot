@@ -19,6 +19,11 @@
 
 #pragma link C++ function CloseAllCanvases;
 
+#pragma link C++ function Interact;
+#pragma link C++ function InteractMouseButton;
+#pragma link C++ function InteractKeyPress;
+
+
 #pragma link C++ class GCanvas+;
 #pragma link C++ class GMarker+;
 #pragma link C++ class GH1D+;

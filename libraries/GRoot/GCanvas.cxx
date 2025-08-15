@@ -29,6 +29,7 @@
 
 int GCanvas::fCanvasNumber = 0;
 
+Event_t GCanvas::fCurrentEvent;
 
 GCanvas::GCanvas(bool build) : 
   TCanvas(build) { Init(); }
@@ -69,6 +70,9 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
+  this->AddExec("interact","Interact()");
+
+
   gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //GetCanvasImp()->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
   //if(GetCanvasImp()->IsA() == TRootCanvas::Class())
@@ -100,12 +104,18 @@ TCanvas *GCanvas::MakeDefCanvas() {
         - HandleKeyPress
         - HandleMouseButton1
 
+        -- this needs to reworked.  The Canvas(Pad) should just pass the info to the object(s)...
+           we run into an issue for traditional root objects,
+           perhaps we can fix this with a TExec?
+
+
 */
 
 void GCanvas::EventProcessed(Event_t *event) {
 //ProcessedEvent(int event, int x, int y, TObject *selected) {
   
-  /*
+ /* 
+  printf("\n\n\n");
   printf("-------------\n");
   printf("Event Processed\n");
   printf("\tevent  = %i\n",event->fCode);
@@ -115,7 +125,10 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\twindow = %lu\n",event->fWindow);
   printf("\tx      = 0x%08x\n",event->fX);
   printf("\ty      = 0x%08x\n",event->fY);
+  printf("\n");
   */
+
+  fCurrentEvent = *event;
 
   unsigned int keysym;
   char str[2];
@@ -140,6 +153,8 @@ void GCanvas::EventProcessed(Event_t *event) {
   //switch(event->fCode) {
 
   if(event->fType!=0) return; // only look for key down...
+
+  
 
   switch(keysym) {
     case kKey_Left:
@@ -198,10 +213,10 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
   //check the event,
   switch(event) {
     case kKeyPress:
-      if(currentHist->GetDimension()==1) 
-        handled = HandleKeyPress_1d(event,px,py);
-      else if(currentHist->GetDimension()==2)
-        handled = HandleKeyPress_2d(event,px,py);
+      //if(currentHist->GetDimension()==1) 
+      //  handled = HandleKeyPress_1d(event,px,py);
+      //else if(currentHist->GetDimension()==2)
+      //  handled = HandleKeyPress_2d(event,px,py);
       break;
     case kButton1Shift:
     case kButton1Down:
@@ -212,7 +227,7 @@ void GCanvas::HandleInput(EEventType event, int px, int py) {
       //if(GetSelected()->InheritsFrom(TH1::Class()) ||
       //   GetSelected()->InheritsFrom(TFrame::Class()) )
       //if(currentHist->GetDimension()==1) 
-        handled = HandleMouseButton1(event,px,py);
+      //  handled = HandleMouseButton1(event,px,py);
       //else if(currentHist->GetDimension()==2)
       //  handled = HandleMouseButton1_2d(event,px,py);
       break;
@@ -244,7 +259,9 @@ bool GCanvas::HandleMouseButton1(EEventType event, int px, int py) {
         currentHist = GrabHist();
         if(gPad != TCanvas::GetSelectedPad()) {
           //switch the gPad to the clicked pad... 
-          //TCanvas::HandleInput(kButton2Down,px,py); // i don't like this.... 
+          //TCanvas::HandleInput(kButton2Down,px,py); // i don't like this....
+          GetSelectedPad()->cd();
+          UpdateAllPads();
         } //else 
         if(currentHist && gPad) {
           GMarker *m = new GMarker();
@@ -435,11 +452,11 @@ bool GCanvas::HandleKeyPress_2d(EEventType event, int px, int py) {
   TH1 *currentHist = GrabHist();
   switch(py) {
     case kKey_x:
-      printf("HELLO!\n");
       if(!currentHist || !currentHist->InheritsFrom(GH2D::Class())) 
         return handled;
       {  
         GH1D *px = ((GH2D*)currentHist)->ProjectionX();
+        printf("i am here?\n");
         new GCanvas;
         px->Draw();
       }
@@ -502,19 +519,19 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
   }
 
   switch(py) {
-    case kKey_Space:
-      printf("--space--\n");
+    //case kKey_Space:
+    //  printf("--space--\n");
       //printf("this->GetName() = %s\n",this->GetName());
-      TCanvas::HandleInput(kButton2Down,px,py);
-      handled = true;
-      break;
+    //  TCanvas::HandleInput(kButton2Down,px,py);
+    //  handled = true;
+    //  break;
     case kKey_b:
       currentHist = GrabHist();
       if(currentHist->InheritsFrom(GH1D::Class())) {
         //remember the current range...
         double xlow = currentHist->GetXaxis()->GetBinLowEdge(currentHist->GetXaxis()->GetFirst());
         double xup  = currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast());
-        dynamic_cast<GH1D*>(currentHist)->Background();
+        dynamic_cast<GH1D*>(currentHist)->ToggleBackground();
         //currentHist->GetXaxis()->SetRangeUser(xlow,xup); // and reset the range.
         handled  = true;
         doUpdate = true;
@@ -536,7 +553,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
             double xlow = gcurrentHist->GetXaxis()->GetBinLowEdge(gcurrentHist->GetXaxis()->GetFirst());
             double xup  = gcurrentHist->GetXaxis()->GetBinUpEdge(gcurrentHist->GetXaxis()->GetLast());
             //printf("%s\t%.1f\t%.1f\n",gcurrentHist->GetName(),xlow,xup);
-            gcurrentHist->Background();
+            gcurrentHist->ToggleBackground();
             //printf("%s\t%.1f\t%.1f\n",gcurrentHist->GetName(),xlow,xup);
             //gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup); // and rest the range.
           }
@@ -890,7 +907,9 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
     this->Modified();
 
 
+  //printf("i am here\n");
   if(gPad && doUpdate) {
+    //printf("and here\n");
     UpdateAllPads();//gPad);
     //gPad->Modified();
     //gPad->Update();
@@ -927,7 +946,9 @@ void GCanvas::UpdateAllPads() {
   }
   */
   //this->Modified();
-  this->Update();
+  TIter iter(gROOT->GetListOfCanvases());
+  while(TCanvas *c = (TCanvas*)iter.Next())
+    c->Update();
 }
 
 
@@ -948,3 +969,18 @@ void GCanvas::doSelected(TVirtualPad *pad, TObject *obj, Int_t event) {
   printf("\n\n");
 }
 */
+
+
+void GCanvas::Divide(int nx,int ny,float xmargin,float ymargin,int color) {
+  //printf("GCanvas Divide called.\n");
+  TCanvas::Divide(nx,ny,xmargin,ymargin,color);
+
+  TIter iter(this->GetListOfPrimitives());
+  while(TObject *obj = iter.Next())
+    if(obj->InheritsFrom(TPad::Class()))
+      static_cast<TPad*>(obj)->AddExec("interact","Interact()");
+
+}
+
+
+

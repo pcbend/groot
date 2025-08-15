@@ -2,6 +2,7 @@
 #define __GH2D_H__
 
 #include<TH2D.h>
+#include<TObjArray.h>
 
 class GH1D;
 
@@ -50,8 +51,11 @@ class GH2D : public TH2D {
     GH1D* ProjectionY(double low=sqrt(-1),double high=sqrt(-1), Option_t *option="");    
 
 
+    GH1D* Next(const GH1D*) const;
+    GH1D* Previous(const GH1D*) const;
+
   private:
-    
+    TObjArray fProjections;    
 
   ClassDefOverride(GH2D,100)
 };
