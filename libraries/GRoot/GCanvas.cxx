@@ -330,13 +330,13 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
   TList *gList = 0;
   //if(!GetSelected()) return handled; 
 
-  if(GetSelected()->IsA() == TFrame::Class()) {
-    printf("Selected: %s\n",GetSelected()->IsA()->GetName());
-  } else if(1==0) {
+  //if(GetSelected()->IsA() == TFrame::Class()) {
+  //  printf("Selected: %s\n",GetSelected()->IsA()->GetName());
+  //} else if(1==0) {
+  //
+  // } else {
 
-  } else {
-
-  }
+  //}
 
   //printf("Selected: %s\n",GetSelected()->IsA()->GetName());
   //printf("HandleArrowPress()\tevent = %i\tpx = %i\tpy = %i\n",event,px,py); fflush(stdout);
@@ -359,62 +359,27 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         } else {
           currentHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
         }
+        gPad->Modified();
       } 
-      handled  = true;
-      doUpdate = true;
       break;
     case kKey_Up:
+      printf("I AM HERE 0 \n");
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
-        printf("currentHist: %s\n", currentHist->GetName());
-        GH1D *ghist = dynamic_cast<GH1D*>(currentHist);
-        if(!ghist->GetParent()) break;
-        //of, we have a GH1D & it is a projection.
-        //name should be _x_###_###;
-        std::string temps(ghist->GetName());
-        static std::regex  re("_(\\w)_(\\d+)_(\\d+)$");
-        std::smatch match;
-        std::regex_search(temps,match,re);
-        if(match.size()==4) {
-          double low = std::atoi(match[2].str().c_str());
-          double high = std::atoi(match[2].str().c_str());
-          //printf("low:high\t%.1f%.1f\n",low,high);
-          while(true) {
-            low++; high++;
-            //search for projection first!!
-            GH1D *p = 0;
-            if(match[1].str()=="x") {
-              int nh = ghist->GetParent()->GetYaxis()->FindBin(high);
-              int nl = ghist->GetParent()->GetYaxis()->FindBin(low);
-              if(nh>=ghist->GetParent()->GetNbinsY()) {
-                int diff = nh-nl;
-                nl = 1;
-                nh = nl + diff;
-                low = ghist->GetParent()->GetYaxis()->GetBinLowEdge(nl);
-                low = ghist->GetParent()->GetYaxis()->GetBinLowEdge(nh);
-              }
-              p = dynamic_cast<GH2D*>(ghist->GetParent())->ProjectionX(low,high);
-            }
-            if(match[1].str()=="y") {
-              int nh = ghist->GetParent()->GetXaxis()->FindBin(high);
-              int nl = ghist->GetParent()->GetXaxis()->FindBin(low);
-              if(nh>=ghist->GetParent()->GetNbinsX()) {
-                int diff = nh-nl;
-                nl = 1;
-                nh = nl + diff;
-                low = ghist->GetParent()->GetXaxis()->GetBinLowEdge(nl);
-                low = ghist->GetParent()->GetXaxis()->GetBinLowEdge(nh);
-              }
-              p = dynamic_cast<GH2D*>(ghist->GetParent())->ProjectionY(low,high);
-            }
-            if(p && p->Integral()>0) {
-              p->Draw();
-              break;
+        GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
+            printf("i am here!! 1\n");
+        if(gcurrentHist->GetParent()) {
+            printf("i am here!! 2\n");
+          TH2* p = gcurrentHist->GetParent();
+          if(p && p->InheritsFrom(GH2D::Class())) {
+            printf("i am here!! 3\n");
+            GH1D* hnext = dynamic_cast<GH2D*>(p)->Next(gcurrentHist);
+            if(hnext) {
+              hnext->Draw();
+              gPad->Modified();
             }
           }
         }
       }
-      handled  = true;
-      doUpdate = true;
       break;
     case kKey_Right:
       if(currentHist && currentHist->GetDimension()==1) {
@@ -428,11 +393,23 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         } else {
           currentHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
         }
+        gPad->Modified();
       } 
-      handled  = true;
-      doUpdate = true;
       break;
     case kKey_Down:
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
+        GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
+        if(gcurrentHist->GetParent()) {
+          TH2* p = gcurrentHist->GetParent();
+          if(p && p->InheritsFrom(GH2D::Class())) {
+            GH1D* hprev = dynamic_cast<GH2D*>(p)->Previous(gcurrentHist);
+            if(hprev) {
+              hprev->Draw();
+              gPad->Modified();
+            }
+          }
+        }
+      }
       //printf("ARROW!!\n"); fflush(stdout);
       break;
     default:
@@ -565,7 +542,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
     case kKey_e:
       currentHist = GrabHist();
       if(currentHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+        std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
         if(markers.size()>1) {
           double xlow  = markers.at(0)->X();
           double xhigh = markers.at(1)->X();
@@ -594,7 +571,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
       if(currentHist) {
         std::vector<GMarker*> markers;
         //if(currentHist) 
-        markers = GMarker::GetAll(currentHist);
+        markers = GMarker::Get(currentHist,1);
         double xlow,xhigh;
         if(markers.size()>1) {
           xlow  = markers.at(0)->X();
@@ -624,7 +601,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
     case kKey_f:
       currentHist=GrabHist();
       if(currentHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+        std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
         if(markers.size()>1) {
           if(PhotoPeakFit(currentHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
@@ -637,7 +614,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
     case kKey_g:
       currentHist=GrabHist();
       if(currentHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+        std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
         if(markers.size()>1) {
           if(GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X())) {
             doUpdate=true;
@@ -650,7 +627,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
     case kKey_i:
       currentHist=GrabHist();
       if(currentHist) {
-        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+        std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
         if(markers.size()>1) {
           double low  = markers.at(0)->X();
           double high = markers.at(1)->X();
@@ -747,7 +724,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         GH1D *gcurrentHist = (GH1D*)currentHist;
         if(gcurrentHist->GetParent() && gcurrentHist->GetParent()->InheritsFrom(GH2D::Class())) {
-         std::vector<GMarker*> markers = GMarker::GetAll(gcurrentHist);
+         std::vector<GMarker*> markers = GMarker::Get(gcurrentHist,1);
           if(markers.size()>1) {
             double xlow  = markers.at(0)->X();
             double xhigh = markers.at(1)->X();
@@ -790,7 +767,7 @@ bool GCanvas::HandleKeyPress_1d(EEventType event, int px, int py) {
     case kKey_r:
       currentHist = GrabHist();
       if(currentHist && currentHist->GetDimension()==1) {
-        std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+        std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
         if(markers.size()>1) {
           GROI *roi = new GROI(markers.at(0),markers.at(1));
           roi->SetParent(currentHist);

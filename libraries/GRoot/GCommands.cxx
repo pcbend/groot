@@ -9,6 +9,8 @@
 #include<TF1.h>
 #include<THStack.h>
 #include<KeySymbols.h>
+#include<TFile.h>
+#include <TCutG.h>
 
 #include<GCanvas.h>
 #include<GGaus.h>
@@ -82,6 +84,12 @@ TH1 *GrabHist(int i)  {
   return hist;
 }
 
+void ls(int n) {
+  if(gROOT->GetListOfFiles()->GetEntries()>n) {
+    ((TFile*)(gROOT->GetListOfFiles()->At(n)))->ls();
+  }
+}
+
 
 
 
@@ -133,6 +141,26 @@ TF1 *GrabFit(int i)  {
     }
   }
   return fit;
+}
+
+void SaveAllCuts(TH1 *hist,const char* fname,Option_t *opt) { 
+  if(!hist || !hist->GetListOfFunctions()) return;
+  std::vector<TObject*> cuts;
+  TIter iter(hist->GetListOfFunctions());
+  while(TObject *obj = iter.Next()) {
+    if(obj->InheritsFrom(TCutG::Class())) 
+      cuts.push_back(obj);
+  }
+  if(cuts.size()) {
+    TDirectory *current = gDirectory;
+    printf("opening file: %s with option %s\n",fname,opt);
+    TFile *f = TFile::Open(fname,opt);
+    for(size_t i=0;i<cuts.size();i++) {
+      printf("\twriting %s\n",cuts.at(i)->GetName());
+      cuts.at(i)->Write();
+    }
+    current->cd();
+  }
 }
 
 
@@ -325,7 +353,7 @@ bool InteractMouseButton(int event, int px, int py) {
 bool InteractKeyPress(int event, int px, int py) {
   //printf("key:  %i\t%i\t%i\n",event,px,py);
   TH1 *currentHist = GrabHist();
-  std::vector<GMarker*> markers = GMarker::GetAll(currentHist);
+  std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
   switch(py) {
     case kKey_b:
       if(currentHist->InheritsFrom(GH1D::Class())) {
@@ -336,6 +364,14 @@ bool InteractKeyPress(int event, int px, int py) {
     case kKey_B:
       if(currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ToggleBackground();
+        gPad->Modified();
+      }
+      break;
+    case kKey_c:
+      if(markers.size()>1 && currentHist->GetDimension()==1) {
+
+        markers.at(0)->SetBG();
+        markers.at(1)->SetBG();
         gPad->Modified();
       }
       break;
@@ -360,6 +396,30 @@ bool InteractKeyPress(int event, int px, int py) {
         GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X());
         gPad->Modified();
         //GMarker::RemoveAll(currentHist);
+      } else if(currentHist->GetDimension()==2 && markers.size()>1) {
+        static int gGateCounter = 0;
+        GMarker *m1 = markers.at(0);
+        GMarker *m2 = markers.at(1);
+        double x1 =m1->GetX();
+        double x2 =m2->GetX();
+        double y1 =m1->GetY();
+        double y2 =m2->GetY();
+        if(x1>x2) std::swap(x1,x2);
+        if(y2>y1) std::swap(y1,y2);
+        double xm = x1 + (x2-x1)/2;
+        double ym = y2 + (y1-y2)/2;
+
+                 // TL    TM        TR MR BR   BM         BL ML TL
+        double x[9] = {x1,xm,x2,x2,x2,xm,x1,x1,x1};
+        double y[9] = {y1,y1,y1,ym,y2,y2,y2,ym,y1};
+                //  TL TM TR MR           BR BM BL ML           TL
+        TCutG *cut = new TCutG(Form("cut%i",gGateCounter++),9,x,y);
+        cut->SetLineWidth(2);
+        cut->SetLineColor(kRed);
+        currentHist->GetListOfFunctions()->Add(cut);
+        GMarker::RemoveAll(currentHist);
+        gPad->Modified();
+
       }
       break;
     case kKey_m:
@@ -393,15 +453,33 @@ bool InteractKeyPress(int event, int px, int py) {
       break;
     case kKey_p: 
       if(currentHist->InheritsFrom(GH1D::Class())) {
-        if(markers.size()>1) {
+        GH1D *ghist = dynamic_cast<GH1D*>(currentHist);
+        std::vector<GMarker*> bgmarkers = GMarker::Get(currentHist,2);
+        if(markers.size()==2) {
           double xlow  = markers.at(0)->X();
           double xhigh = markers.at(1)->X();
           if(xlow>xhigh) std::swap(xlow,xhigh);
-          GH2D *parent = dynamic_cast<GH2D*>(dynamic_cast<GH1D*>(currentHist)->GetParent());
+          GH2D *parent = dynamic_cast<GH2D*>(ghist->GetParent());
           if(parent) {
-            GH1D * p =parent->ProjectionY(xlow,xhigh);
-            new GCanvas;
-            p->Draw();
+            GH1D *proj =0;
+            printf("markers.size() = %i\n",int(markers.size()));
+            printf("bgmarkers.size() = %i\n",int(bgmarkers.size()));
+            if(bgmarkers.size()==2) {
+              double bgxlow  = bgmarkers.at(0)->X();
+              double bgxhigh = bgmarkers.at(1)->X();
+              if(bgxlow>bgxhigh) std::swap(bgxlow,bgxhigh);
+              if(currentHist->TestBits(GH1D::kProjectionX))
+                proj = parent->ProjectionY(xlow,xhigh,bgxlow,bgxhigh);
+              else
+                proj = parent->ProjectionX(xlow,xhigh,bgxlow,bgxhigh);
+            } else {
+              if(currentHist->TestBits(GH1D::kProjectionX))
+                proj = parent->ProjectionY(xlow,xhigh);
+              else
+                proj = parent->ProjectionX(xlow,xhigh);
+            }
+            //new GCanvas;
+            proj->Draw();
           }
         }
       }
@@ -438,8 +516,20 @@ bool InteractKeyPress(int event, int px, int py) {
         double xup  = currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast());
         currentHist->GetXaxis()->UnZoom();
         GH1D *px = dynamic_cast<GH2D*>(currentHist)->ProjectionX();
+        px->SetBit(GH1D::kProjectionX,1);
         new GCanvas;
         px->Draw();
+      }
+      break;
+    case kKey_y:
+      if(currentHist->InheritsFrom(GH2D::Class())) {
+        double ylow = currentHist->GetYaxis()->GetBinLowEdge(currentHist->GetYaxis()->GetFirst());
+        double yup  = currentHist->GetYaxis()->GetBinUpEdge(currentHist->GetYaxis()->GetLast());
+        currentHist->GetYaxis()->UnZoom();
+        GH1D *py = dynamic_cast<GH2D*>(currentHist)->ProjectionY();
+        py->SetBit(GH1D::kProjectionX,0);
+        new GCanvas;
+        py->Draw();
       }
       break;
     case kKey_l:

@@ -81,7 +81,9 @@ class GH1D : public TH1D { //, public TQObject {
 
   private:
     TH1D *fOriginal;    
-	  TH1D *fBg;
+	  TH1D *fSubtractGate;
+    TH1D *fBg;
+
 
 		//TH1D *fSubtract;
 		double fScale;

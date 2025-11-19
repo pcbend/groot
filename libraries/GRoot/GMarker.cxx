@@ -9,7 +9,7 @@
 #include<TPad.h>
 //#include<TTimer.h>
 
-GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0), fX(sqrt(-1)), fY(sqrt(-1)) { 
+GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0), fX(sqrt(-1)), fY(sqrt(-1)), fIsBgRegion(false) { 
   //SetLineWidth(2);
   //SetLineColor(kRed);
   SetName("GMarker");
@@ -49,15 +49,20 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   //lets start with two....
   int fMaxMarkers=2;
   int markerCount = 0;
-  TIter iter(fHist->GetListOfFunctions(),kIterBackward);
-  while(TObject *obj=iter.Next()) {
-    if(obj->InheritsFrom(GMarker::Class())) {
-      markerCount++;
-      if(markerCount>=fMaxMarkers)
-        ((GMarker*)obj)->Remove();
-    }
-  }
-  
+  //TIter iter(fHist->GetListOfFunctions(),kIterBackward);
+  //while(TObject *obj=iter.Next()) {
+  //  if(obj->InheritsFrom(GMarker::Class())) {
+  //    markerCount++;
+  //    if(markerCount>=fMaxMarkers)
+  //      ((GMarker*)obj)->Remove();
+  //  }
+  //}
+  std::vector<GMarker*> vm = Get(fHist,1);
+  if(int(vm.size()) == fMaxMarkers)   
+    vm.front()->Remove();
+
+
+
   fHist->GetListOfFunctions()->Add(this);
 
   return;
@@ -147,23 +152,49 @@ void GMarker::Paint(Option_t *opt) {
 
 }
 
-void GMarker::RemoveAll(TH1 *h) {
+void GMarker::RemoveAll(TH1 *h,bool removeBGMarkers) {
   //remove all markers from h
   TIter iter(h->GetListOfFunctions(),kIterBackward);
-  while(TObject *obj = iter.Next())
-    if(obj->InheritsFrom(GMarker::Class()))
-      ((GMarker*)obj)->Remove();
-
+  while(TObject *obj = iter.Next()) {
+    if(obj->InheritsFrom(GMarker::Class())) {
+      GMarker *marker = ((GMarker*)obj);
+      if(marker->IsBG() && removeBGMarkers)
+        marker->Remove();
+      else 
+        marker->Remove();
+    }
+  }
 }
 
-std::vector<GMarker*> GMarker::GetAll(TH1 *h) {
+
+std::vector<GMarker*> GMarker::Get(TH1 *h,int type) {
+  //type:
+  //  - 0: all
+  //  - 1: primary
+  //  - 2: bg
   //return all markers in h
   std::vector<GMarker*> toReturn;
   TIter iter(h->GetListOfFunctions());
-  while(TObject *obj = iter.Next())
-    if(obj->InheritsFrom(GMarker::Class()))
-      toReturn.push_back(((GMarker*)obj));
-
+  while(TObject *obj = iter.Next()) {
+    if(obj->InheritsFrom(GMarker::Class())) {
+      GMarker *marker = ((GMarker*)obj);
+      switch(type) { 
+        case 0:
+          toReturn.push_back(marker);
+          break;
+        case 1:
+          if(!marker->IsBG()) 
+            toReturn.push_back(marker);
+          break;
+        case 2:
+          if(marker->IsBG()) 
+            toReturn.push_back(marker);
+          break;
+        default:
+          break;
+      }
+    }
+  }
   return toReturn;
 }
 

@@ -1,0 +1,26 @@
+/* XPM */
+static char *selection_t[] = {
+/* columns rows colors chars-per-pixel */
+"16 16 4 1 ",
+"  c yellow",
+". c blue",
+"X c green",
+"o c magenta",
+/* pixels */
+"  ..   XXX      ",
+"  ..   XXX      ",
+"  ..   XXX  oooo",
+"  ..   XXXoooooo",
+"  ..   XXoooo   ",
+"  ..   Xooo     ",
+"  ..   ooo      ",
+"  ..   ooX      ",
+"......oo........",
+".....oo.........",
+"  ..oooXXX      ",
+"  .ooo XXX      ",
+"  ooo  XXX      ",
+" ooo   XXX      ",
+"ooo.   XXX      ",
+"oo..   XXX      "
+};

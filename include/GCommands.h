@@ -18,7 +18,11 @@ GGaus *GausFit(TH1*,double,double,Option_t *opt="");
 TH1   *GrabHist(int i=0);           //return the ith histogram from the current canvas.
 TList *GrabHists(TVirtualPad *p=0); //return all histograms on a canvas or pad. (default is the gPad);
 TF1   *GrabFit(int i=0);            //return the ith fit from the current canvas.
- 
+
+void ls(int n=0); 
+
+void SaveAllCuts(TH1*,const char* fname="output.cuts",Option_t *opt="recreate");
+
 double GetChi2(TObject*,TF1*);
 
 void Interact();

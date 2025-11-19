@@ -162,7 +162,7 @@ void GG::CloseWindow() {
 }
 
 void GG::ReallyDelete() {
-  printf("i am here 2\n");
+  //printf("i am here 2\n");
   TGMainFrame::ReallyDelete();
 /*
   //fEmCanvas->GetCanvas()->Close();

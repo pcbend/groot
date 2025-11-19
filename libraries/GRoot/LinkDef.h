@@ -15,6 +15,10 @@
 #pragma link C++ function GrabHist;
 #pragma link C++ function GrabFit;
 
+#pragma link C++ function ls;
+
+#pragma link C++ function SaveAllCuts;
+
 #pragma link C++ function GetSignals;
 
 #pragma link C++ function CloseAllCanvases;

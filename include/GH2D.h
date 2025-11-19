@@ -43,13 +43,17 @@ class GH2D : public TH2D {
     TH1* DrawCopy(Option_t *opt="", const char *name_postfix="_copy") const override; 
     TH1* DrawNormalized(Option_t *opt="", double norm=1) const override; 
     
+    GH2D *GetBackground(int nIterX=32,int nIterY=32,bool doSmoothing =true) const;
+                        
+
     void Paint(Option_t *opt="") override;
 
     //TH1D* ProjectionX(const char *name="_px",int firstybin=0,int lastybin=-1, Option_t *option="") const;    
     //TH1D* ProjectionY(const char *name="_py",int firstybin=0,int lastybin=-1, Option_t *option="") const;    
     GH1D* ProjectionX(double low=sqrt(-1),double high=sqrt(-1), Option_t *option="");    
+    GH1D* ProjectionX(double low, double up, double bg_low, double bg_high, Option_t *opt="");
     GH1D* ProjectionY(double low=sqrt(-1),double high=sqrt(-1), Option_t *option="");    
-
+    GH1D* ProjectionY(double low, double up, double bg_low, double bg_high, Option_t *opt="");
 
     GH1D* Next(const GH1D*) const;
     GH1D* Previous(const GH1D*) const;

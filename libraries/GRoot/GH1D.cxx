@@ -83,6 +83,7 @@ void GH1D::Init() {
   //this->SetBit(kNoTitle);
 	SetOriginal();
   fParent = 0;
+  fSubtractGate = 0;
   fBg = 0;
   fIsNormalized = false;
 }
