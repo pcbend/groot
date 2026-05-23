@@ -13,13 +13,13 @@
 #include <string>
 #include <vector>
 
-bool fileExists(const char *filename){
+inline bool fileExists(const char *filename){
   //std::ifstream(filename);
   struct stat buffer;
   return (stat(filename,&buffer)==0);
 }
 
-std::vector<std::string> tokenizeString(std::string path,char delimiter='/') { 
+inline std::vector<std::string> tokenizeString(std::string path,char delimiter='/') { 
   std::istringstream ss(path);
   std::string token;
   std::vector<std::string> parts;
@@ -34,7 +34,7 @@ std::vector<std::string> tokenizeString(std::string path,char delimiter='/') {
 
 #ifdef __LINUX__
 #include <unistd.h>
-std::string programPath(){
+inline std::string programPath(){
   char buff[PATH_MAX+1];
   size_t len = readlink("/proc/self/exe", buff, sizeof(buff)-1);
   buff[len] = '\0';
@@ -46,7 +46,7 @@ std::string programPath(){
 
 #ifdef __DARWIN__ 
 #include <mach-o/dyld.h>
-std::string programPath(){
+inline std::string programPath(){
   char buff[PATH_MAX];
   uint32_t len = PATH_MAX;
   _NSGetExecutablePath(buff,&len);

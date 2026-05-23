@@ -146,6 +146,7 @@ void Gint::LoadOptions(int argc, char **argv) {
 
 kFileType Gint::DetermineFileType(const std::string& filename) const {
   size_t dot = filename.find_last_of('.');
+  if(dot==std::string::npos) return kFileType::UNKNOWN;
   std::string ext = filename.substr(dot+1);
 
   if((ext=="gz") || (ext=="bz2") || (ext=="zip")) {
@@ -208,7 +209,7 @@ TFile *Gint::OpenRootFile(const std::string& filename, Option_t* opt) {
   } else {
     //file = TFile::Open(filename.c_str(),opt);
     file = new TFile(filename.c_str(),opt);
-    if(!file->IsOpen()) file = NULL;
+    if(!file->IsOpen()) { delete file; file = NULL; }
     if(file) {
       const char* command = Form("TFile* _file%i = (TFile*)%luL",
                                  fRootFilesOpened,
