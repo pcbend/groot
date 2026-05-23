@@ -6,7 +6,7 @@ add_library(GUI SHARED
   GG.cxx
 )
 
-target_include_directories(GUI PRIVATE
+target_include_directories(GUI PUBLIC
   ${CMAKE_SOURCE_DIR}/include
   ${ROOT_INCLUDE_DIRS}
 )
