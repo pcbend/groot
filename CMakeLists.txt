@@ -52,7 +52,6 @@ target_include_directories(groot PRIVATE
 add_subdirectory(libraries)
 
 target_link_libraries(groot PRIVATE
-  myClass
   GROOTLIB
   GUI
   Gint
