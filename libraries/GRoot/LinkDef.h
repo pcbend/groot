@@ -14,6 +14,7 @@
 #pragma link C++ function PhotoPeakFit;
 #pragma link C++ function GrabHist;
 #pragma link C++ function GrabFit;
+#pragma link C++ function GrabPlottable;
 
 #pragma link C++ function ls;
 

@@ -6,6 +6,7 @@ class TObject;
 class TList;
 class TH1;
 class TF1;
+class TGraph;
 class GGaus;
 class GPeak;
 
@@ -19,14 +20,20 @@ TH1   *GrabHist(int i=0);           //return the ith histogram from the current 
 TList *GrabHists(TVirtualPad *p=0); //return all histograms on a canvas or pad. (default is the gPad);
 TF1   *GrabFit(int i=0);            //return the ith fit from the current canvas.
 
+TObject *GrabPlottable(int i=0);    //return the ith plottable (th1 or tgraph) thing.
+
 void ls(int n=0); 
 
 void SaveAllCuts(TH1*,const char* fname="output.cuts",Option_t *opt="recreate");
 
 double GetChi2(TObject*,TF1*);
 
-void Interact();
-bool InteractMouseButton(int event, int px, int py);
-bool InteractKeyPress(int event,int px, int py);
+bool GRootInteract();
+bool GRootInteractHist(TH1* current,TObject* selected,int event, int px, int py);
+bool GRootInteractHistMouseButton(TH1* current,TObject* selected,int event, int px, int py);
+bool GRootInteractHistKeyPress(TH1* current,TObject* selected,int event,int px, int py);
+bool GRootInteractGraph(TGraph* current,TObject* selected,int event, int px, int py);
+bool GRootInteractGraphMouseButton(TGraph* current,TObject* selected,int event, int px, int py);
+bool GRootInteractGraphKeyPress(TGraph* current,TObject* selected,int event,int px, int py);
 
 #endif

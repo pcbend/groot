@@ -84,6 +84,31 @@ TH1 *GrabHist(int i)  {
   return hist;
 }
 
+TObject *GrabPlottable(int i) { 
+  TObject *object = 0;
+  if(!gPad)
+    return object;
+  TIter iter(gPad->GetListOfPrimitives());
+  int j=0;
+  while(TObject *obj = iter.Next()) {
+    if(obj->InheritsFrom(TH1::Class())) {
+      if(j==i) {
+        object = obj;
+        break;
+      }
+    } else if(obj->InheritsFrom(TGraph::Class())) {
+      if(j==i) {
+        object = obj;
+        break;
+      }
+    }
+    j++;
+  }
+  return object;
+}
+
+
+
 void ls(int n) {
   if(gROOT->GetListOfFiles()->GetEntries()>n) {
     ((TFile*)(gROOT->GetListOfFiles()->At(n)))->ls();
@@ -234,46 +259,47 @@ double GetChi2(TObject *obj,TF1 *f=0) {
 // automatically in the Creation of a GCanvas - it is 
 // also passed to subpads using the GCanvas::Divide Method.
 // need to be void to prevent useless printing.  
-void Interact() {
-
-  //printf("gPad:           %p\n",gPad);
-  //printf("GetSelectedPad: %p\n",gPad->GetSelectedPad());
-  //printf("---------\n\n");
+bool GRootInteract() {
   if(gPad && gPad->GetSelectedPad())
     if(gPad != gPad->GetSelectedPad()) 
-      return;
+      return false;
   //at this point, we should have the pad under the canvas.
-
-  //gPad->cd();
-
-  Int_t event = gPad->GetEvent(); // Get the type of event (e.g., kButton1Down, kMouseMotion)
-  Int_t px = gPad->GetEventX();   // Get the X-coordinate of the event in pixels
-  Int_t py = gPad->GetEventY();   // Get 
-
-  //printf("gPad:             %p\n",gPad);
-  //printf("gPad GetNumber:   %i\n",gPad->GetNumber());
-  //printf("gPad GetSelected: %p\n",gPad->GetSelected());
-  //printf("GrabHist():       %p\n",GrabHist());
-
-  //printf("event:          %i\n",event);
-  //printf("px:             %i\n",px);
-  //printf("py:             %i\n",py);
+  TObject *target   = GrabPlottable();
+  if(!target) return false;
+  TObject *selected = gPad->GetSelected(); 
 
 
+  Int_t event = gPad->GetEvent();    // Get the type of event (e.g., kButton1Down, kMouseMotion)
+  Int_t px    = gPad->GetEventX();   // Get the X-coordinate of the event in pixels
+  Int_t py    = gPad->GetEventY();   // Get the Y-coordinate of the event in pixels
+
+  if(auto* h = dynamic_cast<TH1*>(target))
+    return GRootInteractHist(h,selected,event,px,py);
+  else if(auto* gr = dynamic_cast<TGraph*>(target))
+    return GRootInteractGraph(gr,selected,event,px,py);
+  return false;
+}
+
+bool GRootInteractGraph(TGraph *current,TObject *selected,int event,int px,int py)              {return true;}
+bool GRootInteractGraphMouseButton(TGraph* current,TObject *selected,int event, int px, int py) {return true;}
+bool GRootInteractGraphKeyPress(TGraph* current,TObject *selected,int event, int px, int py)    {return true;}
+
+bool GRootInteractHist(TH1 *current,TObject *selected,int event,int px,int py) {
+  printf("i am here.\n");
   switch(event) {
     case kNoEvent:           
       break;
     case kButton1Down:       
     case kButton2Down:       
     case kButton3Down:       
-      InteractMouseButton(event,px,py);
+      GRootInteractHistMouseButton(current,selected,event,px,py);
       break;
     case kKeyDown:           
     case kWheelUp:           
     case kWheelDown:         
       break;
     case kButton1Shift:      
-      InteractMouseButton(event,px,py);
+      GRootInteractHistMouseButton(current,selected,event,px,py);
       break;
     case kButton1ShiftMotion:
     case kButton1Up:         
@@ -286,7 +312,7 @@ void Interact() {
     case kButton3Motion:     
       break;
     case kKeyPress:          
-      InteractKeyPress(event,px,py);
+      GRootInteractHistKeyPress(current,selected,event,px,py);
       break;
     case kArrowKeyPress:     
     case kArrowKeyRelease:   
@@ -308,14 +334,11 @@ void Interact() {
     default:
       break;
   }
-
   gPad->Update();
-
-  return;
+  return true;
 }
 
-bool InteractMouseButton(int event, int px, int py) {
-  TH1 *currentHist = GrabHist();
+bool GRootInteractHistMouseButton(TH1* currentHist,TObject *selected,int event, int px, int py) {
   double x  = gPad->PadtoX(gPad->AbsPixeltoX(px));
   double y  = gPad->PadtoY(gPad->AbsPixeltoY(py));
 
@@ -328,7 +351,8 @@ bool InteractMouseButton(int event, int px, int py) {
   //printf("------------\n");
   switch(event) {
     case kButton1Down:       
-      if(GCanvas::GetCurrentEvent().fState & kKeyControlMask) {
+      //if(GCanvas::GetCurrentEvent().fState & kKeyControlMask) {
+      if(GCanvas::GetCurrentEvent().fState && currentHist) {
         GMarker *marker = new GMarker();
         marker->AddTo(currentHist,x,y);
         gPad->Modified();
@@ -350,26 +374,24 @@ bool InteractMouseButton(int event, int px, int py) {
   return true;
 }
 
-bool InteractKeyPress(int event, int px, int py) {
+bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int px, int py) {
   //printf("key:  %i\t%i\t%i\n",event,px,py);
-  TH1 *currentHist = GrabHist();
   std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
   switch(py) {
     case kKey_b:
-      if(currentHist->InheritsFrom(GH1D::Class())) {
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ShowBackground();
         gPad->Modified();
       }
       break;
     case kKey_B:
-      if(currentHist->InheritsFrom(GH1D::Class())) {
+      if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ToggleBackground();
         gPad->Modified();
       }
       break;
     case kKey_c:
       if(markers.size()>1 && currentHist->GetDimension()==1) {
-
         markers.at(0)->SetBG();
         markers.at(1)->SetBG();
         gPad->Modified();

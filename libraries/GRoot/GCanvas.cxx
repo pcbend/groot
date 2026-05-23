@@ -70,7 +70,7 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!sname.length())  this->SetName(temp.c_str());
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
-  this->AddExec("interact","Interact()");
+  this->AddExec("groot_interact","GRootInteract()");
 
 
   gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
@@ -955,7 +955,7 @@ void GCanvas::Divide(int nx,int ny,float xmargin,float ymargin,int color) {
   TIter iter(this->GetListOfPrimitives());
   while(TObject *obj = iter.Next())
     if(obj->InheritsFrom(TPad::Class()))
-      static_cast<TPad*>(obj)->AddExec("interact","Interact()");
+      static_cast<TPad*>(obj)->AddExec("groot_interact","GRootInteract()");
 
 }
 
