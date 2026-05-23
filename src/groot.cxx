@@ -2,7 +2,6 @@
 #include<cstdio>
 
 #include<Gint.h>
-#include<myClass.h>
 #include<utils.h>
 
 #include<TEnv.h>
