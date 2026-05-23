@@ -11,7 +11,6 @@ a.out
 *.swp
 *.log
 *.dat
-*.c
 
 .DS_Store
 .gint_history
