@@ -11,6 +11,7 @@
 #include<TBox.h>
 
 #include "GROI.h"
+#include "TMath.h"
 
 
 GH1D::GH1D() : TH1D(), fOriginal(0) { }
