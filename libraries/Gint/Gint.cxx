@@ -196,7 +196,7 @@ TFile *Gint::OpenRootFile(const std::string& filename, Option_t* opt) {
   TFile *file = NULL;
   if(sopt.Contains("recreate") || sopt.Contains("new")) {
     file = new TFile(filename.c_str(),"recreate");
-    if(!file->IsOpen()) file = NULL;
+    if(!file->IsOpen()) { delete file; file = NULL; }
     if(file) {
       const char* command = Form("TFile* _file%i = (TFile*)%luL",
                                  fRootFilesOpened,
