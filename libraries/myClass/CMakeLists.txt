@@ -1,9 +1,15 @@
 
 #this will compile the current library.
 add_library(myClass SHARED myClass.cxx)
+
+target_include_directories(myClass PUBLIC
+  ${CMAKE_SOURCE_DIR}/include
+  ${ROOT_INCLUDE_DIRS}
+)
+
 root_generate_dictionary(G__myClass myClass.h MODULE myClass LINKDEF myClassLinkdef.h)
 target_link_libraries(myClass PUBLIC ROOT::Core)
 
 #link the compiled libraries above to the final executable.
-target_link_libraries(groot myClass)        
+#target_link_libraries(groot myClass)        
 

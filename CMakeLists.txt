@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.13)
 
 #project information
 project(groot 
-        VERSION 0.1.1 
-        DESCRIPTION "adroit aardvark"
+        VERSION 0.2.0 
+        DESCRIPTION "brave badger"
         HOMEPAGE_URL "https://github.com/pcbend/groot"
         LANGUAGES CXX)
 
@@ -17,16 +17,19 @@ elseif(LINUX)
   add_compile_definitions(__LINUX__=TRUE)
 endif()
 
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
 
 #find the root, set the various cmake variables.
 find_package(ROOT REQUIRED) 
 
-include(CMakePrintHelpers)
-cmake_print_variables(ROOT_CXX_FLAGS)
-cmake_print_variables(ROOT_CXX_STANDARD)
+#include(CMakePrintHelpers)
+#cmake_print_variables(ROOT_CXX_FLAGS)
+#cmake_print_variables(ROOT_CXX_STANDARD)
 
 set (CMAKE_CXX_STANDARD ${ROOT_CXX_STANDARD})
+set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_CXX_EXTENSIONS OFF)
+
 
 #setting output paths in the build directory
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -34,15 +37,35 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
-set(CMAKE_CXX_FLAGS ${ROOT_CXX_FLAGS})
+#set(CMAKE_CXX_FLAGS ${ROOT_CXX_FLAGS})
 
-#create the executablei, we do it 'first' so the exectuable variable is avail in subdirs
+#create the executable, we do it 'first' so the exectuable variable is avail in subdirs
 add_executable(groot src/groot.cxx)
 
 #setting include paths: TODO, copy headers from library directories(?)
-include_directories(include ${ROOT_INCLUDE_DIRS}) 
+target_include_directories(groot PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include 
+  ${ROOT_INCLUDE_DIRS}
+) 
 
 #This tells cmake to continue into these directories.
 add_subdirectory(libraries)
+
+target_link_libraries(groot PRIVATE
+  myClass
+  GROOTLIB
+  GUI
+  Gint
+  GObjectManager
+)
+
+
+
+
+
+
+
+
+
 
 
