@@ -17,13 +17,13 @@
 GH1D::GH1D() : TH1D(), fOriginal(0) { Init(); }
 
 GH1D::GH1D(std::string name,int nbinsx,const double *xbins) :
-  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { Init(); }
+  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { }
 
 GH1D::GH1D(std::string name,int nbinsx,const float  *xbins) :
-  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { Init(); }
+  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { }
 
 GH1D::GH1D(std::string name,int nbinsx,double xlow, double xhigh) : 
-  GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { Init(); }
+  GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { }
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const double *xbins) :
   TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
@@ -316,9 +316,10 @@ void GH1D::DoSubtract() {
 
 
 void GH1D::SetBackground(int niter,Option_t* opt) {
-  if(!fBg)
+  if(!fBg) {
     fBg = static_cast<TH1D*>(TSpectrum::StaticBackground(this,niter,opt));
     if(fBg) fBg->SetDirectory(nullptr);
+  }
   if(fBg->GetNbinsX() != this->GetNbinsX()) {
     delete fBg;
     fBg = static_cast<TH1D*>(TSpectrum::StaticBackground(this,niter,opt));
