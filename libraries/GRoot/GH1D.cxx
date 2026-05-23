@@ -14,16 +14,16 @@
 #include "TMath.h"
 
 
-GH1D::GH1D() : TH1D(), fOriginal(0) { }
+GH1D::GH1D() : TH1D(), fOriginal(0) { Init(); }
 
 GH1D::GH1D(std::string name,int nbinsx,const double *xbins) :
-  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { }
+  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { Init(); }
 
 GH1D::GH1D(std::string name,int nbinsx,const float  *xbins) :
-  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { }
+  GH1D(name.c_str(),name.c_str(),nbinsx,xbins)  { Init(); }
 
 GH1D::GH1D(std::string name,int nbinsx,double xlow, double xhigh) : 
-  GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { }
+  GH1D(name.c_str(),name.c_str(),nbinsx,xlow,xhigh)  { Init(); }
 
 GH1D::GH1D(const char *name,const char *title,int nbinsx,const double *xbins) :
   TH1D(name,title,nbinsx,xbins), fOriginal(0), fParent(0)   { 
@@ -75,8 +75,9 @@ GH1D::GH1D(const TVectorD &v) :
 
 GH1D::~GH1D() { 
   //printf("GH1D deleted\n"); fflush(stdout);  
-  if(fOriginal)
-    delete fOriginal;
+  if(fOriginal) delete fOriginal;
+  if(fBg)       delete fBg;
+
   //TH1D::~TH1D();
 } 
 
@@ -84,7 +85,6 @@ void GH1D::Init() {
   //this->SetBit(kNoTitle);
 	SetOriginal();
   fParent = 0;
-  fSubtractGate = 0;
   fBg = 0;
   fIsNormalized = false;
 }
@@ -174,12 +174,11 @@ void GH1D::SetOriginal()   {
   }
 	if(!fOriginal) {
   	fOriginal = new TH1D();  
-    //fOriginal->SetDirectory(0);
     fOriginalBins = GetNbinsX();
     dynamic_cast<TH1D*>(this)->Copy(*fOriginal);
     fOriginal->SetName(Form("_%s_copy",this->GetName()));
   }
-  fOriginal->SetDirectory(0);
+  fOriginal->SetDirectory(nullptr);
   //Print();
 }
 
@@ -318,10 +317,12 @@ void GH1D::DoSubtract() {
 
 void GH1D::SetBackground(int niter,Option_t* opt) {
   if(!fBg)
-    fBg = (TH1D*)TSpectrum::StaticBackground(this,20,"");
+    fBg = static_cast<TH1D*>(TSpectrum::StaticBackground(this,niter,opt));
+    if(fBg) fBg->SetDirectory(nullptr);
   if(fBg->GetNbinsX() != this->GetNbinsX()) {
-    fBg->Delete();
-    fBg = (TH1D*)TSpectrum::StaticBackground(this,20,"");
+    delete fBg;
+    fBg = static_cast<TH1D*>(TSpectrum::StaticBackground(this,niter,opt));
+    if(fBg) fBg->SetDirectory(nullptr);
   }
 }
 
@@ -351,6 +352,7 @@ void GH1D::ToggleBackground() {
     this->SetName(fname.c_str());
     //printf("name2 = %s\n",this->GetName());
     this->SetDirectory(current);
+    this->SetBit(GH1D::kBackgroundRemoved,0);
 
   } else {
     //remove the background...
@@ -408,7 +410,6 @@ GH1D *GH1D::AddNormalized(const TH1 *h1, Double_t c1) {
 void GH1D::Normalize() {
   
   if(!fIsNormalized) {
-
     double sum = GetSumOfWeights();
     if(sum==0) {
       printf("GH1D::Normalize sum of weights is zero\n");
@@ -423,8 +424,9 @@ void GH1D::Normalize() {
     fIsNormalized = true;
   } else if(fIsNormalized) {
     std::string fname = this->GetName();
-    fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
-    this->SetName(fname.c_str());
+    //fOriginal->Copy(*(dynamic_cast<TH1D*>(this)));
+    //this->SetName(fname.c_str());
+    ResetToOriginal();
     fIsNormalized = false;
   }
 

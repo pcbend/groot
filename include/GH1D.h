@@ -80,8 +80,8 @@ class GH1D : public TH1D { //, public TQObject {
 		void ResetToOriginal();
 
   private:
+    //owned pointers
     TH1D *fOriginal;    
-	  TH1D *fSubtractGate;
     TH1D *fBg;
 
 
@@ -91,7 +91,7 @@ class GH1D : public TH1D { //, public TQObject {
 		int  fOriginalBins;
     bool fIsNormalized;
     
-
+    //borrowed pointer
     TH2  *fParent;
 
 
