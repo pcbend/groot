@@ -263,12 +263,12 @@ void GRootInteract() {
   if(gPad && gPad->GetSelectedPad())
     if(gPad != gPad->GetSelectedPad()) 
       return;
-  printf("i am here 1.\n");
+  //printf("i am here 1.\n");
   //at this point, we should have the pad under the canvas.
   TObject *target   = GrabPlottable();
   if(!target) return;
   TObject *selected = gPad->GetSelected(); 
-  printf("i am here 2.\n");
+  //printf("i am here 2.\n");
 
 
   Int_t event = gPad->GetEvent();    // Get the type of event (e.g., kButton1Down, kMouseMotion)
