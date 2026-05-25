@@ -49,11 +49,18 @@ void GRootInteract();  //void so it doesn't repeatedly print the return to the t
 GInteractionInfo BuildInteractionInfo();
 bool DispatchInteraction(GInteractionInfo &info);
 
-bool GRootInteractHist(TH1* current,TObject* selected,int event, int px, int py);
-bool GRootInteractHistMouseButton(TH1* current,TObject* selected,int event, int px, int py);
-bool GRootInteractHistKeyPress(TH1* current,TObject* selected,int event,int px, int py);
-bool GRootInteractGraph(TGraph* current,TObject* selected,int event, int px, int py);
-bool GRootInteractGraphMouseButton(TGraph* current,TObject* selected,int event, int px, int py);
-bool GRootInteractGraphKeyPress(TGraph* current,TObject* selected,int event,int px, int py);
+bool GRootInteractHist(TH1* current,GInteractionInfo &info);
+bool GRootInteractHistMouseButton(TH1* current,GInteractionInfo &info);
+bool GRootInteractHistKeyPress(TH1* current,GInteractionInfo &info);
+bool GRootInteractGraph(TGraph* current,GInteractionInfo &info);
+bool GRootInteractGraphMouseButton(TGraph* current,GInteractionInfo &info);
+bool GRootInteractGraphKeyPress(TGraph* current,GInteractionInfo &info);
+
+//bool GRootInteractHist(TH1* current,TObject* selected,int event, int px, int py);
+//bool GRootInteractHistMouseButton(TH1* current,TObject* selected,int event, int px, int py);
+//bool GRootInteractHistKeyPress(TH1* current,TObject* selected,int event,int px, int py);
+//bool GRootInteractGraph(TGraph* current,TObject* selected,int event, int px, int py);
+//bool GRootInteractGraphMouseButton(TGraph* current,TObject* selected,int event, int px, int py);
+//bool GRootInteractGraphKeyPress(TGraph* current,TObject* selected,int event,int px, int py);
 
 #endif

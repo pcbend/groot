@@ -96,6 +96,7 @@ TObject *GrabPlottable(int i) {
         object = obj;
         break;
       }
+      j++;
     } else if(obj->InheritsFrom(TGraph::Class())) {
       if(j==i) {
         object = obj;
@@ -287,33 +288,36 @@ void GRootInteract() {
 }
 
 bool DispatchInteraction(GInteractionInfo &info) {
+  bool temp = false;
   if(auto* h = dynamic_cast<TH1*>(info.target))
-    return GRootInteractHist(h,info.selected,info.event,info.px,info.py);
+    temp = GRootInteractHist(h,info);
   else if(auto* gr = dynamic_cast<TGraph*>(info.target))
-    return GRootInteractGraph(gr,info.selected,info.event,info.px,info.py);
-  return false;
+    temp = GRootInteractGraph(gr,info);
+  if(info.modified) 
+    info.pad->Update();
+  return temp;
 }
 
 
-bool GRootInteractGraph(TGraph *current,TObject *selected,int event,int px,int py)              {return true;}
-bool GRootInteractGraphMouseButton(TGraph* current,TObject *selected,int event, int px, int py) {return true;}
-bool GRootInteractGraphKeyPress(TGraph* current,TObject *selected,int event, int px, int py)    {return true;}
+bool GRootInteractGraph(TGraph *current,GInteractionInfo &info) {return true;}
+bool GRootInteractGraphMouseButton(TGraph* current,GInteractionInfo &info) {return true;}
+bool GRootInteractGraphKeyPress(TGraph* current,GInteractionInfo &info) {return true;}
 
-bool GRootInteractHist(TH1 *current,TObject *selected,int event,int px,int py) {
-  switch(event) {
+bool GRootInteractHist(TH1 *current,GInteractionInfo &info) {
+  switch(info.event) {
     case kNoEvent:           
       break;
     case kButton1Down:       
     case kButton2Down:       
     case kButton3Down:       
-      GRootInteractHistMouseButton(current,selected,event,px,py);
+      GRootInteractHistMouseButton(current,info);
       break;
     case kKeyDown:           
     case kWheelUp:           
     case kWheelDown:         
       break;
     case kButton1Shift:      
-      GRootInteractHistMouseButton(current,selected,event,px,py);
+      GRootInteractHistMouseButton(current,info);
       break;
     case kButton1ShiftMotion:
     case kButton1Up:         
@@ -326,10 +330,10 @@ bool GRootInteractHist(TH1 *current,TObject *selected,int event,int px,int py) {
     case kButton3Motion:     
       break;
     case kKeyPress:          
-      GRootInteractHistKeyPress(current,selected,event,px,py);
+      GRootInteractHistKeyPress(current,info);
       break;
     case kArrowKeyPress:     
-    case kArrowKeyRelease:   
+    case kArrowKeyRelease:  
       break;
     case kButton1Locate:     
     case kButton2Locate:     
@@ -352,9 +356,9 @@ bool GRootInteractHist(TH1 *current,TObject *selected,int event,int px,int py) {
   return true;
 }
 
-bool GRootInteractHistMouseButton(TH1* currentHist,TObject *selected,int event, int px, int py) {
-  double x  = gPad->PadtoX(gPad->AbsPixeltoX(px));
-  double y  = gPad->PadtoY(gPad->AbsPixeltoY(py));
+bool GRootInteractHistMouseButton(TH1* currentHist,GInteractionInfo &info) {
+  //double x  = gPad->PadtoX(gPad->AbsPixeltoX(px));
+  //double y  = gPad->PadtoY(gPad->AbsPixeltoY(py));
 
   //printf("event:  %i\n",event);
   //printf("px:     %i\n",px);
@@ -363,13 +367,14 @@ bool GRootInteractHistMouseButton(TH1* currentHist,TObject *selected,int event, 
   //printf("x: %.2f\n",x);
   //printf("y: %.2f\n",y);
   //printf("------------\n");
-  switch(event) {
+  switch(info.event) {
     case kButton1Down:       
       //if(GCanvas::GetCurrentEvent().fState & kKeyControlMask) {
       if(GCanvas::GetCurrentEvent().fState && currentHist) {
         GMarker *marker = new GMarker();
-        marker->AddTo(currentHist,x,y);
-        gPad->Modified();
+        marker->AddTo(currentHist,info.x,info.y);
+        //gPad->Modified();
+        info.modified = true;
       } else {
         //printf("button1\n");
       }
@@ -388,27 +393,30 @@ bool GRootInteractHistMouseButton(TH1* currentHist,TObject *selected,int event, 
   return true;
 }
 
-bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int px, int py) {
+bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
   //printf("key:  %i\t%i\t%i\n",event,px,py);
   std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
-  switch(py) {
+  switch(info.py) {
     case kKey_b:
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ShowBackground();
-        gPad->Modified();
+        //gPad->Modified();
+        info.modified = true;
       }
       break;
     case kKey_B:
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ToggleBackground();
-        gPad->Modified();
+        info.modified = true;
+        //gPad->Modified();
       }
       break;
     case kKey_c:
       if(markers.size()>1 && currentHist->GetDimension()==1) {
         markers.at(0)->SetBG();
         markers.at(1)->SetBG();
-        gPad->Modified();
+        info.modified = true;
+        //gPad->Modified();
       }
       break;
     case kKey_e:
@@ -424,13 +432,15 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
           currentHist->GetYaxis()->SetRangeUser(ylow,yhigh);
         }
         GMarker::RemoveAll(currentHist);
-        gPad->Modified();
+        //gPad->Modified();
+        info.modified = true;
       }
       break;
     case kKey_g:
       if(currentHist->GetDimension()==1 && markers.size()>1) {
         GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X());
-        gPad->Modified();
+        //gPad->Modified();
+        info.modified = true;
         //GMarker::RemoveAll(currentHist);
       } else if(currentHist->GetDimension()==2 && markers.size()>1) {
         static int gGateCounter = 0;
@@ -454,13 +464,15 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
         cut->SetLineColor(kRed);
         currentHist->GetListOfFunctions()->Add(cut);
         GMarker::RemoveAll(currentHist);
-        gPad->Modified();
+        //gPad->Modified();
+        info.modified = true;
 
       }
       break;
     case kKey_m:
       GMarker::RemoveAll(currentHist);
-      gPad->Modified();
+      //gPad->Modified();
+      info.modified = true;
       break;
     case kKey_n:
       if(currentHist) {
@@ -478,14 +490,16 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
           GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
           gcurrentHist->RemovePeaks();
         }
-        gPad->Modified();
+        info.modified = true;
+        //gPad->Modified();
       }
       break;
     case kKey_o:
       currentHist->GetXaxis()->UnZoom();
       if(currentHist->GetDimension()==2) 
         currentHist->GetYaxis()->UnZoom();
-      gPad->Modified();
+      //gPad->Modified();
+      info.modified = true;
       break;
     case kKey_p: 
       if(currentHist->InheritsFrom(GH1D::Class())) {
@@ -498,8 +512,8 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
           GH2D *parent = dynamic_cast<GH2D*>(ghist->GetParent());
           if(parent) {
             GH1D *proj =0;
-            printf("markers.size() = %i\n",int(markers.size()));
-            printf("bgmarkers.size() = %i\n",int(bgmarkers.size()));
+            //printf("markers.size() = %i\n",int(markers.size()));
+            //printf("bgmarkers.size() = %i\n",int(bgmarkers.size()));
             if(bgmarkers.size()==2) {
               double bgxlow  = bgmarkers.at(0)->X();
               double bgxhigh = bgmarkers.at(1)->X();
@@ -527,7 +541,8 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
         currentHist->Rebin(2);
         currentHist->GetXaxis()->SetRangeUser(xlow,xup);
       }
-      gPad->Modified();
+      //gPad->Modified();
+      info.modified = true;
       break;   
     case kKey_q:
       if(currentHist->InheritsFrom(GH1D::Class())) {
@@ -537,13 +552,15 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
         gcurrentHist->Unbin(2);
         gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup);
       }        
-      gPad->Modified();
+      //gPad->Modified();
+      info.modified = true;
       break;   
     case kKey_s:
       if(currentHist->InheritsFrom(GH1D::Class())) {
         GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
         gcurrentHist->ShowPeaks();
-        gPad->Modified();
+        //gPad->Modified();
+        info.modified = true;
       }
       break;
     case kKey_x:
@@ -571,27 +588,28 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,TObject *selected,int event, int
     case kKey_l:
     case kKey_z:
       if(currentHist->GetDimension()==2) { 
-        if(gPad->GetLogz()) {
+        if(info.pad->GetLogz()) {
           currentHist->GetZaxis()->UnZoom();
-          gPad->SetLogz(0);
+          info.pad->SetLogz(0);
         } else {
           if(currentHist->GetMinimum()<0) 
             currentHist->GetZaxis()->SetRangeUser(0,currentHist->GetMaximum());
-          gPad->SetLogz(1);
+          info.pad->SetLogz(1);
         }
       } else {
         //printf("GetUymax:  %.2f\n",gPad->GetUxmax());
-        if(gPad->GetLogy()) {
-          gPad->SetLogy(0);
+        if(info.pad->GetLogy()) {
+          info.pad->SetLogy(0);
           //currentHist->GetYaxis()->SetRangeUser(0,gPad->GetUymax());
           currentHist->GetYaxis()->UnZoom();
         } else {
-          if(gPad->GetUymin()<0) 
+          if(info.pad->GetUymin()<0) 
             currentHist->GetYaxis()->SetRangeUser(0,gPad->GetUymax());
-          gPad->SetLogy(1);
+          info.pad->SetLogy(1);
         }
       }
-      gPad->Modified();
+      info.modified = true;
+      //gPad->Modified();
     default:
       break;
   }
