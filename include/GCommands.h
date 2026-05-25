@@ -28,7 +28,7 @@ void SaveAllCuts(TH1*,const char* fname="output.cuts",Option_t *opt="recreate");
 
 double GetChi2(TObject*,TF1*);
 
-bool GRootInteract();
+void GRootInteract();  //void so it doesn't repeatedly print the return to the terminal.
 bool GRootInteractHist(TH1* current,TObject* selected,int event, int px, int py);
 bool GRootInteractHistMouseButton(TH1* current,TObject* selected,int event, int px, int py);
 bool GRootInteractHistKeyPress(TH1* current,TObject* selected,int event,int px, int py);

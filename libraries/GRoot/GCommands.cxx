@@ -101,8 +101,8 @@ TObject *GrabPlottable(int i) {
         object = obj;
         break;
       }
+      j++;
     }
-    j++;
   }
   return object;
 }
@@ -259,14 +259,16 @@ double GetChi2(TObject *obj,TF1 *f=0) {
 // automatically in the Creation of a GCanvas - it is 
 // also passed to subpads using the GCanvas::Divide Method.
 // need to be void to prevent useless printing.  
-bool GRootInteract() {
+void GRootInteract() {
   if(gPad && gPad->GetSelectedPad())
     if(gPad != gPad->GetSelectedPad()) 
-      return false;
+      return;
+  printf("i am here 1.\n");
   //at this point, we should have the pad under the canvas.
   TObject *target   = GrabPlottable();
-  if(!target) return false;
+  if(!target) return;
   TObject *selected = gPad->GetSelected(); 
+  printf("i am here 2.\n");
 
 
   Int_t event = gPad->GetEvent();    // Get the type of event (e.g., kButton1Down, kMouseMotion)
@@ -274,10 +276,10 @@ bool GRootInteract() {
   Int_t py    = gPad->GetEventY();   // Get the Y-coordinate of the event in pixels
 
   if(auto* h = dynamic_cast<TH1*>(target))
-    return GRootInteractHist(h,selected,event,px,py);
+    GRootInteractHist(h,selected,event,px,py);
   else if(auto* gr = dynamic_cast<TGraph*>(target))
-    return GRootInteractGraph(gr,selected,event,px,py);
-  return false;
+    GRootInteractGraph(gr,selected,event,px,py);
+  return;
 }
 
 bool GRootInteractGraph(TGraph *current,TObject *selected,int event,int px,int py)              {return true;}
@@ -285,7 +287,6 @@ bool GRootInteractGraphMouseButton(TGraph* current,TObject *selected,int event, 
 bool GRootInteractGraphKeyPress(TGraph* current,TObject *selected,int event, int px, int py)    {return true;}
 
 bool GRootInteractHist(TH1 *current,TObject *selected,int event,int px,int py) {
-  printf("i am here.\n");
   switch(event) {
     case kNoEvent:           
       break;
