@@ -12,6 +12,23 @@ class GPeak;
 
 typedef const char Option_t;
 
+struct GInteractionInfo {
+  TVirtualPad* pad = nullptr;
+  TObject* selected = nullptr;
+  TObject* target = nullptr;
+
+  int event = 0;
+  int px = 0;
+  int py = 0;
+  double x = 0;
+  double y = 0;
+  
+  bool modified = false;
+  bool IsValid() const {
+    return pad && target;
+  }
+};
+
 
 GPeak *PhotoPeakFit(TH1*,double,double,Option_t *opt="");
 GGaus *GausFit(TH1*,double,double,Option_t *opt="");
@@ -29,6 +46,9 @@ void SaveAllCuts(TH1*,const char* fname="output.cuts",Option_t *opt="recreate");
 double GetChi2(TObject*,TF1*);
 
 void GRootInteract();  //void so it doesn't repeatedly print the return to the terminal.
+GInteractionInfo BuildInteractionInfo();
+bool DispatchInteraction(GInteractionInfo &info);
+
 bool GRootInteractHist(TH1* current,TObject* selected,int event, int px, int py);
 bool GRootInteractHistMouseButton(TH1* current,TObject* selected,int event, int px, int py);
 bool GRootInteractHistKeyPress(TH1* current,TObject* selected,int event,int px, int py);

@@ -253,6 +253,22 @@ double GetChi2(TObject *obj,TF1 *f=0) {
 }
 
 
+GInteractionInfo BuildInteractionInfo()  {
+  GInteractionInfo info;
+  info.pad = gPad;
+  if(!info.pad) return info;
+  info.selected = info.pad->GetSelected();
+  info.target   = GrabPlottable();
+  info.event    = info.pad->GetEvent();
+  info.px       = info.pad->GetEventX();
+  info.py       = info.pad->GetEventY();
+  info.x        = info.pad->PadtoX(info.pad->AbsPixeltoX(info.px));
+  info.y        = info.pad->PadtoY(info.pad->AbsPixeltoY(info.py));
+  return info;
+}
+
+
+
 
 // the below is meant to be added to a pad to make the 
 // object interactable. This is currently being handled 
@@ -260,27 +276,24 @@ double GetChi2(TObject *obj,TF1 *f=0) {
 // also passed to subpads using the GCanvas::Divide Method.
 // need to be void to prevent useless printing.  
 void GRootInteract() {
-  if(gPad && gPad->GetSelectedPad())
-    if(gPad != gPad->GetSelectedPad()) 
-      return;
-  //printf("i am here 1.\n");
-  //at this point, we should have the pad under the canvas.
-  TObject *target   = GrabPlottable();
-  if(!target) return;
-  TObject *selected = gPad->GetSelected(); 
-  //printf("i am here 2.\n");
 
+  GInteractionInfo info = BuildInteractionInfo();
+  
+  if(info.pad && gPad && (gPad != info.pad->GetSelectedPad())) 
+    return;
 
-  Int_t event = gPad->GetEvent();    // Get the type of event (e.g., kButton1Down, kMouseMotion)
-  Int_t px    = gPad->GetEventX();   // Get the X-coordinate of the event in pixels
-  Int_t py    = gPad->GetEventY();   // Get the Y-coordinate of the event in pixels
-
-  if(auto* h = dynamic_cast<TH1*>(target))
-    GRootInteractHist(h,selected,event,px,py);
-  else if(auto* gr = dynamic_cast<TGraph*>(target))
-    GRootInteractGraph(gr,selected,event,px,py);
+  DispatchInteraction(info);
   return;
 }
+
+bool DispatchInteraction(GInteractionInfo &info) {
+  if(auto* h = dynamic_cast<TH1*>(info.target))
+    return GRootInteractHist(h,info.selected,info.event,info.px,info.py);
+  else if(auto* gr = dynamic_cast<TGraph*>(info.target))
+    return GRootInteractGraph(gr,info.selected,info.event,info.px,info.py);
+  return false;
+}
+
 
 bool GRootInteractGraph(TGraph *current,TObject *selected,int event,int px,int py)              {return true;}
 bool GRootInteractGraphMouseButton(TGraph* current,TObject *selected,int event, int px, int py) {return true;}
