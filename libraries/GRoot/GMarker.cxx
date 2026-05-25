@@ -57,7 +57,7 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   //      ((GMarker*)obj)->Remove();
   //  }
   //}
-  std::vector<GMarker*> vm = Get(fHist,1);
+  std::vector<GMarker*> vm = Get(fHist,GMarkerType::kPrimary);
   if(int(vm.size()) == fMaxMarkers)   
     vm.front()->Remove();
 
@@ -158,7 +158,7 @@ void GMarker::RemoveAll(TH1 *h,bool removeBGMarkers) {
   while(TObject *obj = iter.Next()) {
     if(obj->InheritsFrom(GMarker::Class())) {
       GMarker *marker = ((GMarker*)obj);
-      if(marker->IsBG() && removeBGMarkers)
+      if(marker->GetType()==GMarkerType::kBackground && removeBGMarkers)
         marker->Remove();
       else 
         marker->Remove();
@@ -167,33 +167,22 @@ void GMarker::RemoveAll(TH1 *h,bool removeBGMarkers) {
 }
 
 
-std::vector<GMarker*> GMarker::Get(TH1 *h,int type) {
+std::vector<GMarker*> GMarker::Get(TH1 *h,GMarkerType type) {
   //type:
   //  - 0: all
   //  - 1: primary
   //  - 2: bg
   //return all markers in h
   std::vector<GMarker*> toReturn;
+  if(!h) return toReturn;
+
   TIter iter(h->GetListOfFunctions());
   while(TObject *obj = iter.Next()) {
-    if(obj->InheritsFrom(GMarker::Class())) {
-      GMarker *marker = ((GMarker*)obj);
-      switch(type) { 
-        case 0:
-          toReturn.push_back(marker);
-          break;
-        case 1:
-          if(!marker->IsBG()) 
-            toReturn.push_back(marker);
-          break;
-        case 2:
-          if(marker->IsBG()) 
-            toReturn.push_back(marker);
-          break;
-        default:
-          break;
-      }
-    }
+    if(!obj->InheritsFrom(GMarker::Class())) continue;
+    auto *marker = static_cast<GMarker*>(obj);
+    if(type == GMarkerType::kAll || marker->GetType() == type)
+      toReturn.push_back(marker);
+
   }
   return toReturn;
 }

@@ -21,6 +21,7 @@ target_include_directories(GROOTLIB PUBLIC
 )
 
 root_generate_dictionary(G__GROOTLIB 
+  Gtypes.h
   GFunctions.h 
   GCommands.h 
   GCanvas.h 

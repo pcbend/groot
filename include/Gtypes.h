@@ -10,5 +10,14 @@ enum kFileType {
   CUTS             = 2052
 };
 
+enum class GMarkerType {
+  kAll =0,
+  kPrimary,
+  kBackground,
+  kZoom,
+  kFit,
+  kCut,
+  kProjection
+};
 
 #endif

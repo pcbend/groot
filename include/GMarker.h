@@ -4,7 +4,11 @@
 #include<TLine.h>
 #include<TQObject.h>
 
+#include <Gtypes.h>
+
 class TH1;
+
+
 
 class GMarker : public TNamed {
 // public TLine { //, public TQObject {
@@ -21,7 +25,7 @@ class GMarker : public TNamed {
     void Paint(Option_t *opt="") override;
 
     static void                  RemoveAll(TH1 *h, bool removeBGMarkers=true);  //remove all markers from h
-    static std::vector<GMarker*> Get(TH1 *h,int type=0);     //return all markers in h
+    static std::vector<GMarker*> Get(TH1 *h,GMarkerType = GMarkerType::kAll);     //return all markers in h
     static std::vector<GMarker*> GetBG(TH1 *h);     //return all markers in h
 
     
@@ -37,14 +41,18 @@ class GMarker : public TNamed {
     void ExecuteEvent(int event, int px, int py) override;
     int  DistancetoPrimitive(int px, int py) override;
 
-    bool IsBG() const { return fIsBgRegion; }
-    void SetBG() { fIsBgRegion = true; SetLineColor(1); }
+    //bool IsBG() const { return fIsBgRegion; }
+    //void SetBG() { fIsBgRegion = true; SetLineColor(1); }
+
+    GMarkerType GetType() const { return fType; }
+    void SetType(GMarkerType type) { fType = type; }
 
   public:
     double X() const { return fX; }
     double Y() const { return fY; }
 
   private:
+    GMarkerType fType = GMarkerType::kPrimary;
     TH1 *fHist;
     TLine *fLineX;
     TLine *fLineY;  

@@ -293,8 +293,10 @@ bool DispatchInteraction(GInteractionInfo &info) {
     temp = GRootInteractHist(h,info);
   else if(auto* gr = dynamic_cast<TGraph*>(info.target))
     temp = GRootInteractGraph(gr,info);
-  if(info.modified) 
+  if(info.modified && info.pad) {
+    info.pad->Modified();
     info.pad->Update();
+  }
   return temp;
 }
 
@@ -352,7 +354,6 @@ bool GRootInteractHist(TH1 *current,GInteractionInfo &info) {
     default:
       break;
   }
-  gPad->Update();
   return true;
 }
 
@@ -395,7 +396,7 @@ bool GRootInteractHistMouseButton(TH1* currentHist,GInteractionInfo &info) {
 
 bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
   //printf("key:  %i\t%i\t%i\n",event,px,py);
-  std::vector<GMarker*> markers = GMarker::Get(currentHist,1);
+  std::vector<GMarker*> markers = GMarker::Get(currentHist,GMarkerType::kPrimary);
   switch(info.py) {
     case kKey_b:
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
@@ -413,8 +414,8 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       break;
     case kKey_c:
       if(markers.size()>1 && currentHist->GetDimension()==1) {
-        markers.at(0)->SetBG();
-        markers.at(1)->SetBG();
+        markers.at(0)->SetType(GMarkerType::kBackground);
+        markers.at(1)->SetType(GMarkerType::kBackground);
         info.modified = true;
         //gPad->Modified();
       }
@@ -504,7 +505,7 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
     case kKey_p: 
       if(currentHist->InheritsFrom(GH1D::Class())) {
         GH1D *ghist = dynamic_cast<GH1D*>(currentHist);
-        std::vector<GMarker*> bgmarkers = GMarker::Get(currentHist,2);
+        std::vector<GMarker*> bgmarkers = GMarker::Get(currentHist,GMarkerType::kBackground);
         if(markers.size()==2) {
           double xlow  = markers.at(0)->X();
           double xhigh = markers.at(1)->X();
