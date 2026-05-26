@@ -9,8 +9,18 @@
 class TH1;
 
 
+enum class GMarkerType {
+  kAll =0,
+  kPrimary,
+  kBackground,
+  kZoom,
+  kFit,
+  kCut,
+  kProjection
+};
 
-class GMarker : public TNamed {
+//class GMarker : public TNamed {
+class GMarker  : public TObject {
 // public TLine { //, public TQObject {
   public:
     GMarker();
@@ -47,6 +57,16 @@ class GMarker : public TNamed {
     GMarkerType GetType() const { return fType; }
     void SetType(GMarkerType type) { fType = type; }
 
+    bool IsPrimary()    const  { return fType == GMarkerType::kPrimary; }
+    bool IsBackground() const  { return fType == GMarkerType::kBackground; }
+    bool IsZoom()       const  { return fType == GMarkerType::kZoom; }
+    bool IsFit()        const  { return fType == GMarkerType::kFit; }
+    bool IsCut()        const  { return fType == GMarkerType::kCut; }
+    bool IsProjection() const  { return fType == GMarkerType::kProjection; }
+
+    static int  GetMaxMarkers(GMarkerType type);
+    static void SetMaxMarkers(GMarkerType type,int value);
+
   public:
     double X() const { return fX; }
     double Y() const { return fY; }
@@ -60,7 +80,6 @@ class GMarker : public TNamed {
     double fX;
     double fY;  
 
-    bool fIsBgRegion;
 
   ClassDefOverride(GMarker,0)
 };

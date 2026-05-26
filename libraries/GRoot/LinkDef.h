@@ -24,8 +24,6 @@
 
 #pragma link C++ function CloseAllCanvases;
 
-#pragma link C++ enum class GMarkerType;
-
 #pragma link C++ function GRootInteract;
 
 #pragma link C++ class GCanvas+;

@@ -1,4 +1,4 @@
-Unix.*.Root.MacroPath: .:$(GRUTSYS)/util:$(ROOTSYS)/macros
+Unix.*.Root.MacroPath: .:$(GSYS)/util:$(ROOTSYS)/macros
 
 #default MakeHistos library
 
@@ -22,6 +22,14 @@ Canvas.ShowEventStatus: true
 Canvas.ShowToolBar: true
 Canvas.UseScreenFactor: true
 Canvas.ShowGuideLines: false
+
+#GMarker properties
+GMarker.Primary.Max:    2
+GMarker.Background.Max: 2
+GMarker.Zoom.Max:       2
+GMarker.Fit.Max:        2
+GMarker.Cut.Max         2
+GMarker.Projection:     2
 
 
 Hists.Stats: "neiou"

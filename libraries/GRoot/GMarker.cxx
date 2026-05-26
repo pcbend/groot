@@ -8,18 +8,64 @@
 #include<TVirtualPad.h>
 #include<TPad.h>
 //#include<TTimer.h>
+#include<TEnv.h>
 
-GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0), fX(sqrt(-1)), fY(sqrt(-1)), fIsBgRegion(false) { 
+int GMarker::GetMaxMarkers(GMarkerType type) { 
+  switch(type) {
+    case GMarkerType::kPrimary:
+      return gEnv->GetValue("GMarker.Primary.Max",2);
+    case GMarkerType::kBackground:
+      return gEnv->GetValue("GMarker.Background.Max",2);
+    case GMarkerType::kZoom:
+      return gEnv->GetValue("GMarker.Zoom.Max",2);
+    case GMarkerType::kFit:
+      return gEnv->GetValue("GMarker.Fit.Max",2);
+    case GMarkerType::kCut:
+      return gEnv->GetValue("GMarker.Cut.Max",2);
+    case GMarkerType::kProjection:
+      return gEnv->GetValue("GMarker.Projection.Max",2);
+    default: 
+      return 2;
+  };
+  return 2;
+}
+
+void GMarker::SetMaxMarkers(GMarkerType type,int value) { 
+  switch(type) {
+    case GMarkerType::kPrimary:
+      gEnv->SetValue("GMarker.Primary.Max",value);
+      break;
+    case GMarkerType::kBackground:
+      gEnv->SetValue("GMarker.Background.Max",value);
+      break;
+    case GMarkerType::kZoom:
+      gEnv->SetValue("GMarker.Zoom.Max",value);
+      break;
+    case GMarkerType::kFit:
+      gEnv->SetValue("GMarker.Fit.Max",value);
+      break;
+    case GMarkerType::kCut:
+      gEnv->SetValue("GMarker.Cut.Max",value);
+      break;
+    case GMarkerType::kProjection:
+      gEnv->SetValue("GMarker.Projection.Max",value);
+      break;
+    default: 
+      return;
+  };
+  return;
+}
+
+GMarker::GMarker() :fHist(0), fLineX(0), fLineY(0), fX(sqrt(-1)), fY(sqrt(-1)) { 
   //SetLineWidth(2);
   //SetLineColor(kRed);
-  SetName("GMarker");
+  //SetName("GMarker");
 
 
 }
 
 GMarker::~GMarker() {
   //printf("gmarker deleted\n");
-  if(fHist) fHist->GetListOfFunctions()->Remove(this);
   if(fLineX) delete fLineX;
   if(fLineY) delete fLineY;
 } 
@@ -29,49 +75,38 @@ void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
   fHist = h;
   //if(h && h->GetDimension() == 1) {
   x = fHist->GetXaxis()->GetBinLowEdge(fHist->GetXaxis()->FindBin(x));
-
+  SetX(x);
+  
   if(!fLineX) fLineX = new TLine;
   fLineX->SetLineWidth(2);
   fLineX->SetLineColor(kRed);
-  SetX(x);
+  
   if(h->GetDimension() == 2) {
     y = fHist->GetYaxis()->GetBinLowEdge(fHist->GetYaxis()->FindBin(y));
+    SetY(y);
+    
     if(!fLineY) fLineY = new TLine;
     fLineY->SetLineWidth(2);
     fLineY->SetLineColor(kRed);
-    SetY(y);
   }
-  //printf("fLineX: %p\n",fLineX);
-  //printf("fLineY: %p\n",fLineY);
 
-
-  //we want to limit how many marks are on the histogram.  
-  //lets start with two....
-  int fMaxMarkers=2;
-  int markerCount = 0;
-  //TIter iter(fHist->GetListOfFunctions(),kIterBackward);
-  //while(TObject *obj=iter.Next()) {
-  //  if(obj->InheritsFrom(GMarker::Class())) {
-  //    markerCount++;
-  //    if(markerCount>=fMaxMarkers)
-  //      ((GMarker*)obj)->Remove();
-  //  }
-  //}
-  std::vector<GMarker*> vm = Get(fHist,GMarkerType::kPrimary);
-  if(int(vm.size()) == fMaxMarkers)   
-    vm.front()->Remove();
-
-
-
+  const int maxMarkers = GetMaxMarkers(GMarkerType::kPrimary);
+  auto markers = Get(fHist,GMarkerType::kPrimary);
+  
+  while(maxMarkers >= 0 && static_cast<int>(markers.size()) >= maxMarkers) {
+    markers.front()->Remove();
+    markers.erase(markers.begin());
+  }
   fHist->GetListOfFunctions()->Add(this);
-
-  return;
 } 
 
 void GMarker::Remove() {
-  if(!fHist) return;
-  //fHist->GetListOfFunctions()->Remove(this);
-  this->Delete();
+  TH1* hist = fHist;  
+  fHist = nullptr;
+  if(hist && hist->GetListOfFunctions()) 
+    hist->GetListOfFunctions()->Remove(this);
+  delete this;
+
 }
 
 
