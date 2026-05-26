@@ -395,8 +395,10 @@ void GCanvas::UpdateAllPads() {
   */
   //this->Modified();
   TIter iter(gROOT->GetListOfCanvases());
-  while(TCanvas *c = (TCanvas*)iter.Next())
+  while(TCanvas *c = (TCanvas*)iter.Next()) {
+    c->Modified();
     c->Update();
+  }
 }
 
 
