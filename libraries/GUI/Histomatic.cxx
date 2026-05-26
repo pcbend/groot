@@ -97,39 +97,21 @@ void GInfoPanel::SetRow(const std::string &key, const std::string &value) {
 
 void GInfoPanel::Update(const GInteractionInfo &info) {
 
-
-/*
-  fObject->SetText(Form("Object: %s", obj->GetName()));
-
-  double x = gPad->PadtoX(gPad->AbsPixeltoX(gPad->GetEventX()));
-  double y = gPad->PadtoY(gPad->AbsPixeltoY(gPad->GetEventY()));
-
-  if(auto* h = dynamic_cast<TH1*>(obj)) {
-    int bx = h->GetXaxis()->FindBin(x);
-
-    if(h->GetDimension() == 1) {
-      fPosition->SetText(Form("Cursor: x = %.3f", x));
-      fBin->SetText(Form("Bin: %d", bx));
-      fCounts->SetText(Form("Counts: %.3f", h->GetBinContent(bx)));
-    } else {
-      int by = h->GetYaxis()->FindBin(y);
-      fPosition->SetText(Form("Cursor: x = %.3f, y = %.3f", x, y));
-      fBin->SetText(Form("Bin: (%d, %d)", bx, by));
-      fCounts->SetText(Form("Counts: %.3f", h->GetBinContent(bx, by)));
-    }
+  if(!info.IsValid()) {
+    SetRow("Cursor", "");
+    SetRow("Counts", "");
+    SetRow("Marker", "Primary");
+    SetRow("Mode", "click=marker, Ctrl-click=ignore max");
+    return;
   }
-  //fMarker->SetText(Form("Marker: Primary max=%d",
-  //                      GMarker::GetMaxMarkers(GMarkerType::kPrimary)));
 
-  fMode->SetText("Mode: click=marker, Ctrl-click=ignore max");
-  Layout();
-*/
-SetRow("Object", info.target->GetName());
-SetRow("Cursor", Form("x = %.3f", info.x));
-SetRow("Counts", Form("%.3f", info.counts));
-SetRow("Marker", "Primary");
-SetRow("Mode", "click=marker, Ctrl-click=ignore max");
 
+
+  SetRow("Object", info.target->GetName());
+  SetRow("Cursor", Form("x = %.3f", info.x));
+  SetRow("Counts", Form("%.3f", info.counts));
+  SetRow("Marker", "Primary");
+  SetRow("Mode", "click=marker, Ctrl-click=ignore max");
 
 }
 
