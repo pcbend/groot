@@ -296,7 +296,8 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         } else {
           currentHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()-halfWindow,gPad->GetUxmax()-halfWindow);
         }
-        gPad->Modified();
+        //gPad->Modified();
+        doUpdate = true;
       } 
       break;
     case kKey_Up:
@@ -312,7 +313,8 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
             GH1D* hnext = dynamic_cast<GH2D*>(p)->Next(gcurrentHist);
             if(hnext) {
               hnext->Draw();
-              gPad->Modified();
+              //gPad->Modified();
+              doUpdate = true;
             }
           }
         }
@@ -330,7 +332,8 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         } else {
           currentHist->GetXaxis()->SetRangeUser(gPad->GetUxmin()+halfWindow,gPad->GetUxmax()+halfWindow);
         }
-        gPad->Modified();
+        //gPad->Modified();
+        doUpdate = true;
       } 
       break;
     case kKey_Down:
@@ -342,7 +345,8 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
             GH1D* hprev = dynamic_cast<GH2D*>(p)->Previous(gcurrentHist);
             if(hprev) {
               hprev->Draw();
-              gPad->Modified();
+              //gPad->Modified();
+              doUpdate = true;
             }
           }
         }

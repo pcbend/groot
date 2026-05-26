@@ -358,16 +358,12 @@ bool GRootInteractHist(TH1 *current,GInteractionInfo &info) {
 }
 
 bool GRootInteractHistMouseButton(TH1* currentHist,GInteractionInfo &info) {
-  //double x  = gPad->PadtoX(gPad->AbsPixeltoX(px));
-  //double y  = gPad->PadtoY(gPad->AbsPixeltoY(py));
+  if(!currentHist) return false;
 
-  //printf("event:  %i\n",event);
-  //printf("px:     %i\n",px);
-  //printf("py:     %i\n",py);
 
-  //printf("x: %.2f\n",x);
-  //printf("y: %.2f\n",y);
-  //printf("------------\n");
+  if(info.selected && info.selected->InheritsFrom(GMarker::Class()))
+    return false; //should allow GMarker::ExecuteEvent deal with this...
+
   switch(info.event) {
     case kButton1Down:       
       //if(GCanvas::GetCurrentEvent().fState & kKeyControlMask) {

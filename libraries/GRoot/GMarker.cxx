@@ -231,7 +231,39 @@ void GMarker::SetLineColor(Color_t color) {
 }
 
 void GMarker::ExecuteEvent(int event, int px, int py) { 
-  //printf("GMarker::ExecuteEvent(%i,%i,%i)\n",event,px,py);
+  if(!gPad || !fHist) return;
+
+  switch(event) {
+    case kButton1Down:
+      SetBit(kCannotPick, false);
+      break;
+
+    case kButton1Motion:
+    case kButton1Up: {
+      double x = gPad->PadtoX(gPad->AbsPixeltoX(px));
+      x = fHist->GetXaxis()->GetBinLowEdge(fHist->GetXaxis()->FindBin(x));
+
+      SetX(x);
+
+      gPad->Modified();
+      gPad->Update();
+      break;
+    }
+
+    default:
+      break;
+  }
+ return;
+
+
+
+
+
+
+
+
+
+ //printf("GMarker::ExecuteEvent(%i,%i,%i)\n",event,px,py);
   if(!fLineX || fLineY) return;
   //printf("here\n");
 
