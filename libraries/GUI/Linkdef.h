@@ -12,4 +12,6 @@
 
 #pragma link C++ class GG+;
 
+#pragma link C++ class GEventTimer;
+
 #endif

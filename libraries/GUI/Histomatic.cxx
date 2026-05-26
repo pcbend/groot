@@ -26,7 +26,7 @@
 #include <GH2D.h>
 
 #include <GGlobals.h>
-#include <GUtils.h>
+#include <GEventTimer.h>
 
 #include <GCommands.h>
 
@@ -42,33 +42,63 @@ Histomatic *Histomatic::fInstance = 0;
 ////////////////////
 
 GInfoPanel::GInfoPanel(const TGWindow* parent) 
-  : TGGroupFrame(parent,"i am a title!"),
-  fObject(0),fPosition(0),fBin(0),fCounts(0),fMarker(0),fMode(0) {
+  : TGGroupFrame(parent,"i am a title!") { //,
+  //fObject(0),fPosition(0),fBin(0),fCounts(0),fMarker(0),fMode(0) {
 
-  fObject   = new TGLabel(this, "Object:");
-  fPosition = new TGLabel(this, "Cursor:");
-  fBin      = new TGLabel(this, "Bin:");
-  fCounts   = new TGLabel(this, "Counts:");
-  fMarker   = new TGLabel(this, "Marker:");
-  fMode     = new TGLabel(this, "Mode:");
+    //fObject   = new TGLabel(this, "Object:");
+    //fPosition = new TGLabel(this, "Cursor:");
+    //fBin      = new TGLabel(this, "Bin:");
+    //fCounts   = new TGLabel(this, "Counts:");
+    //fMarker   = new TGLabel(this, "Marker:");
+    //fMode     = new TGLabel(this, "Mode:");
 
-  AddFrame(fObject,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
-  AddFrame(fPosition, new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
-  AddFrame(fBin,      new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
-  AddFrame(fCounts,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
-  AddFrame(fMarker,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
-  AddFrame(fMode,     new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+    //AddFrame(fObject,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+    //AddFrame(fPosition, new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+    //AddFrame(fBin,      new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+    //AddFrame(fCounts,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+    //AddFrame(fMarker,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+    //AddFrame(fMode,     new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
 
-}
+  }
 
 GInfoPanel::~GInfoPanel() { }
 
-void GInfoPanel::Update() {
-  if(!gPad) return;
+void GInfoPanel::AddRow(const std::string &key, const std::string &value) {
+  auto* row = new TGHorizontalFrame(this);
 
-  TObject *obj = GrabPlottable();
-  if(!obj) return;
+  auto* keyLabel = new TGLabel(row,Form("%s:",key.c_str()));
+  auto* valLabel = new TGLabel(row,value.c_str());
 
+  keyLabel->SetTextJustify(kTextLeft);
+  valLabel->SetTextJustify(kTextRight);
+
+  row->AddFrame(keyLabel, new TGLayoutHints(kLHintsLeft, 4, 10, 2, 2));
+  row->AddFrame(valLabel, new TGLayoutHints(kLHintsExpandX, 4, 4, 2, 2));
+
+  AddFrame(row, new TGLayoutHints(kLHintsExpandX));
+
+  fRows[key] = valLabel;
+  return;
+}
+
+
+void GInfoPanel::SetRow(const std::string &key, const std::string &value) { 
+  auto it = fRows.find(key);
+
+  if(it == fRows.end()) {
+    AddRow(key, value);
+  } else {
+    it->second->SetText(value.c_str());
+  }
+
+  Layout();
+}
+
+
+void GInfoPanel::Update(const GInteractionInfo &info) {
+
+
+/*
   fObject->SetText(Form("Object: %s", obj->GetName()));
 
   double x = gPad->PadtoX(gPad->AbsPixeltoX(gPad->GetEventX()));
@@ -92,10 +122,17 @@ void GInfoPanel::Update() {
   //                      GMarker::GetMaxMarkers(GMarkerType::kPrimary)));
 
   fMode->SetText("Mode: click=marker, Ctrl-click=ignore max");
-
   Layout();
+*/
+SetRow("Object", info.target->GetName());
+SetRow("Cursor", Form("x = %.3f", info.x));
+SetRow("Counts", Form("%.3f", info.counts));
+SetRow("Marker", "Primary");
+SetRow("Mode", "click=marker, Ctrl-click=ignore max");
+
 
 }
+
 
 
 
@@ -437,22 +474,22 @@ void Histomatic::doDraw(std::vector<TGListTreeItem*> selected, Option_t *opt) co
   TCanvas *g = 0;
 
   if(hists1D.size()>0 || hists2D.size()>0) {
-  switch (fDrawComboBox->GetSelected()) {
-    case EDrawOption::eDrawNew:
-      g = gROOT->MakeDefCanvas();
-      break;
-    case EDrawOption::eDrawSame:
-      if(gPad)
-        g = gPad->GetCanvas();
-      else
-        g = gROOT->MakeDefCanvas();  //new GCanvas;
-    case EDrawOption::eDrawStacked:
-      if(gPad)
-        g = gPad->GetCanvas();
-      else
-        g = gROOT->MakeDefCanvas();  //new GCanvas;
-      break;
-  }
+    switch (fDrawComboBox->GetSelected()) {
+      case EDrawOption::eDrawNew:
+        g = gROOT->MakeDefCanvas();
+        break;
+      case EDrawOption::eDrawSame:
+        if(gPad)
+          g = gPad->GetCanvas();
+        else
+          g = gROOT->MakeDefCanvas();  //new GCanvas;
+      case EDrawOption::eDrawStacked:
+        if(gPad)
+          g = gPad->GetCanvas();
+        else
+          g = gROOT->MakeDefCanvas();  //new GCanvas;
+        break;
+    }
   }
 
   if(hists1D.size()>0) {

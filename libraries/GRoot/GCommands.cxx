@@ -307,7 +307,13 @@ GInteractionInfo BuildInteractionInfo()  {
   return info;
 }
 
+namespace {
+  GInteractionInfo gLastInteractionInfo;
+}
 
+const GInteractionInfo& GetLastInteractionInfo() {
+  return gLastInteractionInfo;
+}
 
 
 // the below is meant to be added to a pad to make the 
@@ -318,11 +324,19 @@ GInteractionInfo BuildInteractionInfo()  {
 void GRootInteract() {
 
   GInteractionInfo info = BuildInteractionInfo();
-  
+  gLastInteractionInfo = info;
+
   if(info.pad && gPad && (gPad != info.pad->GetSelectedPad())) 
     return;
 
   DispatchInteraction(info);
+
+  if(info.modified && info.pad) {
+    info.pad->Modified();
+    info.pad->Update();
+  }
+  gLastInteractionInfo = info;
+
   return;
 }
 
@@ -332,10 +346,6 @@ bool DispatchInteraction(GInteractionInfo &info) {
     temp = GRootInteractHist(h,info);
   else if(auto* gr = dynamic_cast<TGraph*>(info.target))
     temp = GRootInteractGraph(gr,info);
-  if(info.modified && info.pad) {
-    info.pad->Modified();
-    info.pad->Update();
-  }
   return temp;
 }
 

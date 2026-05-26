@@ -11,7 +11,6 @@ add_library(GROOTLIB SHARED
   GPeak.cxx 
   GPeak2.cxx 
   GGlobals.cxx 
-  GUtils.cxx 
   GROI.cxx
 )
 
@@ -31,7 +30,6 @@ root_generate_dictionary(G__GROOTLIB
   GPeak.h 
   GPeak2.h 
   GGlobals.h 
-  GUtils.h 
   GROI.h 
   MODULE GROOTLIB 
   LINKDEF LinkDef.h

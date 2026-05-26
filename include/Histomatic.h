@@ -18,6 +18,7 @@
 #include "TList.h"
 
 #include <GListTree.h>
+#include <GCommands.h>
 
 #include<exception>
 #include<iostream>
@@ -36,15 +37,20 @@ class GInfoPanel : public TGGroupFrame {
     GInfoPanel(const TGWindow *parent);
     virtual ~GInfoPanel();
 
-    void Update();
+    void Update(const GInteractionInfo& info);
+
+    void AddRow(const std::string &key, const std::string &value);
+    void SetRow(const std::string &key, const std::string &value);
 
   private:
-    TGLabel *fObject;
-    TGLabel *fPosition;
-    TGLabel *fBin;
-    TGLabel *fCounts;
-    TGLabel *fMarker;
-    TGLabel *fMode;
+    //TGLabel *fObject;
+    //TGLabel *fPosition;
+    //TGLabel *fBin;
+    //TGLabel *fCounts;
+    //TGLabel *fMarker;
+    //TGLabel *fMode;
+    std::map<std::string, TGLabel*> fRows;
+    
 
   ClassDefOverride(GInfoPanel,0)
 };
@@ -157,7 +163,7 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     void AddRootFile(TFile *file) { fGListTree->InsertObject(file); }
     //TList *GetAllActive();
 
-    void UpdateInfoPanel() { if(fInfoPanel) fInfoPanel->Update(); }
+    void UpdateInfoPanel() { if(fInfoPanel) fInfoPanel->Update(GetLastInteractionInfo()); }
     TGStatusBar *GetStatusBar() { return fStatusBar; } 
 
   private:

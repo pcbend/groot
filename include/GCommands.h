@@ -23,7 +23,8 @@ struct GInteractionInfo {
   int py = 0;
   double x = 0;
   double y = 0;
-  
+  double counts = 0;
+
   bool modified = false;
   bool IsValid() const {
     return pad && target;
@@ -52,6 +53,8 @@ double GetChi2(TObject*,TF1*);
 void GRootInteract();  //void so it doesn't repeatedly print the return to the terminal.
 GInteractionInfo BuildInteractionInfo();
 bool DispatchInteraction(GInteractionInfo &info);
+const GInteractionInfo &GetLastInteractionInfo();
+
 
 bool GRootInteractHist(TH1* current,GInteractionInfo &info);
 bool GRootInteractHistMouseButton(TH1* current,GInteractionInfo &info);
