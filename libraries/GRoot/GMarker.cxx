@@ -9,6 +9,7 @@
 #include<TPad.h>
 //#include<TTimer.h>
 #include<TEnv.h>
+#include<TCutG.h>
 
 int GMarker::GetMaxMarkers(GMarkerType type) { 
   switch(type) {
@@ -70,32 +71,34 @@ GMarker::~GMarker() {
   if(fLineY) delete fLineY;
 } 
 
-void GMarker::AddTo(TH1 *h, double x, double y,Option_t *opt) {
+void GMarker::AddTo(TH1 *h, double x, double y,bool ignoreMax,Option_t *opt) {
   if(!h) return;
   fHist = h;
   //if(h && h->GetDimension() == 1) {
   x = fHist->GetXaxis()->GetBinLowEdge(fHist->GetXaxis()->FindBin(x));
   SetX(x);
-  
+
   if(!fLineX) fLineX = new TLine;
   fLineX->SetLineWidth(2);
   fLineX->SetLineColor(kRed);
-  
+
   if(h->GetDimension() == 2) {
     y = fHist->GetYaxis()->GetBinLowEdge(fHist->GetYaxis()->FindBin(y));
     SetY(y);
-    
+
     if(!fLineY) fLineY = new TLine;
     fLineY->SetLineWidth(2);
     fLineY->SetLineColor(kRed);
   }
 
-  const int maxMarkers = GetMaxMarkers(GMarkerType::kPrimary);
-  auto markers = Get(fHist,GMarkerType::kPrimary);
-  
-  while(maxMarkers >= 0 && static_cast<int>(markers.size()) >= maxMarkers) {
-    markers.front()->Remove();
-    markers.erase(markers.begin());
+  if(!ignoreMax) {
+    const int maxMarkers = GetMaxMarkers(GMarkerType::kPrimary);
+    auto markers = Get(fHist,GMarkerType::kPrimary);
+
+    while(maxMarkers >= 0 && static_cast<int>(markers.size()) >= maxMarkers) {
+      markers.front()->Remove();
+      markers.erase(markers.begin());
+    }
   }
   fHist->GetListOfFunctions()->Add(this);
 } 
@@ -124,43 +127,43 @@ void GMarker::Paint(Option_t *opt) {
   double rm = 1.-gPad->GetRightMargin();
   double tm = 1.-gPad->GetTopMargin();
   double bm = gPad->GetBottomMargin();
-    
+
   double xndc  = (rm-lm)*((fX-gPad->GetUxmin())/(abs(gPad->GetUxmax()-gPad->GetUxmin())))+lm;
   double yndc  = (tm-bm)*((fY-gPad->GetUymin())/(abs(gPad->GetUymax()-gPad->GetUymin())))+bm;
 
-/*
-  printf("lm:  %.04f\n",lm);
-  printf("rm:  %.04f\n",rm);
-  printf("tm:  %.04f\n",tm);
-  printf("bm:  %.04f\n",bm);
+  /*
+     printf("lm:  %.04f\n",lm);
+     printf("rm:  %.04f\n",rm);
+     printf("tm:  %.04f\n",tm);
+     printf("bm:  %.04f\n",bm);
 
-  printf("fX:  %.04f\n",fX);
-  printf("fY:  %.04f\n",fY);
-  printf("Uxmin: %.04f\n",gPad->GetUxmin());
-  printf("Uxmax: %.04f\n",gPad->GetUxmax());
-  printf("Uymin: %.04f\n",gPad->GetUymin());
-  printf("Uymax: %.04f\n",gPad->GetUymax());
+     printf("fX:  %.04f\n",fX);
+     printf("fY:  %.04f\n",fY);
+     printf("Uxmin: %.04f\n",gPad->GetUxmin());
+     printf("Uxmax: %.04f\n",gPad->GetUxmax());
+     printf("Uymin: %.04f\n",gPad->GetUymin());
+     printf("Uymax: %.04f\n",gPad->GetUymax());
 
 
 
-  printf("xndc:  %.04f\n",xndc);
-  printf("yndc:  %.04f\n",yndc);
-*/
+     printf("xndc:  %.04f\n",xndc);
+     printf("yndc:  %.04f\n",yndc);
+   */
 
 
 
   if(fLineX) {
     if(!fLineX->TestBit(TLine::kLineNDC))
       fLineX->SetBit(TLine::kLineNDC,true);
-   
+
     fLineX->SetX1(xndc);
     fLineX->SetX2(xndc);
     /*
-    double xuser = ((fLineX->GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
-    if(fX !=xuser) {
-      fX= xuser;
-    }
-    */
+       double xuser = ((fLineX->GetX1()-lm)/(rm-lm))*(gPad->GetUxmax()-gPad->GetUxmin())+gPad->GetUxmin();
+       if(fX !=xuser) {
+       fX= xuser;
+       }
+     */
     fLineX->SetY1(bm);    
     fLineX->SetY2(tm);    
     fLineX->SetBit(TLine::kLineNDC,true);
@@ -172,11 +175,11 @@ void GMarker::Paint(Option_t *opt) {
     fLineY->SetY1(yndc);
     fLineY->SetY2(yndc);
     /*
-    double yuser = ((fLineY->GetY1()-tm)/(bm-tm))*(gPad->GetUymax()-gPad->GetUymin())+gPad->GetUymin();
-    if(fY !=yuser) {
-      fY= yuser;
-    }
-    */
+       double yuser = ((fLineY->GetY1()-tm)/(bm-tm))*(gPad->GetUymax()-gPad->GetUymin())+gPad->GetUymin();
+       if(fY !=yuser) {
+       fY= yuser;
+       }
+     */
     fLineY->SetX1(lm);    
     fLineY->SetX2(rm);    
     fLineY->SetBit(TLine::kLineNDC,true);
@@ -231,7 +234,7 @@ void GMarker::ExecuteEvent(int event, int px, int py) {
   //printf("GMarker::ExecuteEvent(%i,%i,%i)\n",event,px,py);
   if(!fLineX || fLineY) return;
   //printf("here\n");
-  
+
   //if(fLineX)
   //  d1 = fLineX->DistancetoPrimitive(px,py);
   //if(fLineY)
@@ -239,9 +242,9 @@ void GMarker::ExecuteEvent(int event, int px, int py) {
   //printf("d1 = %i, d2 = %i\n",d1,d2);
   //if(d1<d2) { 
   if(fLineX) {
-       //printf("here!"); 
+    //printf("here!"); 
     fLineX->ExecuteEvent(event,px,py);
-   }
+  }
   // } else {
   //   if(fLineY)
   //     fLineY->ExecuteEvent(event,px,py);
@@ -264,10 +267,92 @@ int GMarker::DistancetoPrimitive(int px, int py) {
 }
 
 
+/****************
+Current issue:
+- Primary markers in 2D draw as full vertical/horizontal lines.
+- This becomes visually cluttered while building polygon gates.
+
+Desired direction:
+- Marker appearance should depend on GMarkerType and/or interaction mode.
+- Keep current functionality for 1D range markers.
+- Improve temporary visualization for 2D gate construction.
+
+Ideas:
+- Different drawing styles by marker type:
+    kPrimary      -> current crosshair
+    kCut          -> point/small cross
+    kProjection   -> line
+    kZoom         -> dashed line
+    kBackground   -> alternate color/style
+
+- Possibly add:
+    GMarker::UpdateStyle()
+    GMarker::PaintAsPoint()
+    GMarker::PaintAsCross()
+    GMarker::PaintAsLine()
+
+- While constructing polygon cuts:
+    - draw connecting polyline between markers
+    - avoid full-screen crosshair clutter
+
+- Consider:
+    marker rendering strategy depending on histogram dimension
+    and current interaction context.
+****************/
 
 
 
 
+TCutG* GMarker::MakeTCutG(TH1* h,GMarkerType type) {
+  if(!h || h->GetDimension() != 2) 
+    return nullptr;
+
+  auto markers = GMarker::Get(h,type);
+  std::vector<double> x;
+  std::vector<double> y;
+
+
+  if(markers.size() < 2) {
+    return nullptr;
+  } else if(markers.size()==2) {
+    double x1 = markers[0]->X();
+    double y1 = markers[0]->Y();
+    double x2 = markers[1]->X();
+    double y2 = markers[1]->Y();
+
+    if(x1 > x2) std::swap(x1, x2);
+    if(y1 > y2) std::swap(y1, y2);
+
+    //midpoints
+    const double xm = 0.5 * (x1 + x2);
+    const double ym = 0.5 * (y1 + y2);
+    x = {x1, xm, x2, x2, x2, xm, x1, x1, x1};
+    y = {y2, y2, y2, ym, y1, y1, y1, ym, y2};
+  } else { // more than 2
+    const int nMarkers = static_cast<int>(markers.size());
+
+    for(int i = 0; i < nMarkers; ++i) {
+      const int next = (i + 1) % nMarkers;
+      const double x1 = markers[i]->X();
+      const double y1 = markers[i]->Y();
+      const double x2 = markers[next]->X();
+      const double y2 = markers[next]->Y();
+
+      x.push_back(x1);
+      y.push_back(y1);
+
+      //midpoints
+      x.push_back(0.5 * (x1 + x2));
+      y.push_back(0.5 * (y1 + y2));
+    }
+    x.push_back(x.front());
+    y.push_back(y.front());
+  }
+  TCutG *cut = new TCutG("CUT",static_cast<int>(x.size()),x.data(),y.data());
+  cut->SetLineWidth(2);
+  cut->SetLineColor(2);
+  return cut;
+}
 
 
 

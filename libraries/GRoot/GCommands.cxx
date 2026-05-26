@@ -371,12 +371,16 @@ bool GRootInteractHistMouseButton(TH1* currentHist,GInteractionInfo &info) {
   switch(info.event) {
     case kButton1Down:       
       //if(GCanvas::GetCurrentEvent().fState & kKeyControlMask) {
-      if(GCanvas::GetCurrentEvent().fState && currentHist) {
+      //if(GCanvas::GetCurrentEvent().fState && currentHist) {
+      {
+        const bool ctrlPressed = GCanvas::GetCurrentEvent().fState & kKeyControlMask;
+
         GMarker *marker = new GMarker();
-        marker->AddTo(currentHist,info.x,info.y);
+        marker->SetType(GMarkerType::kPrimary);
+        marker->AddTo(currentHist,info.x,info.y,ctrlPressed);
         //gPad->Modified();
         info.modified = true;
-      } else {
+      //} else {
         //printf("button1\n");
       }
       break;
@@ -445,27 +449,12 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         //GMarker::RemoveAll(currentHist);
       } else if(currentHist->GetDimension()==2 && markers.size()>1) {
         static int gGateCounter = 0;
-        GMarker *m1 = markers.at(0);
-        GMarker *m2 = markers.at(1);
-        double x1 =m1->GetX();
-        double x2 =m2->GetX();
-        double y1 =m1->GetY();
-        double y2 =m2->GetY();
-        if(x1>x2) std::swap(x1,x2);
-        if(y2>y1) std::swap(y1,y2);
-        double xm = x1 + (x2-x1)/2;
-        double ym = y2 + (y1-y2)/2;
+        TCutG *cut = GMarker::MakeTCutG(currentHist);    
+        cut->SetName(Form("cut%i",gGateCounter++));
 
-                 // TL    TM        TR MR BR   BM         BL ML TL
-        double x[9] = {x1,xm,x2,x2,x2,xm,x1,x1,x1};
-        double y[9] = {y1,y1,y1,ym,y2,y2,y2,ym,y1};
-                //  TL TM TR MR           BR BM BL ML           TL
-        TCutG *cut = new TCutG(Form("cut%i",gGateCounter++),9,x,y);
-        cut->SetLineWidth(2);
-        cut->SetLineColor(kRed);
         currentHist->GetListOfFunctions()->Add(cut);
         GMarker::RemoveAll(currentHist);
-        //gPad->Modified();
+
         info.modified = true;
 
       }

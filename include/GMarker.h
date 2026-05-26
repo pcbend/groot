@@ -7,7 +7,7 @@
 #include <Gtypes.h>
 
 class TH1;
-
+class TCutG;
 
 enum class GMarkerType {
   kAll =0,
@@ -26,7 +26,7 @@ class GMarker  : public TObject {
     GMarker();
     ~GMarker();  
 
-    void AddTo(TH1 *h, double x, double y=sqrt(-1),Option_t *opt="");
+    void AddTo(TH1 *h, double x, double y=sqrt(-1),bool ignoreMax=false,Option_t *opt="");
     void Remove();
 
     //void Update();
@@ -66,6 +66,8 @@ class GMarker  : public TObject {
 
     static int  GetMaxMarkers(GMarkerType type);
     static void SetMaxMarkers(GMarkerType type,int value);
+    
+    static TCutG* MakeTCutG(TH1* h,GMarkerType type=GMarkerType::kPrimary); 
 
   public:
     double X() const { return fX; }
