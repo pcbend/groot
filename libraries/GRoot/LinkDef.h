@@ -16,6 +16,9 @@
 #pragma link C++ function GrabFit;
 #pragma link C++ function GrabPlottable;
 
+#pragma link C++ function ResidualHist;
+#pragma link C++ function DrawResiduals;
+
 #pragma link C++ function ls;
 
 #pragma link C++ function SaveAllCuts;

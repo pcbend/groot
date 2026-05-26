@@ -28,6 +28,27 @@ class GEventTimer;
 class TH1;
 class TCanvas;
 class TPad;
+class TGLabel;
+
+
+class GInfoPanel : public TGGroupFrame {
+  public: 
+    GInfoPanel(const TGWindow *parent);
+    virtual ~GInfoPanel();
+
+    void Update();
+
+  private:
+    TGLabel *fObject;
+    TGLabel *fPosition;
+    TGLabel *fBin;
+    TGLabel *fCounts;
+    TGLabel *fMarker;
+    TGLabel *fMode;
+
+  ClassDefOverride(GInfoPanel,0)
+};
+
 
 
 
@@ -107,7 +128,8 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     //TGListTree        *fListTree;
     GListTreeCanvas    *fGListTreeCanvas;
     GListTree          *fGListTree;
-    
+  
+    GInfoPanel          *fInfoPanel;
     TGStatusBar        *fStatusBar;
 
   public:
@@ -135,11 +157,13 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
     void AddRootFile(TFile *file) { fGListTree->InsertObject(file); }
     //TList *GetAllActive();
 
+    void UpdateInfoPanel() { if(fInfoPanel) fInfoPanel->Update(); }
     TGStatusBar *GetStatusBar() { return fStatusBar; } 
 
   private:
     //TGMainFrame *fMainWindow;
     //TGVerticalFrame   *fVf;
+
 
     bool fDrawNew;
 

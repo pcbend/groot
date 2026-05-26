@@ -254,6 +254,45 @@ double GetChi2(TObject *obj,TF1 *f=0) {
 }
 
 
+TH1D  *ResidualHist(TH1* hist, TF1* fit) { 
+  if(!hist) return nullptr;
+  if(!fit)  fit = GrabFit();
+  if(!fit)  return nullptr;
+
+  double xlow, xhigh;
+  fit->GetRange(xlow, xhigh);
+
+  auto* res = new TH1D(
+    Form("%s_residuals", fit->GetName()),
+    "Residuals;X;Data-Fit",
+    hist->GetNbinsX(),
+    hist->GetXaxis()->GetXmin(),
+    hist->GetXaxis()->GetXmax()
+  );
+
+  res->SetDirectory(nullptr);
+
+  for(int i = 1; i <= hist->GetNbinsX(); ++i) {
+    const double x = hist->GetBinCenter(i);
+
+    if(x < xlow || x > xhigh)
+      continue;
+
+    const double data = hist->GetBinContent(i);
+    const double model = fit->Eval(x);
+    const double err = hist->GetBinError(i);
+
+    double r = data - model;
+    //if(normalized && err > 0)
+    //  r /= err;
+    res->SetBinContent(i, r);
+  }
+  return res;
+}
+
+void   DrawResiduals(TH1* hist, TF1* fit,bool normalized) { }
+
+
 GInteractionInfo BuildInteractionInfo()  {
   GInteractionInfo info;
   info.pad = gPad;

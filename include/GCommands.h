@@ -5,6 +5,7 @@ class TVirtualPad;
 class TObject;
 class TList;
 class TH1;
+class TH1D;
 class TF1;
 class TGraph;
 class GGaus;
@@ -32,6 +33,9 @@ struct GInteractionInfo {
 
 GPeak *PhotoPeakFit(TH1*,double,double,Option_t *opt="");
 GGaus *GausFit(TH1*,double,double,Option_t *opt="");
+
+TH1D  *ResidualHist(TH1* hist, TF1* fit=nullptr);
+void   DrawResiduals(TH1* hist, TF1* fit=nullptr,bool normalized=true);
 
 TH1   *GrabHist(int i=0);           //return the ith histogram from the current canvas.
 TList *GrabHists(TVirtualPad *p=0); //return all histograms on a canvas or pad. (default is the gPad);

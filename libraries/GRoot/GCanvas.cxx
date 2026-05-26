@@ -27,6 +27,7 @@
 
 #include<TROOT.h>
 
+
 int GCanvas::fCanvasNumber = 0;
 
 Event_t GCanvas::fCurrentEvent;
@@ -152,9 +153,8 @@ void GCanvas::EventProcessed(Event_t *event) {
     return;
   //switch(event->fCode) {
 
-  if(event->fType!=0) return; // only look for key down...
 
-  
+  if(event->fType!=0) return; // only look for key down...
 
   switch(keysym) {
     case kKey_Left:

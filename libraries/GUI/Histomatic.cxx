@@ -18,6 +18,7 @@
 #include <TStyle.h>
 #include <TPad.h>
 #include <TVirtualX.h>
+#include <TGLabel.h>
 
 //#include <GObjectManager.h>
 #include <GCanvas.h>
@@ -35,9 +36,71 @@ extern Histomatic *gHistomatic;
 
 ////////////////////
 
-ClassImp(Histomatic);
-
 Histomatic *Histomatic::fInstance = 0;
+
+////////////////////
+////////////////////
+
+GInfoPanel::GInfoPanel(const TGWindow* parent) 
+  : TGGroupFrame(parent,"i am a title!"),
+  fObject(0),fPosition(0),fBin(0),fCounts(0),fMarker(0),fMode(0) {
+
+  fObject   = new TGLabel(this, "Object:");
+  fPosition = new TGLabel(this, "Cursor:");
+  fBin      = new TGLabel(this, "Bin:");
+  fCounts   = new TGLabel(this, "Counts:");
+  fMarker   = new TGLabel(this, "Marker:");
+  fMode     = new TGLabel(this, "Mode:");
+
+  AddFrame(fObject,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+  AddFrame(fPosition, new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+  AddFrame(fBin,      new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+  AddFrame(fCounts,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+  AddFrame(fMarker,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+  AddFrame(fMode,     new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
+
+}
+
+GInfoPanel::~GInfoPanel() { }
+
+void GInfoPanel::Update() {
+  if(!gPad) return;
+
+  TObject *obj = GrabPlottable();
+  if(!obj) return;
+
+  fObject->SetText(Form("Object: %s", obj->GetName()));
+
+  double x = gPad->PadtoX(gPad->AbsPixeltoX(gPad->GetEventX()));
+  double y = gPad->PadtoY(gPad->AbsPixeltoY(gPad->GetEventY()));
+
+  if(auto* h = dynamic_cast<TH1*>(obj)) {
+    int bx = h->GetXaxis()->FindBin(x);
+
+    if(h->GetDimension() == 1) {
+      fPosition->SetText(Form("Cursor: x = %.3f", x));
+      fBin->SetText(Form("Bin: %d", bx));
+      fCounts->SetText(Form("Counts: %.3f", h->GetBinContent(bx)));
+    } else {
+      int by = h->GetYaxis()->FindBin(y);
+      fPosition->SetText(Form("Cursor: x = %.3f, y = %.3f", x, y));
+      fBin->SetText(Form("Bin: (%d, %d)", bx, by));
+      fCounts->SetText(Form("Counts: %.3f", h->GetBinContent(bx, by)));
+    }
+  }
+  //fMarker->SetText(Form("Marker: Primary max=%d",
+  //                      GMarker::GetMaxMarkers(GMarkerType::kPrimary)));
+
+  fMode->SetText("Mode: click=marker, Ctrl-click=ignore max");
+
+  Layout();
+
+}
+
+
+
+////////////////////
+////////////////////
 
 //Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),200,600) {   
 Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),350,780), fVf(0) {
@@ -110,6 +173,7 @@ Histomatic::~Histomatic() {
   delete fGListTree;
   delete fGListTreeCanvas;
 
+  delete fInfoPanel;
   //delete fStatusBar;
 
   delete fButtonRow1;
@@ -220,6 +284,8 @@ void Histomatic::CreateWindow() {
   fGListTreeCanvas = new GListTreeCanvas(fVf,10,10);
   fGListTree = new GListTree(fGListTreeCanvas); 
 
+  fInfoPanel = new GInfoPanel(fVf);
+
   fStatusBar = new TGStatusBar(fVf,100,50);
   fStatusBar->SetParts(4);
   {
@@ -232,6 +298,7 @@ void Histomatic::CreateWindow() {
   fVf->AddFrame(fButtonContainer,fLH0);
   fVf->AddFrame(fDrawOptionContainer,fLH0);
   fVf->AddFrame(fGListTreeCanvas,fLH1);
+  fVf->AddFrame(fInfoPanel,new TGLayoutHints(kLHintsExpandX,2,2,4,4));
   fVf->AddFrame(fStatusBar,fLH0);
 
 
