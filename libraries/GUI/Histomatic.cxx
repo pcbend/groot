@@ -59,6 +59,14 @@ GInfoPanel::GInfoPanel(const TGWindow* parent)
     //AddFrame(fMarker,   new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
     //AddFrame(fMode,     new TGLayoutHints(kLHintsExpandX, 4,4,2,2));
 
+ AddRow("Object",  "");
+  AddRow("Cursor",  "");
+  AddRow("Bin",     "");
+  AddRow("Counts",  "");
+  AddRow("Marker",  "");
+  AddRow("Mode",    "");
+
+
   }
 
 GInfoPanel::~GInfoPanel() { }
@@ -104,9 +112,6 @@ void GInfoPanel::Update(const GInteractionInfo &info) {
     SetRow("Mode", "click=marker, Ctrl-click=ignore max");
     return;
   }
-
-
-
   SetRow("Object", info.target->GetName());
   SetRow("Cursor", Form("x = %.3f", info.x));
   SetRow("Counts", Form("%.3f", info.counts));
