@@ -13,27 +13,22 @@
 ClassImp(GGaus)
 
 GGaus::GGaus(Double_t xlow,Double_t xhigh,Option_t *opt)
-  : TF1("gausbg","gaus(0)+pol1(3)",xlow,xhigh,TF1::EAddToList::kNo) { //,
+  : GF1("gausbg",GFunctions::GausBG,xlow,xhigh,5) { //,
     //fBGFit("background","pol1",xlow,xhigh,TF1::EAddToList::kNo)  {
   Clear("");
   if(xlow>xhigh)
     std::swap(xlow,xhigh);
 
   TF1::SetRange(xlow,xhigh);
-
-  //fBGFit.SetNpx(1000);
-  //fBGFit.SetLineStyle(2);
-  //fBGFit.SetLineColor(kBlack);
-
-  // Changing the name here causes an infinite loop when starting the FitEditor
-  //SetName(Form("gaus_%d_to_%d",(Int_t)(xlow),(Int_t)(xhigh)));
   InitNames();
-  //TF1::SetParameter("centroid",cent);
-
 }
 
+
+
+
+
 GGaus::GGaus(Double_t xlow,Double_t xhigh,TF1 *bg,Option_t *opt)
-      : TF1("gausbg","gaus(0)+pol1(3)",xlow,xhigh) {
+  : GF1("gausbg",GFunctions::GausBG,xlow,xhigh,5) { //,
   Clear("");
   if(xlow>xhigh)
     std::swap(xlow,xhigh);
@@ -56,7 +51,7 @@ GGaus::GGaus(Double_t xlow,Double_t xhigh,TF1 *bg,Option_t *opt)
 
 
 GGaus::GGaus()
-      : TF1("gausbg","gaus(0)+pol1(3)",0,1000) { //,
+  : GF1("gausbg",GFunctions::GausBG,0,10000,5) { //,
         //fBGFit("background","pol1",0,1000) {
 
   Clear();
@@ -67,7 +62,7 @@ GGaus::GGaus()
 }
 
 GGaus::GGaus(const GGaus &peak)
-  : TF1(peak) {
+  : GF1(peak) {
   peak.Copy(*this);
 }
 
@@ -105,14 +100,16 @@ void GGaus::Copy(TObject &obj) const {
   //printf("%s\n",obj.GetName());
   //fflush(stdout);
 
-  TF1::Copy(obj);
-  ((GGaus&)obj).init_flag = init_flag;
-  ((GGaus&)obj).fArea     = fArea;
-  ((GGaus&)obj).fDArea    = fDArea;
-  ((GGaus&)obj).fSum     = fSum;
-  ((GGaus&)obj).fDSum    = fDSum;
-  ((GGaus&)obj).fChi2     = fChi2;
-  ((GGaus&)obj).fNdf      = fNdf;
+  GF1::Copy(obj);
+
+  //TF1::Copy(obj);
+  //((GGaus&)obj).init_flag = init_flag;
+  //((GGaus&)obj).fArea     = fArea;
+  //((GGaus&)obj).fDArea    = fDArea;
+  //((GGaus&)obj).fSum     = fSum;
+  //((GGaus&)obj).fDSum    = fDSum;
+  //((GGaus&)obj).fChi2     = fChi2;
+  //((GGaus&)obj).fNdf      = fNdf;
 
   //fBGFit.Copy((((GGaus&)obj).fBGFit));
 }
@@ -281,19 +278,20 @@ Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
   //fithist->GetListOfFunctions()->Print();
 
 
-  fArea = this->Integral(xlow,xhigh) / fithist->GetBinWidth(1);
+  SetArea(this->Integral(xlow,xhigh) / fithist->GetBinWidth(1));
   double bgArea = fBGFit.Integral(xlow,xhigh) / fithist->GetBinWidth(1);;
-  fArea -= bgArea;
+  SetArea(GetArea()  - bgArea);
 
 
   if(xlow>xhigh)
     std::swap(xlow,xhigh);
-  fSum = fithist->Integral(fithist->GetXaxis()->FindBin(xlow),
-                           fithist->GetXaxis()->FindBin(xhigh)); //* fithist->GetBinWidth(1);
-  printf("sum between markers: %02f\n",fSum);
-  fDSum = TMath::Sqrt(fSum);
-  fSum -= bgArea;
-  printf("sum after subtraction: %02f\n",fSum);
+  SetSum(fithist->Integral(fithist->GetXaxis()->FindBin(xlow),
+                           fithist->GetXaxis()->FindBin(xhigh))); // 
+  printf("sum between markers: %02f\n",GetSum());
+  SetSumErr(TMath::Sqrt(GetSum()));
+  SetSum(GetSum() - bgArea);
+  printf("sum after subtraction: %02f\n",GetSum());
+  SetSumErr(TMath::Sqrt(GetSum()));
 
   if(!verbose && !noprint) {
     printf("hist: %s\n",fithist->GetName());
@@ -318,14 +316,14 @@ void GGaus::Clear(Option_t *opt){
   TString options = opt;
   //Clear the GGaus including functions and histogram
   if(options.Contains("all"))
-    TF1::Clear();
-  init_flag = false;
-  fArea  = 0.0;
-  fDArea = 0.0;
-  fSum   = 0.0;
-  fDSum  = 0.0;
-  fChi2  = 0.0;
-  fNdf   = 0.0;
+    GF1::Clear();
+  //init_flag = false;
+  //fArea  = 0.0;
+  //fDArea = 0.0;
+  //fSum   = 0.0;
+  //fDSum  = 0.0;
+  //fChi2  = 0.0;
+  //fNdf   = 0.0;
 }
 
 void GGaus::Print(Option_t *opt) const {
@@ -333,11 +331,11 @@ void GGaus::Print(Option_t *opt) const {
   printf(GREEN );
   printf("Name: %s \n", this->GetName());
   printf("Centroid:  %1f +/- %1f \n", this->GetParameter("centroid"),this->GetParError(GetParNumber("centroid")));
-  printf("Area:      %1f +/- %1f \n", fArea, fDArea);
-  printf("Sum:       %1f +/- %1f \n", fSum, fDSum);
+  printf("Area:      %1f +/- %1f \n", GetArea(), GetAreaErr());
+  printf("Sum:       %1f +/- %1f \n", GetSum(), GetSumErr());
   printf("FWHM:      %1f +/- %1f \n",this->GetFWHM(),this->GetFWHMErr());
   printf("Reso:      %1f%%  \n",this->GetFWHM()/this->GetParameter("centroid")*100.);
-  printf("Chi^2/NDF: %1f\n",fChi2/fNdf);
+  printf("Chi^2/NDF: %1f\n",GetChi2()/GetNdf());
   if(options.Contains("all")){
     TF1::Print(opt);
   }
@@ -350,7 +348,7 @@ void GGaus::DrawResiduals(TH1 *hist) const{
   if(hist){
     return;
   }
-  if(fChi2<0.000000001){
+  if(GetChi2()<0.000000001){
     printf("No fit performed\n");
     return;
   }

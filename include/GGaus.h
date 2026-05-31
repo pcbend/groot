@@ -1,14 +1,15 @@
 #ifndef GGAUS_H
 #define GGAUS_H
 
-#include <TF1.h>
+#include <GF1.h>
 
 #include <string>
 #include <algorithm>
 
-class GGaus : public TF1 {
+class GGaus : public GF1 {
   public:
     GGaus(Double_t xlow,Double_t xhigh,Option_t *opt="gsc");
+    GGaus(Double_t xlow1,Double_t xlow2,Double_t xhigh1,Double_t xhigh2,Option_t *opt="gsc");
     //GGaus(Double_t xlow,Double_t xhigh,int bg_order=1,Option_t *opt="gsc");  make this a thing.  pcb.
     GGaus(Double_t xlow,Double_t xhigh,TF1 *background,Option_t *opt="gsc");
     GGaus(const GGaus&);
@@ -30,10 +31,10 @@ class GGaus : public TF1 {
 
     Double_t GetCentroid() const     { return GetParameter("centroid"); }
     Double_t GetCentroidErr() const  { return GetParError(GetParNumber("centroid")); }
-    Double_t GetArea() const         { return fArea; }
-    Double_t GetAreaErr() const      { return fDArea; }
-    Double_t GetSum() const          { return fSum; }
-    Double_t GetSumErr() const       { return fDSum; }
+    //Double_t GetArea() const         { return fArea; }
+    //Double_t GetAreaErr() const      { return fDArea; }
+    //Double_t GetSum() const          { return fSum; }
+    //Double_t GetSumErr() const       { return fDSum; }
     Double_t GetFWHM() const         { return GetParameter("sigma")*2.3548;}
     Double_t GetFWHMErr() const      { return GetParError(GetParNumber("sigma"))*2.3548;}
     //Double_t GetIntegralArea();
@@ -42,13 +43,13 @@ class GGaus : public TF1 {
     //Double_t GetIntegralAreaErr(Double_t int_low, Double_t int_high);
 
   protected:
-    void SetArea(Double_t a) { fArea = a; }
-    void SetAreaErr(Double_t d_a) { fDArea = d_a; }
-    void SetSum(Double_t a)       { fSum = a; }
-    void SetSumErr(Double_t d_a)  { fDSum = d_a; }
-    void SetArea(Double_t a, Double_t dA) { SetArea(a); SetAreaErr(dA);}
-    void SetChi2(Double_t chi2)   { fChi2 = chi2; }
-    void SetNdf(Double_t Ndf)     { fNdf  = Ndf; }
+    //void SetArea(Double_t a) { fArea = a; }
+    //void SetAreaErr(Double_t d_a) { fDArea = d_a; }
+    //void SetSum(Double_t a)       { fSum = a; }
+    //void SetSumErr(Double_t d_a)  { fDSum = d_a; }
+    //void SetArea(Double_t a, Double_t dA) { SetArea(a); SetAreaErr(dA);}
+    //void SetChi2(Double_t chi2)   { fChi2 = chi2; }
+    //void SetNdf(Double_t Ndf)     { fNdf  = Ndf; }
   
   public: 
     //void CheckArea();
@@ -59,22 +60,10 @@ class GGaus : public TF1 {
 
 
   private:
-    double fArea;
-    double fDArea;
-    double fChi2;
-    double fNdf;
+    //Bool_t IsInitialized() const { return init_flag; }
+    //void SetInitialized(Bool_t flag = true) {init_flag = flag;}
 
-    double fSum;
-    double fDSum;
-
-    Bool_t IsInitialized() const { return init_flag; }
-    void SetInitialized(Bool_t flag = true) {init_flag = flag;}
-    bool init_flag;
-
-    //TF1 fBGFit;
-    //TF1 fBGHist;
-
-  ClassDef(GGaus,2)
+  ClassDef(GGaus,4)
 };
 
 

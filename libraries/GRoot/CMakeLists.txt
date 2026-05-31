@@ -7,6 +7,7 @@ add_library(GROOTLIB SHARED
   GMarker.cxx 
   GH1D.cxx 
   GH2D.cxx 
+  GF1.cxx
   GGaus.cxx 
   GPeak.cxx 
   GPeak2.cxx 
@@ -26,6 +27,7 @@ root_generate_dictionary(G__GROOTLIB
   GMarker.h 
   GH1D.h 
   GH2D.h 
+  GF1.h
   GGaus.h 
   GPeak.h 
   GPeak2.h 

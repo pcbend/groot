@@ -16,6 +16,7 @@ namespace GFunctions {
   Double_t PhotoPeakBG(Double_t *dim, Double_t *par);
   Double_t PhotoPeakBGExcludeRegion(Double_t *dim,Double_t *par);
   Double_t Gaus(Double_t *dim, Double_t *par);
+  Double_t GausBG(Double_t *dim, Double_t *par);
   Double_t DoubleGaus(Double_t *dim, Double_t *par);
   Double_t SkewedGaus(Double_t *dim, Double_t *par);
   Double_t Efficiency(Double_t *dim, Double_t *par);

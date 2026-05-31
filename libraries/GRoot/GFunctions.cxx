@@ -88,6 +88,16 @@ Double_t GFunctions::Gaus(Double_t *dim, Double_t *par) {
   return height*(1.0-R/100.0)*TMath::Gaus(x,cent,sigma);
 }
 
+Double_t GFunctions::GausBG(Double_t *x, Double_t *par) {
+  // - x[0]: channels to fit
+  // - par[0]: height of peak
+  // - par[1]: cent of peak
+  // - par[2]: sigma
+  // - par[3]: b; consant offset
+  // - par[4]: m; slope
+
+  return par[0]*TMath::Gaus(x[0],par[1],par[2])+par[3]+par[4]*x[0];
+}
 
 Double_t GFunctions::DoubleGaus(Double_t *dim, Double_t *par) {
   // - dim[0]: channels to fit
