@@ -58,8 +58,22 @@ target_link_libraries(groot PRIVATE
   GObjectManager
 )
 
+string(ASCII 27 Esc)
+set(RED     "${Esc}[31m")
+set(GREEN   "${Esc}[32m")
+set(YELLOW  "${Esc}[33m")
+set(BLUE    "${Esc}[34m")
+set(MAGENTA "${Esc}[35m")
+set(CYAN    "${Esc}[36m")
+set(RESET   "${Esc}[0m")
 
-
+add_custom_command(
+  TARGET groot
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
+  COMMAND ${CMAKE_COMMAND} -E echo "${CYAN} goot build successfully, ${YELLOW} woo hoo! ${RESET}"
+  COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
+)
 
 
 
