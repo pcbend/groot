@@ -293,6 +293,9 @@ Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
   printf("sum after subtraction: %02f\n",GetSum());
   SetSumErr(TMath::Sqrt(GetSum()));
 
+  SetChi2(GetChisquare());
+  SetNdf(GetNDF());
+
   if(!verbose && !noprint) {
     printf("hist: %s\n",fithist->GetName());
     Print();/*
@@ -313,17 +316,7 @@ Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
 
 
 void GGaus::Clear(Option_t *opt){
-  TString options = opt;
-  //Clear the GGaus including functions and histogram
-  if(options.Contains("all"))
-    GF1::Clear();
-  //init_flag = false;
-  //fArea  = 0.0;
-  //fDArea = 0.0;
-  //fSum   = 0.0;
-  //fDSum  = 0.0;
-  //fChi2  = 0.0;
-  //fNdf   = 0.0;
+  GF1::Clear(opt);
 }
 
 void GGaus::Print(Option_t *opt) const {

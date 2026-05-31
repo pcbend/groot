@@ -25,6 +25,8 @@ class GF1 : public TF1 {
     double GetNdf()     const { return fNdf;   }
 
     bool IsInitialized() const { return fInitialized; }
+  
+  protected:
     void SetInitialized(bool flag=true) { fInitialized = flag; }
 
     void SetArea(double a)       { fArea = a;   }
