@@ -32,6 +32,23 @@ inline std::vector<std::string> tokenizeString(std::string path,char delimiter='
 }
 
 
+inline void trim(std::string& line, const std::string & trimChars = " \f\n\r\t\v") {
+   //Removes the the string "trimCars" from the start or end of 'line'
+  if(line.length() == 0)
+    return;
+
+  std::size_t found = line.find_first_not_of(trimChars);
+  if(found != std::string::npos)
+    line = line.substr(found, line.length());
+
+  found = line.find_last_not_of(trimChars);
+  if(found != std::string::npos)
+    line = line.substr(0, found + 1);
+}
+
+
+
+
 #ifdef __LINUX__
 #include <unistd.h>
 inline std::string programPath(){

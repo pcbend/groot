@@ -16,14 +16,11 @@ class GGaus : public GF1 {
 
     void InitNames();
 
-    void Copy(TObject& obj) const override;
     void Clear(Option_t* opt = "") override;
     void Print(Option_t* opt = "") const override;
 
     bool InitParams(TH1* fithist = 0);
     bool Fit(TH1*,Option_t *opt="");
-    //void DrawResiduals(); // *MENU*
-    void DrawResiduals(TH1* hist) const;
 
     Double_t GetCentroid()    const { return GetParameter("centroid"); }
     Double_t GetCentroidErr() const { return GetParError(GetParNumber("centroid")); }

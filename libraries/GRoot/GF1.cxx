@@ -1,7 +1,8 @@
 
 #include <GF1.h>
-
 #include "globals.h"
+
+#include <TH1.h>
 
 ClassImp(GF1)
 
@@ -47,14 +48,17 @@ void GF1::Clear(Option_t* opt) {
 
   if(options.Contains("all"))
     TF1::Clear(opt);
+  fInitialized = false;
+  ClearResults();
+}
 
+void GF1::ClearResults() { 
   fArea  = 0.0;
   fDArea = 0.0;
   fSum   = 0.0;
   fDSum  = 0.0;
   fChi2  = 0.0;
   fNdf   = 0.0;
-  fInitialized = false;
 }
 
 void GF1::Print(Option_t* opt) const {
@@ -71,4 +75,37 @@ void GF1::Print(Option_t* opt) const {
   printf(RESET_COLOR);
   printf("\n");
 }
+
+
+void GF1::CalStatistics(TH1 *hist, TF1 *background, TFitResultPtr *results) {
+  if(!hist) return;
+
+  double xlow,xhigh;
+  GetRange(xlow,xhigh);
+  if(xlow>xhigh) std::swap(xlow,xhigh);
+
+  const double binwidth = hist->GetBinWidth(1);
+
+  double totalArea = Integral(xlow,xhigh) / binwidth; 
+  double bgArea    = 0.0;
+
+  if(background) 
+    bgArea = background->Integral(xlow,xhigh) / binwidth;
+
+  SetArea(totalArea - bgArea);
+
+  const int binLow  = hist->GetXaxis()->FindBin(xlow);
+  const int binHigh = hist->GetXaxis()->FindBin(xhigh);
+
+  const double rawSum = hist->Integral(binLow,binHigh);
+  SetSum(rawSum - bgArea);
+
+  SetSumErr(GetSum()>0 ? TMath::Sqrt(GetSum()) : 0.0);
+
+  SetChi2(GetChisquare());
+  SetNdf(GetNDF());
+}
+
+
+
 

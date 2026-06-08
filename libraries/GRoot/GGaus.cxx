@@ -94,25 +94,6 @@ void GGaus::InitNames(){
   TF1::SetParName(4,"bg_slope");
 }
 
-void GGaus::Copy(TObject &obj) const {
-  //printf("0x%08x\n",&obj);
-  //fflush(stdout);
-  //printf("%s\n",obj.GetName());
-  //fflush(stdout);
-
-  GF1::Copy(obj);
-
-  //TF1::Copy(obj);
-  //((GGaus&)obj).init_flag = init_flag;
-  //((GGaus&)obj).fArea     = fArea;
-  //((GGaus&)obj).fDArea    = fDArea;
-  //((GGaus&)obj).fSum     = fSum;
-  //((GGaus&)obj).fDSum    = fDSum;
-  //((GGaus&)obj).fChi2     = fChi2;
-  //((GGaus&)obj).fNdf      = fNdf;
-
-  //fBGFit.Copy((((GGaus&)obj).fBGFit));
-}
 
 bool GGaus::InitParams(TH1 *fithist){
   if(!fithist){
@@ -185,6 +166,7 @@ bool GGaus::InitParams(TH1 *fithist){
 Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
   if(!fithist)
     return false;
+  ClearResults();
   TString options = opt;
   if(!IsInitialized())
     InitParams(fithist);
@@ -277,7 +259,7 @@ Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
   fBGFit.SetParameters(bgpars);
   //fithist->GetListOfFunctions()->Print();
 
-
+/*
   SetArea(this->Integral(xlow,xhigh) / fithist->GetBinWidth(1));
   double bgArea = fBGFit.Integral(xlow,xhigh) / fithist->GetBinWidth(1);;
   SetArea(GetArea()  - bgArea);
@@ -295,6 +277,9 @@ Bool_t GGaus::Fit(TH1 *fithist,Option_t *opt) {
 
   SetChi2(GetChisquare());
   SetNdf(GetNDF());
+*/
+  //CalAreaAndSum(fithist,&fBGFit);
+  CalStatistics(fithist,&fBGFit,&fitres);
 
   if(!verbose && !noprint) {
     printf("hist: %s\n",fithist->GetName());
@@ -328,7 +313,7 @@ void GGaus::Print(Option_t *opt) const {
   printf("Sum:       %1f +/- %1f \n", GetSum(), GetSumErr());
   printf("FWHM:      %1f +/- %1f \n",this->GetFWHM(),this->GetFWHMErr());
   printf("Reso:      %1f%%  \n",this->GetFWHM()/this->GetParameter("centroid")*100.);
-  printf("Chi^2/NDF: %1f\n",GetChi2()/GetNdf());
+  printf("Chi^2/NDF: %1f\n",GetNdf()!=0?GetChi2()/GetNdf():0.0);
   if(options.Contains("all")){
     TF1::Print(opt);
   }
@@ -337,30 +322,3 @@ void GGaus::Print(Option_t *opt) const {
 }
 
 
-void GGaus::DrawResiduals(TH1 *hist) const{
-  if(hist){
-    return;
-  }
-  if(GetChi2()<0.000000001){
-    printf("No fit performed\n");
-    return;
-  }
-  Double_t xlow,xhigh;
-  GetRange(xlow,xhigh);
-  Int_t nbins = hist->GetXaxis()->GetNbins();
-  Double_t *res = new Double_t[nbins];
-  Double_t *bin = new Double_t[nbins];
-  Int_t points = 0;
-  for(int i =1;i<=nbins;i++) {
-    if(hist->GetBinCenter(i) <= xlow || hist->GetBinCenter(i) >= xhigh)
-      continue;
-    res[points] = (hist->GetBinContent(i) - this->Eval(hist->GetBinCenter(i)))+ this->GetParameter("Height")/2;
-    bin[points] = hist->GetBinCenter(i);
-    points++;
-  }
-  new GCanvas();
-  TGraph *residuals = new TGraph(points,bin,res);
-  residuals->Draw("*AC");
-  delete[] res;
-  delete[] bin;
-}

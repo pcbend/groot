@@ -3,6 +3,21 @@
 
 #include <TF1.h>
 
+class TFitResultPtr;
+
+struct GFitRange {
+  double fitLow   = 0.0;
+  double fitHigh  = 0.0;
+
+  double bgLeftLow   = 0.0;
+  double bgLeftHigh  = 0.0;
+  double bgRightLow  = 0.0;
+  double bgRightHigh = 0.0;
+
+  bool hasSidebands = false;
+
+};
+
 class GF1 : public TF1 {
   public:
     GF1();
@@ -15,6 +30,7 @@ class GF1 : public TF1 {
     void Copy(TObject &obj)      const override;
     void Print(Option_t *opt="")const override;
     void Clear(Option_t *opt="") override;
+    void ClearResults(); 
 
     double GetArea()    const { return fArea;  }
     double GetAreaErr() const { return fDArea; }
@@ -26,6 +42,9 @@ class GF1 : public TF1 {
 
     bool IsInitialized() const { return fInitialized; }
   
+    
+
+
   protected:
     void SetInitialized(bool flag=true) { fInitialized = flag; }
 
@@ -36,7 +55,10 @@ class GF1 : public TF1 {
     void SetChi2(double chi2)    { fChi2 = chi2;}
     void SetNdf(double ndf)      { fNdf = ndf;  }
 
+    void CalStatistics(TH1 *hist, TF1 *background=nullptr,TFitResultPtr *result=nullptr);
 
+
+    GFitRange fFitRange;
 
   private:
 
