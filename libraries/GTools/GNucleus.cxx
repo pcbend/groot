@@ -463,6 +463,8 @@ void GNucleus::WriteSourceFile(std::string outfilename){
 }
 
 bool GNucleus::LoadTransitionFile(){
+  return false;
+
   if(TransitionList.GetSize())
     return false;
   std::string filename;
