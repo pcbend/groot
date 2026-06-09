@@ -12,7 +12,6 @@
 
 #include "GTransition.h"
 
-#include "TObject.h"
 #include "TNamed.h"
 #include "TList.h"
 

@@ -45,16 +45,23 @@ class GTransition : public TObject {
       void Print(Option_t* opt = "") const;
 
       std::string PrintToString();
+      const std::string Parent()  const { return fParent; } 
+      const std::string Current() const { return fCurrent; } 
+
+
+
 
    private:
       double fEnergy;           //Energy of the transition
       double fEngUncertainty;   //Uncertainty in the energy of the transition
+
       double fIntensity;        //Intensity of the transition
       double fIntUncertainty;   //Uncertainty in the intensity
 
-/// \cond CLASSIMP
+      std::string fParent;
+      std::string fCurrent;
+
+
    ClassDef(GTransition,0) //Information about a TNucleus transition
-/// \endcond
 };
-/*! @} */
 #endif
