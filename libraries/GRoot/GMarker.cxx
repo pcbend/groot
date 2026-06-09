@@ -2,6 +2,7 @@
 #include<GMarker.h>
 
 #include<iostream>
+#include<cmath>
 
 #include<TH1.h>
 #include<TList.h>

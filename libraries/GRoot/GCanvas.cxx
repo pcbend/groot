@@ -4,6 +4,7 @@
 
 #include <string>
 #include <regex>
+#include <cmath>
 
 #include <globals.h>
 #include <GCommands.h>
