@@ -2,6 +2,7 @@
 #define __GH1D_H__
 
 #include<string>
+#include <cmath>
 
 #include<TH1.h>
 #include<TH2.h>

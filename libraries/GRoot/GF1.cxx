@@ -2,7 +2,6 @@
 #include <GF1.h>
 #include "globals.h"
 
-#include <cmath>
 
 #include <TH1.h>
 

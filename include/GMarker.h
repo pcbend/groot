@@ -3,6 +3,7 @@
 
 #include<TLine.h>
 #include<TQObject.h>
+#include <cmath>
 
 #include <Gtypes.h>
 

@@ -3,6 +3,7 @@
 
 #include<TH2D.h>
 #include<TObjArray.h>
+#include <cmath>
 
 class GH1D;
 
