@@ -6,6 +6,7 @@
 #include <TFitResultPtr.h>
 #include <TH1.h>
 
+#include<cmath>
 
 #include "globals.h"
 #include "GFunctions.h"
