@@ -14,6 +14,9 @@
 #include<TPad.h>
 #include<TString.h>
 
+#include<algorithm>
+#include<array>
+
 #include<GCanvas.h>
 #include<GGaus.h>
 #include<GPeak.h>
@@ -93,6 +96,37 @@ GGaus *GausFit(TH1 *hist,double xlow, double xhigh,Option_t *opt) {
   std::string options = requestedOptions;
   options.append("Q+");
   mypeak->Fit(hist,options.c_str());
+  //mypeak->Background()->Draw("SAME");
+  //TF1 *bg = new TF1(*mypeak->Background());
+  //hist->GetListOfFunctions()->Add(bg);
+
+  double chi2 = GetChi2(hist,mypeak);
+  if(requestedOptions.find("no-print") == std::string::npos)
+    printf("Cal chi2 = %.03f\n",chi2);
+
+  if(auto* ghist = dynamic_cast<GH1D*>(hist))
+    ghist->SetResidualFit(mypeak,xlow,xhigh);
+
+  return mypeak;
+}
+
+GDoubleGaus *DoubleGausFit(TH1 *hist,double x1, double x2,double x3, double x4,Option_t *opt) {
+  if(!hist)
+    return 0;
+
+  std::array<double,4> values = {x1,x2,x3,x4};
+  std::sort(values.begin(),values.end());
+
+  const double xlow  = values[0];
+  const double cent1 = values[1];
+  const double cent2 = values[2];
+  const double xhigh = values[3];
+
+  const std::string requestedOptions = opt ? opt : "";
+  GDoubleGaus *mypeak= new GDoubleGaus(cent1,cent2,xlow,xhigh);
+  std::string options = requestedOptions;
+  options.append("Q+");
+  mypeak->Fit(hist,cent1,cent2,options.c_str());
   //mypeak->Background()->Draw("SAME");
   //TF1 *bg = new TF1(*mypeak->Background());
   //hist->GetListOfFunctions()->Add(bg);
@@ -638,11 +672,25 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       }
       break;
     case kKey_g:
-      if(currentHist->GetDimension()==1 && markers.size()>1) {
-        GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X());
-        //gPad->Modified();
-        info.modified = true;
-        //GMarker::RemoveAll(currentHist);
+      if(currentHist->GetDimension()==1) {
+        auto fitMarkers = GMarker::Get(currentHist,GMarkerType::kFit);
+        bool didFit = false;
+        if(fitMarkers.size()==4) {
+          DoubleGausFit(currentHist,
+                        fitMarkers.at(0)->X(),
+                        fitMarkers.at(1)->X(),
+                        fitMarkers.at(2)->X(),
+                        fitMarkers.at(3)->X());
+          didFit = true;
+        } else if(markers.size()>1) {
+          GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X());
+          didFit = true;
+          //gPad->Modified();
+        }
+        if(didFit) {
+          GMarker::RemoveAll(currentHist);
+          info.modified = true;
+        }
       } else if(currentHist->GetDimension()==2) {
         static int gGateCounter = 0;
         TCutG *cut = GMarker::MakeTCutG(currentHist,GMarkerType::kCut);

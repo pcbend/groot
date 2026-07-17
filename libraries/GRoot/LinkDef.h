@@ -37,6 +37,7 @@
 
 #pragma link C++ class GF1+;
 #pragma link C++ class GGaus+;
+#pragma link C++ class GDoubleGaus+;
 #pragma link C++ class GPeak+;
 #pragma link C++ class GPeak2+;
 #pragma link C++ class GROI+;

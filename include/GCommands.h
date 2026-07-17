@@ -11,6 +11,7 @@ class TH1D;
 class TF1;
 class TGraph;
 class GGaus;
+class GDoubleGaus;
 class GPeak;
 
 typedef const char Option_t;
@@ -38,6 +39,7 @@ struct GInteractionInfo {
 
 GPeak *PhotoPeakFit(TH1*,double,double,Option_t *opt="");
 GGaus *GausFit(TH1*,double,double,Option_t *opt="");
+GDoubleGaus *DoubleGausFit(TH1*,double,double,double,double,Option_t *opt="");
 
 TH1D  *ResidualHist(TH1* hist, TF1* fit=nullptr);
 void   DrawResiduals(TH1* hist, TF1* fit=nullptr,bool normalized=true);
