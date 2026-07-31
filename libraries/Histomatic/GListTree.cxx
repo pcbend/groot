@@ -17,6 +17,8 @@
 #include <GObjectManager.h>
 
 #include <GGlobals.h>
+#include <TEnv.h>
+#include <TColor.h>
 
 #include <cstdlib>
 
@@ -66,7 +68,7 @@ ClassImp(GListTreeCanvas);
 
 GListTreeCanvas::GListTreeCanvas(const TGWindow *p, UInt_t w, UInt_t h, UInt_t options, Pixel_t back) : 
                   TGCanvas(p,w,h,options,back) {
- }
+}
 
 GListTreeCanvas::~GListTreeCanvas() { } 
 
@@ -76,10 +78,14 @@ bool GListTreeCanvas::HandleButton(Event_t *event) {
 
 ClassImp(GListTree);
 
+
 GListTree::GListTree(TGCanvas *parent) : 
   TGListTree(parent, kHorizontalFrame),fLastSelected(0) {
   fCanvas = parent;
 }
+
+
+
 
 GListTree::~GListTree() {
   //delete fListTree;

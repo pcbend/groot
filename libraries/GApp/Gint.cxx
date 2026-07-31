@@ -59,7 +59,8 @@ Gint::Gint(int argc, char **argv) : TRint("gint",0,0,0,0,true,false),
   fRootFilesOpened(0), fTabLock(false), fMainThreadId(std::this_thread::get_id())  {
 
   LoadOptions(argc,argv);
-  LoadStyle();
+  //LoadStyle();
+  gROOT->ForceStyle(); 
   SetPrompt("groot [%d] ");
 
 }
@@ -82,10 +83,13 @@ void Gint::Terminate(int status) {
 
 }
 
+/*
 void Gint::LoadStyle() {
   // Load the ROOT style file
   //gStyle->SetPalette(kVisibleSpectrum);
-  gStyle->SetPalette(gEnv->GetValue("Gint.Style",kVisibleSpectrum));
+  gStyle->SetPalette(gEnv->GetValue("Gint.Style.Palette",kVisibleSpectrum));
+  gStyle->SetNumberContours(gEnv->GetValue("Gint.Style.Contours",32));
+  
   gStyle->SetHistLineWidth(2);
   gStyle->SetHistFillStyle(0);
  
@@ -95,21 +99,40 @@ void Gint::LoadStyle() {
   gStyle->SetPadBorderMode(1);
   gStyle->SetPadBorderSize(5);
   //gStyle->SetPadColor(2);
-
-
-//canvas.SetBorderSize(6);
-//canvas.SetHighLightColor(kBlue); //or whatever color
-
-
+  //canvas.SetBorderSize(6);
+  //canvas.SetHighLightColor(kBlue); //or whatever color
   //Hists.Stats: "nemri"
   gStyle->SetOptStat(gEnv->GetValue("Hists.Stats","nemri"));
-
   //gEnv->Print();
 
+  std::string theme = gEnv->GetValue("Gint.Style.Theme","light");
+  if(theme.compare("dark")==0) {
+    
+    gEnv->SetValue("Gui.BackgroundColor", "#282828");
+    gEnv->SetValue("Gui.ForegroundColor", "#E8E8E8");
+    gEnv->SetValue("Gui.HighLightColor", "#3A3A3A");
+    gEnv->SetValue("Gui.SelectBackgroundColor", "#505050");
+    gEnv->SetValue("Gui.SelectForegroundColor", "white");
+    gEnv->SetValue("Gui.DocumentBackgroundColor", "#1F2020");
+    gEnv->SetValue("Gui.DocumentForegroundColor", "#E8E8E8");
+    gEnv->SetValue("Gui.TooltipBackgroundColor", "#3A3A3A");
+    gEnv->SetValue("Gui.TooltipForegroundColor", "white");
+
+
+    gStyle->SetCanvasColor(923);  // kGrey +3 
+    gStyle->SetPadColor(gEnv->GetValue("Gint.Style.PadColor",0));
+    gStyle->SetFrameFillColor(gEnv->GetValue("Gint.Style.FrameColor",0));
+
+    gStyle->SetTextColor(gEnv->GetValue("Gint.Style.TextColor",1));
+    gStyle->SetLabelColor(gEnv->GetValue("Gint.Style.LabelColor",1),"XYZ");
+    gStyle->SetTitleColor(gEnv->GetValue("Gint.Style.TitleColor",1),"XYZ");
+    gStyle->SetAxisColor(gEnv->GetValue("Gint.Style.AxisColor",1),"XYZ");
+  }
+  
 
   gROOT->ForceStyle();
 }
-
+*/
 
 void Gint::LoadOptions(int argc, char **argv) {
   //check the grutrc file for set preset optrions....

@@ -35,7 +35,7 @@ class Gint : public TRint {
     TH1D*     OpenTxt3File(const std::string& filname);
     bool        LoadCalibrationFile(const std::string& filname);
 
-    void      LoadStyle();    
+    //void      LoadStyle();    
 
   private:
 

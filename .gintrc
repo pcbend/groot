@@ -1,6 +1,26 @@
 Unix.*.Root.MacroPath: .:$(GSYS)/util:$(ROOTSYS)/macros
 
-#default MakeHistos library
+
+# ROOT GUI widgets: menu bar, toolbar, status bar
+#Gui.BackgroundColor:          #282828
+#Gui.ForegroundColor:          #E8E8E8
+
+
+# Menu selections and highlighted widgets
+#Gui.HighLightColor:         3A3A3A
+
+#Gui.SelectBackgroundColor:  #505050
+#Gui.SelectForegroundColor:  white
+
+# Text-entry areas, lists, and similar widgets
+#Gui.DocumentBackgroundColor:  #1F2020
+#Gui.DocumentForegroundColor:  #E8E8E8
+
+# Tooltips
+#Gui.TooltipBackgroundColor: #3A3A3A
+#Gui.TooltipForegroundColor: white
+
+
 
 #files to load at log in:
 #Rint.Logon: $(GSYS)/.gint_logon
@@ -13,7 +33,21 @@ Rint.BadBracketColor: bold red underlined
 Rint.TabComColor: magenta
 
 #see https://root.cern.ch/doc/master/classTColor.html for color numbers
-Gint.Style: 107 #kVisibleSpectrum
+Gint.Style.Palette: 107 #kVisibleSpectrum
+Gint.Style.Contours: 255
+
+Gint.Style.Theme: dark
+
+#Gint.Style.CanvasColor: 923 #1 #kGrey + 3 
+#Gint.Style.PadColor:    923 #1 #kGrey + 3 
+#Gint.Style.FrameColor:  923 #1 #kGrey + 3 
+
+#Gint.Style.TextColor:   0 #kWhite
+#Gint.Style.LabelColor:  0 #kWhite
+#Gint.Style.TitleColor:  0 #kWhite
+#Gint.Style.AxisColor:   0 #kWhite
+
+
 
 #default root variables form the grsi enviorment
 Canvas.MoveOpaque: false
@@ -77,8 +111,6 @@ Hists.Stats: "neiou"
 Root.Fitter: Fumili2
 #Root.Fitter: Minuit
 
-#Gui.Backend: qt
-#Gui.Factory: qt
 Gui.IconPath:      $(GSYS)/icons:$(ROOTSYS)/icons
 #$(ROOTSYS)/etc/root.mimes
 Gui.MimeTypeFile:  $(GSYS)/.gint.mimes

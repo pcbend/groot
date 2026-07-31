@@ -33,6 +33,8 @@
 
 #include <GListTree.h>
 
+#include <TEnv.h>
+
 extern Histomatic *gHistomatic;
 
 ////////////////////
@@ -299,6 +301,11 @@ void Histomatic::CreateWindow() {
      void *receiver, c
      onst char *slot) */
 
+  const char* bgStr = gEnv->GetValue("Gui.DocumentBackgroundColor", "white");
+  const char* fgStr = gEnv->GetValue("Gui.DocumentForegroundColor", "black");
+
+  Pixel_t canvasBG = TColor::Number2Pixel(TColor::GetColor(bgStr));
+  Pixel_t canvasFG = TColor::Number2Pixel(TColor::GetColor(fgStr));
 
 
   fDrawOptionContainer->AddFrame(fDrawComboBox,fLH1);
@@ -307,7 +314,14 @@ void Histomatic::CreateWindow() {
   fDrawOptionContainer->AddFrame(fLockPads,fLH0);
 
   fGListTreeCanvas = new GListTreeCanvas(fVf,10,10);
+  
   fGListTree = new GListTree(fGListTreeCanvas); 
+  fGListTree->SetBackgroundColor(canvasBG);
+  fGListTree->SetForegroundColor(canvasFG);
+
+  //fGListTree->SetContainer(fGListTree);
+  fGListTreeCanvas->GetViewPort()->SetBackgroundColor(canvasBG);
+
 
   fInfoPanel = new GInfoPanel(fVf);
 
