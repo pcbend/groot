@@ -113,7 +113,7 @@ void Gint::LoadStyle() {
     gEnv->SetValue("Gui.HighLightColor", "#3A3A3A");
     gEnv->SetValue("Gui.SelectBackgroundColor", "#505050");
     gEnv->SetValue("Gui.SelectForegroundColor", "white");
-    gEnv->SetValue("Gui.DocumentBackgroundColor", "#1F2020");
+    gEnv->SetValue("Gui.DocumentBackgroundColor", "#202124");
     gEnv->SetValue("Gui.DocumentForegroundColor", "#E8E8E8");
     gEnv->SetValue("Gui.TooltipBackgroundColor", "#3A3A3A");
     gEnv->SetValue("Gui.TooltipForegroundColor", "white");

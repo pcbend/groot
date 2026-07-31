@@ -78,7 +78,7 @@ void loadStyle() {
     gEnv->SetValue("Gui.HighLightColor", "#202124");
 
     //Zone 3 -> file tree panel
-    gEnv->SetValue("Gui.DocumentBackgroundColor", "#171717");
+    gEnv->SetValue("Gui.DocumentBackgroundColor", "#202124");
     gEnv->SetValue("Gui.DocumentForegroundColor", "#FFFFFF");
     
     gEnv->SetValue("Gui.SelectBackgroundColor", "#4A4D51");
@@ -86,7 +86,7 @@ void loadStyle() {
 
     //tooltips.
     gEnv->SetValue("Gui.TooltipBackgroundColor", "#35363A");
-    gEnv->SetValue("Gui.TooltipForegroundColor", "E8EAED");
+    gEnv->SetValue("Gui.TooltipForegroundColor", "#E8EAED");
 
 
 
@@ -104,5 +104,3 @@ void loadStyle() {
   //gROOT->ForceStyle();
 
 }
-
-

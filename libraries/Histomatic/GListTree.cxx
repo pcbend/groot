@@ -19,8 +19,11 @@
 #include <GGlobals.h>
 #include <TEnv.h>
 #include <TColor.h>
+#include <TGFrame.h>
+#include <TVirtualX.h>
 
 #include <cstdlib>
+#include <cstring>
 
 // want to remove....
 #include <Histomatic.h>
@@ -62,6 +65,30 @@ const TGPicture *GetIconPicture(const char *basename) {
   return nullptr;
 }
 
+Pixel_t GetPixelFromEnv(const char *key, const char *fallback) {
+  const char *value = gEnv->GetValue(key, fallback);
+  if(!value || !*value) {
+    value = fallback;
+  }
+
+  if(!strcmp(value, "black")) {
+    return TGFrame::GetBlackPixel();
+  }
+  if(!strcmp(value, "white")) {
+    return TGFrame::GetWhitePixel();
+  }
+
+  Color_t color = value[0] == '#' ? TColor::GetColor(value)
+                                  : TColor::GetColorByName(value);
+  if(color < 0) {
+    color = fallback && fallback[0] == '#'
+          ? TColor::GetColor(fallback)
+          : TColor::GetColorByName(fallback);
+  }
+
+  return color >= 0 ? TColor::Number2Pixel(color) : TGFrame::GetBlackPixel();
+}
+
 } // namespace
 
 ClassImp(GListTreeCanvas);
@@ -79,9 +106,16 @@ bool GListTreeCanvas::HandleButton(Event_t *event) {
 ClassImp(GListTree);
 
 
-GListTree::GListTree(TGCanvas *parent) : 
-  TGListTree(parent, kHorizontalFrame),fLastSelected(0) {
-  fCanvas = parent;
+GListTree::GListTree(TGCanvas *parent) :
+  TGListTree(parent, kHorizontalFrame),
+  fCanvas(parent),
+  fThemeForeground(0),
+  fThemeBackground(0),
+  fThemeSelectedForeground(0),
+  fThemeSelectedBackground(0),
+  fThemeLineForeground(0),
+  fLastSelected(0) {
+  ApplyThemeColors();
 }
 
 
@@ -89,6 +123,45 @@ GListTree::GListTree(TGCanvas *parent) :
 
 GListTree::~GListTree() {
   //delete fListTree;
+}
+
+void GListTree::RestoreThemeGCColors() {
+  gVirtualX->SetForeground(fDrawGC, fThemeForeground);
+  gVirtualX->SetForeground(fHighlightGC, fThemeBackground);
+  gVirtualX->SetForeground(fActiveGC, fThemeSelectedForeground);
+  gVirtualX->SetForeground(fLineGC, fThemeLineForeground);
+}
+
+void GListTree::ApplyThemeColors() {
+  fThemeBackground = GetPixelFromEnv("Gui.DocumentBackgroundColor", "white");
+  fThemeForeground = GetPixelFromEnv("Gui.DocumentForegroundColor", "black");
+  fThemeSelectedBackground = GetPixelFromEnv("Gui.SelectBackgroundColor", "#86abd9");
+  fThemeSelectedForeground = GetPixelFromEnv("Gui.SelectForegroundColor", "white");
+  fThemeLineForeground = GetPixelFromEnv("Gui.DocumentLineColor", "#777777");
+
+  SetBackgroundColor(fThemeBackground);
+  if(fCanvas) {
+    fCanvas->SetBackgroundColor(fThemeBackground);
+    fCanvas->GetViewPort()->SetBackgroundColor(fThemeBackground);
+  }
+
+  RestoreThemeGCColors();
+}
+
+void GListTree::DrawRegion(Int_t x, Int_t y, UInt_t w, UInt_t h) {
+  RestoreThemeGCColors();
+  TGListTree::DrawRegion(x, y, w, h);
+  RestoreThemeGCColors();
+}
+
+void GListTree::DrawOutline(Handle_t id, TGListTreeItem *item, Pixel_t col, Bool_t clear) {
+  TGListTree::DrawOutline(id, item, col, clear);
+  ApplyThemeColors();
+}
+
+void GListTree::DrawActive(Handle_t id, TGListTreeItem *item) {
+  TGListTree::DrawActive(id, item);
+  ApplyThemeColors();
 }
 
 ///

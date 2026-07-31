@@ -23,6 +23,7 @@
 #include<exception>
 #include<iostream>
 #include<map>
+#include<vector>
 
 //class Histomatic;
 class GEventTimer;
@@ -39,6 +40,7 @@ class GInfoPanel : public TGGroupFrame {
 
     void Update(const GInteractionInfo& info);
 
+    void ApplyThemeColors();
     void AddRow(const std::string &key, const std::string &value);
     void SetRow(const std::string &key, const std::string &value);
 
@@ -50,6 +52,7 @@ class GInfoPanel : public TGGroupFrame {
     //TGLabel *fMarker;
     //TGLabel *fMode;
     std::map<std::string, TGLabel*> fRows;
+    std::vector<TGLabel*> fLabels;
     
 
   ClassDefOverride(GInfoPanel,0)
@@ -75,6 +78,8 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
 
     void buttonAction();
     void SetStatusText(std::string text, int col) { fStatusBar->SetText(text.c_str(),col); }
+    void ApplyThemeColors();
+    Bool_t HandleConfigureNotify(Event_t *event) override;
 
   //private:
     void doUpdate() const;
@@ -137,6 +142,7 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
   
     GInfoPanel          *fInfoPanel;
     TGStatusBar        *fStatusBar;
+    bool                fThemeTextGCsInitialized;
 
   public:
     enum EDrawOption {
@@ -183,6 +189,4 @@ class Histomatic : public TGMainFrame { //: public TQObject { //: public TGMainF
 
 
 #endif
-
-
 

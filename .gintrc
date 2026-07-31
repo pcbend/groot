@@ -13,7 +13,7 @@ Unix.*.Root.MacroPath: .:$(GSYS)/util:$(ROOTSYS)/macros
 #Gui.SelectForegroundColor:  white
 
 # Text-entry areas, lists, and similar widgets
-#Gui.DocumentBackgroundColor:  #1F2020
+#Gui.DocumentBackgroundColor:  #202124
 #Gui.DocumentForegroundColor:  #E8E8E8
 
 # Tooltips

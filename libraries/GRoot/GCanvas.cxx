@@ -25,10 +25,16 @@
 #include <TAxis.h>
 
 #include <TContextMenu.h>
+#include <TColor.h>
+#include <TEnv.h>
+#include <TGFrame.h>
 #include <TRootCanvas.h>
+#include <TGMenu.h>
+#include <TGStatusBar.h>
 #include <TVirtualX.h>
 
 #include<TROOT.h>
+#include <cstring>
 
 
 int GCanvas::fCanvasNumber = 0;
@@ -50,6 +56,82 @@ void ApplyRequestedCurrentPad(TVirtualPad* requestedPad) {
     canvas->SetSelectedPad(selectedPad);
 }
 
+Pixel_t GetPixelFromEnv(const char *key, const char *fallback) {
+  const char *value = gEnv->GetValue(key, fallback);
+  if(!value || !*value) {
+    value = fallback;
+  }
+
+  if(!strcmp(value, "black")) {
+    return TGFrame::GetBlackPixel();
+  }
+  if(!strcmp(value, "white")) {
+    return TGFrame::GetWhitePixel();
+  }
+
+  Color_t color = value[0] == '#' ? TColor::GetColor(value)
+                                  : TColor::GetColorByName(value);
+  if(color < 0) {
+    color = fallback && fallback[0] == '#'
+          ? TColor::GetColor(fallback)
+          : TColor::GetColorByName(fallback);
+  }
+
+  return color >= 0 ? TColor::Number2Pixel(color) : TGFrame::GetBlackPixel();
+}
+
+void ApplyRootCanvasTheme(TCanvas *canvas) {
+  if(!canvas) {
+    return;
+  }
+
+  auto *rootCanvas = dynamic_cast<TRootCanvas*>(canvas->GetCanvasImp());
+  if(!rootCanvas) {
+    return;
+  }
+
+  const Pixel_t background = GetPixelFromEnv("Gui.BackgroundColor", "#e0e0e0");
+  const Pixel_t foreground = GetPixelFromEnv("Gui.ForegroundColor", "black");
+
+  if(auto *menuBar = rootCanvas->GetMenuBar()) {
+    menuBar->SetBackgroundColor(background);
+    TIter next(menuBar->GetTitles());
+    while(auto *obj = next()) {
+      auto *title = dynamic_cast<TGMenuTitle*>(obj);
+      if(!title) {
+        continue;
+      }
+      title->SetBackgroundColor(background);
+      title->SetTextColor(foreground);
+      gClient->NeedRedraw(title);
+    }
+    gClient->NeedRedraw(menuBar);
+  }
+
+  if(auto *statusBar = rootCanvas->GetStatusBar()) {
+    statusBar->SetBackgroundColor(background);
+    statusBar->SetForegroundColor(foreground);
+  }
+}
+
+void DisconnectCanvasEvents(GCanvas *canvas) {
+  if(!canvas) {
+    return;
+  }
+
+  TQObject::Disconnect("TGClient", "ProcessedEvent(Event_t *,Window_t)", canvas,
+                       "EventProcessed(Event_t*)");
+  TQObject::Disconnect("TGClient", "ProcessedEvent(Event_t*)", canvas,
+                       "EventProcessed(Event_t*)");
+
+  auto *imp = canvas->GetCanvasImp();
+  if(imp && imp->IsA() == TRootCanvas::Class()) {
+    static_cast<TRootCanvas*>(imp)->Disconnect("ProcessedEvent(Event_t*)",
+                                               canvas,
+                                               "EventProcessed(Event_t*)");
+  }
+}
+
 }
 
 GCanvas::GCanvas(bool build) : 
@@ -67,17 +149,14 @@ GCanvas::GCanvas(const char* name, const char* title,int form) :
 GCanvas::GCanvas(const char* name, int ww, int wh, int winid) :
   TCanvas(name,ww,wh,winid) { Init(name); }
 
-GCanvas::~GCanvas() { }
+GCanvas::~GCanvas() {
+  DisconnectCanvasEvents(this);
+}
   
 
 
 void GCanvas::Close(Option_t *opt) {
-  //gClient->Disconnect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
-  //GetCanvasImp()->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
-  //                           this,"EventProcessed(Event_t*)");
-  if(GetCanvasImp()->IsA() == TRootCanvas::Class())
-    static_cast<TRootCanvas*>(GetCanvasImp())->Disconnect(this,"ProcessedEvent(Event_t *,Window_t)",
-                                                          this,"EventProcessed(Event_t*)");
+  DisconnectCanvasEvents(this);
   TCanvas::Close(opt);
 }
 
@@ -94,6 +173,7 @@ void GCanvas::Init(const char* name, const char* title) {
   if(!stitle.length()) this->SetTitle(temp.c_str());
 
   this->AddExec("groot_interact","GRootInteract()");
+  ApplyRootCanvasTheme(this);
 
 
   gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
@@ -150,6 +230,15 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\ty      = 0x%08x\n",event->fY);
   printf("\n");
   */
+
+  if(!event) {
+    return;
+  }
+
+  auto *imp = GetCanvasImp();
+  if(!imp) {
+    return;
+  }
 
   fCurrentEvent = *event;
 

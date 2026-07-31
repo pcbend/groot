@@ -19,6 +19,8 @@
 #include <TPad.h>
 #include <TVirtualX.h>
 #include <TGLabel.h>
+#include <TColor.h>
+#include <TGFrame.h>
 
 //#include <GObjectManager.h>
 #include <GObjectManager.h>
@@ -34,10 +36,39 @@
 #include <GListTree.h>
 
 #include <TEnv.h>
+#include <cstring>
 
 extern Histomatic *gHistomatic;
 
 ////////////////////
+
+namespace {
+
+Pixel_t GetPixelFromEnv(const char *key, const char *fallback) {
+  const char *value = gEnv->GetValue(key, fallback);
+  if(!value || !*value) {
+    value = fallback;
+  }
+
+  if(!strcmp(value, "black")) {
+    return TGFrame::GetBlackPixel();
+  }
+  if(!strcmp(value, "white")) {
+    return TGFrame::GetWhitePixel();
+  }
+
+  Color_t color = value[0] == '#' ? TColor::GetColor(value)
+                                  : TColor::GetColorByName(value);
+  if(color < 0) {
+    color = fallback && fallback[0] == '#'
+          ? TColor::GetColor(fallback)
+          : TColor::GetColorByName(fallback);
+  }
+
+  return color >= 0 ? TColor::Number2Pixel(color) : TGFrame::GetBlackPixel();
+}
+
+} // namespace
 
 Histomatic *Histomatic::fInstance = 0;
 
@@ -74,6 +105,21 @@ GInfoPanel::GInfoPanel(const TGWindow* parent)
 
 GInfoPanel::~GInfoPanel() { }
 
+void GInfoPanel::ApplyThemeColors() {
+  const Pixel_t background = GetPixelFromEnv("Gui.BackgroundColor", "#e0e0e0");
+  const Pixel_t foreground = GetPixelFromEnv("Gui.ForegroundColor", "black");
+
+  SetBackgroundColor(background);
+  SetTextColor(foreground);
+  for(auto *label : fLabels) {
+    if(!label) {
+      continue;
+    }
+    label->SetBackgroundColor(background);
+    label->SetForegroundColor(foreground);
+  }
+}
+
 void GInfoPanel::AddRow(const std::string &key, const std::string &value) {
   auto* row = new TGHorizontalFrame(this);
 
@@ -89,6 +135,9 @@ void GInfoPanel::AddRow(const std::string &key, const std::string &value) {
   AddFrame(row, new TGLayoutHints(kLHintsExpandX));
 
   fRows[key] = valLabel;
+  fLabels.push_back(keyLabel);
+  fLabels.push_back(valLabel);
+  ApplyThemeColors();
   return;
 }
 
@@ -102,6 +151,7 @@ void GInfoPanel::SetRow(const std::string &key, const std::string &value) {
     it->second->SetText(value.c_str());
   }
 
+  ApplyThemeColors();
   Layout();
 }
 
@@ -130,7 +180,9 @@ void GInfoPanel::Update(const GInteractionInfo &info) {
 ////////////////////
 
 //Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),200,600) {   
-Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),350,780), fVf(0) {
+Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),350,780),
+                           fVf(0),
+                           fThemeTextGCsInitialized(false) {
 
   int width  = 350;
   int height = 780;
@@ -148,6 +200,73 @@ Histomatic::Histomatic() : TGMainFrame(gClient->GetRoot(),350,780), fVf(0) {
   fEventTimer->Start();
 
   //this->Move(dw-width*1.1,50);
+}
+
+void Histomatic::ApplyThemeColors() {
+  const Pixel_t background = GetPixelFromEnv("Gui.BackgroundColor", "#e0e0e0");
+  const Pixel_t foreground = GetPixelFromEnv("Gui.ForegroundColor", "black");
+  const Pixel_t documentBackground = GetPixelFromEnv("Gui.DocumentBackgroundColor", "white");
+
+  std::vector<TGFrame*> frames = {
+    fVf,
+    fButtonContainer,
+    fButtonRow1,
+    fButtonRow2,
+    fDrawOptionContainer
+  };
+  for(auto *frame : frames) {
+    if(frame) {
+      frame->SetBackgroundColor(background);
+    }
+  }
+
+  std::vector<TGTextButton*> buttons = {
+    fButton1,
+    fButton2,
+    fButton3,
+    fButton4,
+    fButton5,
+    fButton6,
+    fButton7,
+    fButton8,
+    fDrawNormalized,
+    fDrawColz,
+    fLockPads
+  };
+  for(auto *button : buttons) {
+    if(!button) {
+      continue;
+    }
+    button->SetBackgroundColor(background);
+    if(!fThemeTextGCsInitialized) {
+      button->SetTextColor(foreground);
+    } else {
+      gVirtualX->SetForeground(button->GetNormGC(), foreground);
+      gClient->NeedRedraw(button);
+    }
+  }
+  fThemeTextGCsInitialized = true;
+
+  if(fGListTree) {
+    fGListTree->ApplyThemeColors();
+  }
+  if(fGListTreeCanvas) {
+    fGListTreeCanvas->SetBackgroundColor(documentBackground);
+    fGListTreeCanvas->GetViewPort()->SetBackgroundColor(documentBackground);
+  }
+  if(fInfoPanel) {
+    fInfoPanel->ApplyThemeColors();
+  }
+  if(fStatusBar) {
+    fStatusBar->SetBackgroundColor(background);
+    fStatusBar->SetForegroundColor(foreground);
+  }
+}
+
+Bool_t Histomatic::HandleConfigureNotify(Event_t *event) {
+  Bool_t handled = TGMainFrame::HandleConfigureNotify(event);
+  ApplyThemeColors();
+  return handled;
 }
 
 Histomatic *Histomatic::Get() {
@@ -301,11 +420,8 @@ void Histomatic::CreateWindow() {
      void *receiver, c
      onst char *slot) */
 
-  const char* bgStr = gEnv->GetValue("Gui.DocumentBackgroundColor", "white");
-  const char* fgStr = gEnv->GetValue("Gui.DocumentForegroundColor", "black");
-
-  Pixel_t canvasBG = TColor::Number2Pixel(TColor::GetColor(bgStr));
-  Pixel_t canvasFG = TColor::Number2Pixel(TColor::GetColor(fgStr));
+  Pixel_t canvasBG = GetPixelFromEnv("Gui.DocumentBackgroundColor", "white");
+  Pixel_t canvasFG = GetPixelFromEnv("Gui.DocumentForegroundColor", "black");
 
 
   fDrawOptionContainer->AddFrame(fDrawComboBox,fLH1);
@@ -330,8 +446,6 @@ void Histomatic::CreateWindow() {
   {
     //fStatusBar->SetText("I AM A STATUS BAR");
     SetStatusText("some junk",0);
-    fStatusBar->SetBackgroundColor(fStatusBar->GetBlackPixel());
-    fStatusBar->SetForegroundColor(fStatusBar->GetWhitePixel());
   }
 
   fVf->AddFrame(fButtonContainer,fLH0);
@@ -340,6 +454,7 @@ void Histomatic::CreateWindow() {
   fVf->AddFrame(fInfoPanel,new TGLayoutHints(kLHintsExpandX,2,2,4,4));
   fVf->AddFrame(fStatusBar,fLH0);
 
+  ApplyThemeColors();
 
   this->AddFrame(fVf,fLH1);
   this->MapSubwindows();

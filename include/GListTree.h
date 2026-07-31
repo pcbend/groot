@@ -11,7 +11,6 @@
 #include "TGListTree.h"
 
 class TGWindow;
-
 class GListTreeCanvas : public TGCanvas {
   public:
     GListTreeCanvas(const TGWindow *p=nullptr, UInt_t w=10, UInt_t h=10, UInt_t options=kSunkenFrame|kDoubleBorder, Pixel_t back=GetDefaultFrameBackground());
@@ -30,6 +29,12 @@ class GListTree : public TGListTree {
     //GListTree(TGWindow *parent=0,UInt_t w=1,UInt_t h=1, UInt_t options=kSunkenFrame|kDoubleBorder,Pixel_t back=GetDefaultFrameBackground());
     GListTree(TGCanvas *parent=0);
     ~GListTree();
+
+    void ApplyThemeColors();
+    void DrawRegion(Int_t x, Int_t y, UInt_t w, UInt_t h) override;
+    void DrawOutline(Handle_t id, TGListTreeItem *item, Pixel_t col=0xbbbbbb,
+                     Bool_t clear=kFALSE) override;
+    void DrawActive(Handle_t id, TGListTreeItem *item) override;
 
 	  void ClearActive();
 
@@ -62,7 +67,14 @@ class GListTree : public TGListTree {
 
 
   private:
+    void RestoreThemeGCColors();
+
     TGCanvas   *fCanvas;
+    Pixel_t     fThemeForeground;
+    Pixel_t     fThemeBackground;
+    Pixel_t     fThemeSelectedForeground;
+    Pixel_t     fThemeSelectedBackground;
+    Pixel_t     fThemeLineForeground;
     //TGListTree *fListTree;
     TGListTreeItem *fLastSelected;
     int fLastY; 
