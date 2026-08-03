@@ -36,7 +36,7 @@ Rint.TabComColor: magenta
 Gint.Style.Palette: 107 #kVisibleSpectrum
 Gint.Style.Contours: 255
 
-Gint.Style.Theme: dark
+#Gint.Style.Theme: dark
 
 #Gint.Style.CanvasColor: 923 #1 #kGrey + 3 
 #Gint.Style.PadColor:    923 #1 #kGrey + 3 
