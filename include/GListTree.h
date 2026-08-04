@@ -68,6 +68,9 @@ class GListTree : public TGListTree {
 
   private:
     void RestoreThemeGCColors();
+    void DrawThemed(Handle_t id, Int_t yevent, Int_t hevent);
+    Int_t DrawThemedChildren(Handle_t id, TGListTreeItem *item, Int_t x, Int_t y,
+                             Int_t xroot);
 
     TGCanvas   *fCanvas;
     Pixel_t     fThemeForeground;

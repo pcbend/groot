@@ -149,9 +149,102 @@ void GListTree::ApplyThemeColors() {
 }
 
 void GListTree::DrawRegion(Int_t x, Int_t y, UInt_t w, UInt_t h) {
+  static GContext_t gcBg = 0;
+
   RestoreThemeGCColors();
-  TGListTree::DrawRegion(x, y, w, h);
+  Pixmap_t pixmap = gVirtualX->CreatePixmap(fId, w, fCanvas->GetViewPort()->GetHeight());
+
+  if(!gcBg) {
+    GCValues_t gcValues;
+    gcValues.fForeground = fThemeBackground;
+    gcValues.fBackground = fThemeBackground;
+    gcValues.fGraphicsExposures = kTRUE;
+    gcValues.fMask = kGCForeground | kGCBackground | kGCGraphicsExposures;
+    gcBg = gVirtualX->CreateGC(fId, &gcValues);
+  }
+
+  gVirtualX->SetForeground(gcBg, fThemeBackground);
+  gVirtualX->FillRectangle(pixmap, gcBg, 0, 0, w, fCanvas->GetViewPort()->GetHeight());
+
+  DrawThemed(pixmap, 0, fCanvas->GetViewPort()->GetHeight());
+
+  gVirtualX->CopyArea(pixmap, fId, gcBg, 0, y, w, fCanvas->GetViewPort()->GetHeight(), 0, y);
+  gVirtualX->DeletePixmap(pixmap);
+  gVirtualX->Update(kFALSE);
+
   RestoreThemeGCColors();
+}
+
+void GListTree::DrawThemed(Handle_t id, Int_t yevent, Int_t hevent) {
+  fExposeTop = yevent - FontHeight();
+  fExposeBottom = yevent + hevent + FontHeight();
+
+  const UInt_t oldWidth = fDefw;
+  const UInt_t oldHeight = fDefh;
+  fDefw = fDefh = 1;
+
+  TGPosition pos = GetPagePosition();
+  Int_t x = 2 - pos.fX;
+  Int_t y = fMargin;
+
+  TGListTreeItem *item = fFirst;
+  while(item) {
+    Int_t xbranch = -1;
+    UInt_t width = 0;
+    UInt_t height = 0;
+
+    RestoreThemeGCColors();
+    DrawItem(id, item, x, y, &xbranch, &width, &height);
+    RestoreThemeGCColors();
+
+    width += pos.fX + x + fHspacing + fMargin;
+    if(width > fDefw) {
+      fDefw = width;
+    }
+
+    y += height + fVspacing;
+    if(item->GetFirstChild() && item->IsOpen()) {
+      y = DrawThemedChildren(id, item->GetFirstChild(), x, y, xbranch);
+    }
+
+    item = item->GetNextSibling();
+  }
+
+  fDefh = y + fMargin;
+
+  if(oldWidth != fDefw || oldHeight != fDefh) {
+    fCanvas->Layout();
+  }
+}
+
+Int_t GListTree::DrawThemedChildren(Handle_t id, TGListTreeItem *item, Int_t x,
+                                    Int_t y, Int_t xroot) {
+  x += fIndent + static_cast<Int_t>(item->GetParent()->GetPicWidth());
+
+  TGPosition pos = GetPagePosition();
+  while(item) {
+    Int_t xbranch = xroot;
+    UInt_t width = 0;
+    UInt_t height = 0;
+
+    RestoreThemeGCColors();
+    DrawItem(id, item, x, y, &xbranch, &width, &height);
+    RestoreThemeGCColors();
+
+    width += pos.fX + x + fHspacing + fMargin;
+    if(width > fDefw) {
+      fDefw = width;
+    }
+
+    y += height + fVspacing;
+    if(item->GetFirstChild() && item->IsOpen()) {
+      y = DrawThemedChildren(id, item->GetFirstChild(), x, y, xbranch);
+    }
+
+    item = item->GetNextSibling();
+  }
+
+  return y;
 }
 
 void GListTree::DrawOutline(Handle_t id, TGListTreeItem *item, Pixel_t col, Bool_t clear) {
