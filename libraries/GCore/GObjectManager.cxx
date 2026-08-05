@@ -76,7 +76,9 @@ TObject *GObjectManager::CreateGObject(TObject *obj) {
 	TObject *newObj = 0;
 	if(obj->InheritsFrom(TH2D::Class())) {
 		newObj = new GH2D(*static_cast<TH2D*>(obj));
-	} else if(obj->InheritsFrom(TH1D::Class())) {
+	} else if(obj->InheritsFrom(TH2F::Class())) {
+		newObj = new GH2D(*static_cast<TH2F*>(obj));
+  } else if(obj->InheritsFrom(TH1D::Class())) {
 		newObj = new GH1D(*static_cast<TH1D*>(obj));
 	} else if(obj->InheritsFrom(TH1F::Class())) {
 		newObj = new GH1D(*static_cast<TH1F*>(obj));
