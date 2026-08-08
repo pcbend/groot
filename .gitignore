@@ -1,8 +1,7 @@
-docs/benchmark.txt
 
 build/
-
 bin/
+docs/
 
 *.o
 *.so
