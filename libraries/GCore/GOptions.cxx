@@ -68,15 +68,18 @@ GOptions::Input::Type GOptions::DetermineInputType(const std::string& input) {
 
   switch(DetermineFileType(input)) {
     case kFileType::ROOTFILE:
-      return Input::Type::RootFile;
+    case kFileType::TXT3:
+    case kFileType::SPE:
+    case kFileType::MAT:
+    case kFileType::TWD:
+    case kFileType::NSM:
+      return Input::Type::File;
     case kFileType::MACRO:
       return Input::Type::Macro;
     case kFileType::CALIBRATION:
       return Input::Type::Calibration;
     case kFileType::CUTS:
       return Input::Type::Cuts;
-    case kFileType::TXT3:
-      return Input::Type::Txt3;
     default:
       return Input::Type::Unknown;
   }
@@ -106,6 +109,14 @@ kFileType GOptions::DetermineFileType(const std::string& filename) {
     return kFileType::CUTS;
   } else if(ext == "txt3") {
     return kFileType::TXT3;
+  } else if(ext == "spe") {
+    return kFileType::SPE;
+  } else if(ext == "mat") {
+    return kFileType::MAT;
+  } else if(ext == "twd" || ext == "sqr") {
+    return kFileType::TWD;
+  } else if(ext == "nsm") {
+    return kFileType::NSM;
   }
 
   return kFileType::UNKNOWN;

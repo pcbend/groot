@@ -14,6 +14,7 @@
 #include <TParameter.h>
 #include <TObjString.h>
 
+#include <GFile.h>
 #include <Gint.h>
 #include <Gtypes.h>
 #include <GHTTPConnection.h>
@@ -169,27 +170,33 @@ void Gint::LoadOptions(int argc, char **argv) {
       case GOptions::Input::Type::Calibration:
 	LoadCalibrationFile(file);
         break;
-      case GOptions::Input::Type::RootFile:
+      case GOptions::Input::Type::File:
         {
-          TFile *rfile = OpenRootFile(file);
-          if(rfile && options.StartGui() && gHistomatic) 
+          TObject* object = GFile::Open(file);
+          auto* rfile = dynamic_cast<TFile*>(object);
+          if(rfile) {
+            const char* command = Form("TFile* _file%i = (TFile*)%luL",
+                                       fRootFilesOpened,
+                                       (unsigned long)rfile);
+            TRint::ProcessLine(command);
+            std::cout << "\tfile " << BLUE << rfile->GetName() << RESET_COLOR
+                      <<  " opened as " << BLUE <<  "_file" << fRootFilesOpened
+                      << RESET_COLOR <<  std::endl;
+            fRootFilesOpened++;
+          }
+          if(rfile && options.StartGui() && gHistomatic)
             gHistomatic->AddRootFile(rfile);
-        }
-        break;
-      case GOptions::Input::Type::Txt3:
-        {
-	  TH1D *hist = OpenTxt3File(file);
-	  if(hist && options.StartGui() && gHistomatic) {
+          else if(object && options.StartGui() && gHistomatic) {
      		std::string name = file.substr(file.find_last_of("/\\") + 1);
      		name += ".root";
 
      		TMemFile *memfile = new TMemFile(name.c_str(), "RECREATE");
      		memfile->cd();
-     		hist->Write();
+     		object->Write();
 
       		gHistomatic->AddRootFile(memfile);
-	    }
-	}
+          }
+        }
         break;
       case GOptions::Input::Type::Macro:
         break;

@@ -12,11 +12,10 @@ public:
   struct Input {
     enum class Type {
       Unknown,
-      RootFile,
+      File,
       Macro,
       Calibration,
       Cuts,
-      Txt3,
       LiveUrl
     };
 

@@ -8,7 +8,11 @@ enum kFileType {
   MACRO            = 257,
   CALIBRATION      = 512,
   CUTS             = 2052,
-  TXT3             = 513
+  TXT3             = 513,
+  SPE              = 514,
+  MAT              = 515,
+  TWD              = 516,
+  NSM              = 517
 };
 
 

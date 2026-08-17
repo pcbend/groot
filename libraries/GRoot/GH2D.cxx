@@ -181,7 +181,7 @@ GH2D *GH2D::GetBackground(int nIterX,int nIterY,bool doSmoothing) const {
 void GH2D::Paint(Option_t *opt) {
   TString sopt(opt);
   if(sopt.Length()==0)  
-    sopt.Append("colz2");
+    sopt.Append("colz");
   TH2D::Paint(sopt.Data());
   return;
 }
