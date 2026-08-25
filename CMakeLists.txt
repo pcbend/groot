@@ -9,6 +9,8 @@ project(groot
         HOMEPAGE_URL "https://github.com/pcbend/groot"
         LANGUAGES CXX)
 
+option(GROOT_BUILD_TESTS "Build groot tests" OFF)
+
 if(APPLE) 
   message("Building for Darwin")
   add_compile_definitions(__DARWIN__=TRUE)
@@ -59,6 +61,11 @@ target_link_libraries(groot PRIVATE
   GAPP
 )
 
+if(GROOT_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory(tests)
+endif()
+
 string(ASCII 27 Esc)
 set(RED     "${Esc}[31m")
 set(GREEN   "${Esc}[32m")
@@ -78,7 +85,5 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E echo "${CYAN} goot build successfully, ${YELLOW} woo hoo! ${RESET}"
   COMMAND ${CMAKE_COMMAND} -E echo "-----------------------------------"
 )
-
-
 
 

@@ -1,5 +1,5 @@
 #this will compile the current library.
-add_library(GAPP SHARED Gint.cxx)
+add_library(GAPP SHARED Gint.cxx GHelp.cxx)
 
 target_include_directories(GAPP PUBLIC
   ${CMAKE_SOURCE_DIR}/include

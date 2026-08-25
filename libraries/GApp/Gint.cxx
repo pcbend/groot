@@ -15,6 +15,7 @@
 #include <TObjString.h>
 
 #include <GFile.h>
+#include <GHelp.h>
 #include <Gint.h>
 #include <Gtypes.h>
 #include <GHTTPConnection.h>
@@ -443,6 +444,12 @@ long Gint::ProcessLine(const char* line, bool sync, int* error) {
   if(!sline.Length()) {
     return 0;
   }
+
+  if(GHelp::IsHelpCommand(sline.Data())) {
+    GHelp::Print(sline.Data());
+    return 0;
+  }
+
   sline.ReplaceAll("TCanvas","GCanvas");
 
   if(std::this_thread::get_id() != fMainThreadId){

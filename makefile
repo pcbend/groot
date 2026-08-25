@@ -22,6 +22,15 @@ unix:  CMakeLists.txt
 	@if [ ! -d "./bin" ]; then mkdir bin; fi
 	@cp -p ./build/bin/*  ./bin
 
+tests: CMakeLists.txt 
+	@if [ ! -d "./build" ]; then mkdir build; fi
+	@cmake -S ./ -B ./build -DGROOT_BUILD_TESTS=ON || cmake3 -S ./ -B ./build -DGROOT_BUILD_TEST=ON
+	@make -j4 -C ./build
+	@if [ ! -d "./bin" ]; then mkdir bin; fi
+	@cp -p ./build/bin/*  ./bin
+	@ctest --test-dir ./build/tests --output-on-failure
+
+
 
 clean: 
 	@echo "cleaning..."

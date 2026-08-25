@@ -107,18 +107,9 @@ Show command-line help:
 
 ## Basic Interaction
 
-| Key | Action |
-| --- | --- |
-| `?` | Show shortcut help |
-| `g` | Fit or gate from markers |
-| `x` / `y` | Project a 2D histogram |
-| `p` | on 1d projection, project onto the other axis between markers |
-| `c` | set subtract region between markers for `p` |
-| `w` / `q` | Rebin / unbin |
-| `m` | Remove markers |
-| `o` | Unzoom |
-| `r` | Create a region of interest |
-| `R` | Remove regions of interest |
+The current interactive command list lives in the wiki:
+
+- [Commands](docs/wiki/Commands.md)
 
 ## Repository Layout
 
@@ -137,6 +128,8 @@ Show command-line help:
 ## Documentation
 
 The README is intended as a starting point: what `groot` is, what it needs, and
-how to build and launch it. Detailed workflows, keyboard and mouse behavior,
-configuration notes, and developer documentation belong in the project wiki or
-the files under `docs/`.
+how to build and launch it. The fuller manual is maintained in the wiki:
+
+- [groot wiki home](docs/wiki/Home.md)
+- [Building groot](docs/wiki/Building-groot.md)
+- [Commands](docs/wiki/Commands.md)
