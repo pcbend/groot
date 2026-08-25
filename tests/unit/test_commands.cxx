@@ -7,6 +7,7 @@
 #include <GCommands.h>
 #include <GH1D.h>
 #include <GMarker.h>
+#include <GGuiHistory.h>
 
 namespace {
 
@@ -33,6 +34,8 @@ void addPrimaryMarker(TH1* hist, double x) {
 } // namespace
 
 int main() {
+  GGuiHistory::SetEnabled(false);
+
   GH1D hist("h", "h", 10, 0.0, 10.0);
   hist.SetDirectory(nullptr);
   for(int bin = 1; bin <= hist.GetNbinsX(); ++bin)

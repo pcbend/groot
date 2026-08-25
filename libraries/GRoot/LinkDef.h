@@ -6,6 +6,7 @@
 #pragma link off all functions;
 
 #pragma link C++ namespace GFunctions;
+#pragma link C++ namespace GGuiHistory;
 
 #pragma link C++ global gHist;
 #pragma link C++ global gHistomatic;
@@ -29,6 +30,12 @@
 #pragma link C++ function CloseAllCanvases;
 
 #pragma link C++ function GRootInteract;
+
+#pragma link C++ function GGuiHistory::IsEnabled;
+#pragma link C++ function GGuiHistory::SetEnabled;
+#pragma link C++ function GGuiHistory::Path;
+#pragma link C++ function GGuiHistory::SetPath;
+#pragma link C++ function GGuiHistory::Clear;
 
 #pragma link C++ class GCanvas+;
 #pragma link C++ class GMarker+;

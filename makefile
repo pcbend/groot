@@ -1,5 +1,7 @@
 
 
+.PHONY: all xcode unix test tests clean
+
 all: unix
 
 
@@ -22,9 +24,11 @@ unix:  CMakeLists.txt
 	@if [ ! -d "./bin" ]; then mkdir bin; fi
 	@cp -p ./build/bin/*  ./bin
 
+test: tests
+
 tests: CMakeLists.txt 
 	@if [ ! -d "./build" ]; then mkdir build; fi
-	@cmake -S ./ -B ./build -DGROOT_BUILD_TESTS=ON || cmake3 -S ./ -B ./build -DGROOT_BUILD_TEST=ON
+	@cmake -S ./ -B ./build -DGROOT_BUILD_TESTS=ON || cmake3 -S ./ -B ./build -DGROOT_BUILD_TESTS=ON
 	@make -j4 -C ./build
 	@if [ ! -d "./bin" ]; then mkdir bin; fi
 	@cp -p ./build/bin/*  ./bin
@@ -38,5 +42,3 @@ clean:
 	@if [ -d "./build_xcode" ]; then rm -rf build_xcode; fi
 	@if [ -d "./bin" ]; then rm -rf bin; fi
 	
-
-

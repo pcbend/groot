@@ -20,7 +20,7 @@ Unix.*.Root.MacroPath: .:$(GSYS)/util:$(ROOTSYS)/macros
 #Gui.TooltipBackgroundColor: #3A3A3A
 #Gui.TooltipForegroundColor: white
 
-
+Gui.HistSize: 10000
 
 #files to load at log in:
 #Rint.Logon: $(GSYS)/.gint_logon

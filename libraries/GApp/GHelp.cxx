@@ -87,7 +87,7 @@ void PrintOverview(std::ostream& out) {
     << "  p            project parent matrix through marker range\n"
     << "  c            set background range for p\n"
     << "\n"
-    << "Try: help commands, help markers, help fitting, help projections, help root\n";
+    << "Try: help commands, help markers, help fitting, help projections, help journal, help root\n";
 }
 
 void PrintCommands(std::ostream& out) {
@@ -115,6 +115,20 @@ void PrintCommands(std::ostream& out) {
     << "  s                    show searched peaks\n"
     << "  x/y                  make GH2D X/Y projection\n"
     << "  X                    use ROOT TH2::SetShowProjectionX\n";
+}
+
+void PrintRoi(std::ostream& out) {
+  out
+    << "groot ROI help\n"
+    << "\n"
+    << "ROI support currently exists as a GROI object/API feature, not as a\n"
+    << "key-bound interactive mode. The active 1D keyboard workflow is fitting and\n"
+    << "residual inspection: g/f create fits, and r toggles residual display.\n"
+    << "\n"
+    << "Useful API entry points:\n"
+    << "  GROI roi(xlow, xhigh)\n"
+    << "  GROI::CreateFromMarkers(hist)\n"
+    << "  GROI::RemoveAll(hist)\n";
 }
 
 void PrintMarkers(std::ostream& out) {
@@ -173,6 +187,24 @@ void PrintRoot(std::ostream& out) {
     << "tracking are GCanvas behavior, not plain TExec behavior.\n";
 }
 
+void PrintJournal(std::ostream& out) {
+  out
+    << "groot GUI history help\n"
+    << "\n"
+    << "Semantic GUI actions are appended to .gui_history by default. This is\n"
+    << "separate from .gint_history, which records prompt input.\n"
+    << "\n"
+    << "Useful controls:\n"
+    << "  GGuiHistory::SetEnabled(false)\n"
+    << "  GGuiHistory::SetEnabled(true)\n"
+    << "  GGuiHistory::SetPath(\"my.gui_history\")\n"
+    << "  GGuiHistory::Clear()\n"
+    << "\n"
+    << "Configuration keys:\n"
+    << "  Gui.HistSize: 10000\n"
+    << "  GGuiHistory.File: .gui_history\n";
+}
+
 } // namespace
 
 namespace GHelp {
@@ -194,8 +226,12 @@ void Print(const std::string& line, std::ostream& out) {
     PrintMarkers(out);
   } else if(topic == "fitting" || topic == "fits" || topic == "fit") {
     PrintFitting(out);
+  } else if(topic == "roi" || topic == "rois" || topic == "region") {
+    PrintRoi(out);
   } else if(topic == "projections" || topic == "projection" || topic == "2d") {
     PrintProjections(out);
+  } else if(topic == "journal" || topic == "history" || topic == "gui_history") {
+    PrintJournal(out);
   } else if(topic == "root" || topic == "texec" || topic == "tcanvas") {
     PrintRoot(out);
   } else {

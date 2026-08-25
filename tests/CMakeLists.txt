@@ -24,11 +24,23 @@ set_target_properties(groot_test_commands PROPERTIES
 target_link_libraries(groot_test_commands PRIVATE GROOTLIB)
 add_test(NAME commands COMMAND groot_test_commands)
 
+add_executable(groot_test_gui_history unit/test_gui_history.cxx)
+set_target_properties(groot_test_gui_history PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+target_link_libraries(groot_test_gui_history PRIVATE GROOTLIB)
+add_test(NAME gui_history COMMAND groot_test_gui_history)
+
 add_executable(groot_test_help unit/test_help.cxx)
 set_target_properties(groot_test_help PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 target_link_libraries(groot_test_help PRIVATE GAPP)
 add_test(NAME help COMMAND groot_test_help)
+
+add_executable(groot_test_roi unit/test_roi.cxx)
+set_target_properties(groot_test_roi PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
+target_link_libraries(groot_test_roi PRIVATE GROOTLIB)
+add_test(NAME roi COMMAND groot_test_roi)
 
 find_program(ROOT_EXECUTABLE root HINTS ${ROOT_BINDIR})
 if(ROOT_EXECUTABLE)

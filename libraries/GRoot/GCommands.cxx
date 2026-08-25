@@ -16,11 +16,13 @@
 
 #include<algorithm>
 #include<array>
+#include<sstream>
 
 #include<GCanvas.h>
 #include<GGaus.h>
 #include<GPeak.h>
 #include<GMarker.h>
+#include<GGuiHistory.h>
 
 #include<GH1D.h>
 #include<GH2D.h>
@@ -81,6 +83,24 @@ GInteractionInfo BuildInteractionInfo(TVirtualPad* commandPad,TVirtualPad* event
   info.x        = eventPad->PadtoX(eventPad->AbsPixeltoX(info.px));
   info.y        = eventPad->PadtoY(eventPad->AbsPixeltoY(info.py));
   return info;
+}
+
+std::string JournalNumber(double value) {
+  std::ostringstream out;
+  out << value;
+  return out.str();
+}
+
+std::string JournalHistName(TH1* hist) {
+  return hist ? hist->GetName() : "";
+}
+
+void JournalRecord(const std::string& action,
+                   GInteractionInfo& info,
+                   std::vector<GGuiHistory::Field> fields = {}) {
+  if(info.targetName.empty() && info.target)
+    info.targetName = info.target->GetName();
+  GGuiHistory::Record(action,info,fields);
 }
 }
 
@@ -562,6 +582,13 @@ bool GRootInteractHistMouseButton(TH1* currentHist,GInteractionInfo &info) {
         }
         marker->SetType(type);
         marker->AddTo(currentHist,info.x,info.y,false);
+        JournalRecord("marker.add",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"type",type == GMarkerType::kFit ? "fit" :
+                  type == GMarkerType::kCut ? "cut" : "primary"},
+          {"x",JournalNumber(marker->X())},
+          {"y",JournalNumber(marker->Y())}
+        });
         //gPad->Modified();
         info.modified = true;
       //} else {
@@ -591,6 +618,10 @@ bool GRootInteractHistMouseButton(TH1* currentHist,GInteractionInfo &info) {
             if(h->GetListOfFunctions())
               h->GetListOfFunctions()->Clear("nodelete");
           }
+          JournalRecord("hist.draw_copy",info,{
+            {"hist",JournalHistName(current)},
+            {"copy",h ? h->GetName() : ""}
+          });
           c->Modified();
           c->Update();
        }
@@ -607,6 +638,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
     case kKey_b:
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ShowBackground();
+        JournalRecord("background.show",info,{
+          {"hist",JournalHistName(currentHist)}
+        });
         //gPad->Modified();
         info.modified = true;
       }
@@ -614,6 +648,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
     case kKey_B:
       if(currentHist && currentHist->InheritsFrom(GH1D::Class())) {
         dynamic_cast<GH1D*>(currentHist)->ToggleBackground();
+        JournalRecord("background.toggle",info,{
+          {"hist",JournalHistName(currentHist)}
+        });
         info.modified = true;
         //gPad->Modified();
       }
@@ -638,6 +675,11 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
           marker->SetType(GMarkerType::kBackground);
         printf("Background range set: %.3f to %.3f\n",
                markers.at(0)->X(),markers.at(1)->X());
+        JournalRecord("projection.background",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"xlow",JournalNumber(markers.at(0)->X())},
+          {"xhigh",JournalNumber(markers.at(1)->X())}
+        });
         info.modified = true;
         //gPad->Modified();
       } else if(currentHist->GetDimension()==2 && !markers.empty()) {
@@ -645,6 +687,10 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         // the cut is created with 'g' or cleared with 'm'.
         for(auto* marker : markers)
           marker->SetType(GMarkerType::kCut);
+        JournalRecord("cut.mode",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"markers",std::to_string(markers.size())}
+        });
         info.modified = true;
       }
       break;
@@ -660,6 +706,11 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
           if(ylow>yhigh) std::swap(ylow,yhigh);
           currentHist->GetYaxis()->SetRangeUser(ylow,yhigh);
         }
+        JournalRecord("hist.zoom",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"xlow",JournalNumber(xlow)},
+          {"xhigh",JournalNumber(xhigh)}
+        });
         GMarker::RemoveAll(currentHist);
         //gPad->Modified();
         info.modified = true;
@@ -667,7 +718,14 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       break;
     case kKey_f:
       if(currentHist->GetDimension()==1 && markers.size()>1) {
-        PhotoPeakFit(currentHist,markers.at(0)->X(),markers.at(1)->X());
+        const double xlow = markers.at(0)->X();
+        const double xhigh = markers.at(1)->X();
+        PhotoPeakFit(currentHist,xlow,xhigh);
+        JournalRecord("fit.photopeak",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"xlow",JournalNumber(xlow)},
+          {"xhigh",JournalNumber(xhigh)}
+        });
         info.modified = true;
       }
       break;
@@ -676,14 +734,32 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         auto fitMarkers = GMarker::Get(currentHist,GMarkerType::kFit);
         bool didFit = false;
         if(fitMarkers.size()==4) {
+          const double x1 = fitMarkers.at(0)->X();
+          const double x2 = fitMarkers.at(1)->X();
+          const double x3 = fitMarkers.at(2)->X();
+          const double x4 = fitMarkers.at(3)->X();
           DoubleGausFit(currentHist,
-                        fitMarkers.at(0)->X(),
-                        fitMarkers.at(1)->X(),
-                        fitMarkers.at(2)->X(),
-                        fitMarkers.at(3)->X());
+                        x1,
+                        x2,
+                        x3,
+                        x4);
+          JournalRecord("fit.double_gaus",info,{
+            {"hist",JournalHistName(currentHist)},
+            {"x1",JournalNumber(x1)},
+            {"x2",JournalNumber(x2)},
+            {"x3",JournalNumber(x3)},
+            {"x4",JournalNumber(x4)}
+          });
           didFit = true;
         } else if(markers.size()>1) {
-          GausFit(currentHist,markers.at(0)->X(),markers.at(1)->X());
+          const double xlow = markers.at(0)->X();
+          const double xhigh = markers.at(1)->X();
+          GausFit(currentHist,xlow,xhigh);
+          JournalRecord("fit.gaus",info,{
+            {"hist",JournalHistName(currentHist)},
+            {"xlow",JournalNumber(xlow)},
+            {"xhigh",JournalNumber(xhigh)}
+          });
           didFit = true;
           //gPad->Modified();
         }
@@ -699,6 +775,10 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         cut->SetName(Form("cut%i",gGateCounter++));
 
         currentHist->GetListOfFunctions()->Add(cut);
+        JournalRecord("cut.create",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"cut",cut->GetName()}
+        });
         GMarker::RemoveAll(currentHist);
 
         info.modified = true;
@@ -706,6 +786,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       }
       break;
     case kKey_m:
+      JournalRecord("markers.clear",info,{
+        {"hist",JournalHistName(currentHist)}
+      });
       GMarker::RemoveAll(currentHist);
       //gPad->Modified();
       info.modified = true;
@@ -730,6 +813,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
           GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
           gcurrentHist->RemovePeaks();
         }
+        JournalRecord("hist.clear_helpers",info,{
+          {"hist",JournalHistName(currentHist)}
+        });
         info.modified = true;
         //gPad->Modified();
       }
@@ -738,6 +824,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       currentHist->GetXaxis()->UnZoom();
       if(currentHist->GetDimension()==2) 
         currentHist->GetYaxis()->UnZoom();
+      JournalRecord("hist.unzoom",info,{
+        {"hist",JournalHistName(currentHist)}
+      });
       //gPad->Modified();
       info.modified = true;
       break;
@@ -775,13 +864,33 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
             }
             if(proj)
               proj->Draw();
+            if(proj) {
+              std::vector<GGuiHistory::Field> fields = {
+                {"hist",JournalHistName(currentHist)},
+                {"parent",parent->GetName()},
+                {"projection",proj->GetName()},
+                {"gate_low",JournalNumber(xlow)},
+                {"gate_high",JournalNumber(xhigh)},
+                {"axis",currentHist->TestBits(GH1D::kProjectionX) ? "y" : "x"}
+              };
+              if(bgmarkers.size()==2) {
+                fields.push_back({"bg_low",JournalNumber(bgmarkers.at(0)->X())});
+                fields.push_back({"bg_high",JournalNumber(bgmarkers.at(1)->X())});
+              }
+              JournalRecord("projection.create",info,fields);
+            }
           }
         }
       }
       break;
     case kKey_r:
       if(currentHist->InheritsFrom(GH1D::Class())) {
-        dynamic_cast<GH1D*>(currentHist)->ToggleResiduals();
+        auto* ghist = dynamic_cast<GH1D*>(currentHist);
+        ghist->ToggleResiduals();
+        JournalRecord("residuals.toggle",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"enabled",ghist->ShowResiduals() ? "true" : "false"}
+        });
         // ToggleResiduals redraws and can replace/delete the pad that handled
         // this key event. Do not let the generic post-dispatch update touch
         // info.pad after the layout changes.
@@ -794,6 +903,12 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         double xup  = currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast());
         currentHist->Rebin(2);
         currentHist->GetXaxis()->SetRangeUser(xlow,xup);
+        JournalRecord("hist.rebin",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"factor","2"},
+          {"xlow",JournalNumber(xlow)},
+          {"xhigh",JournalNumber(xup)}
+        });
       }
       //gPad->Modified();
       info.modified = true;
@@ -805,6 +920,12 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         double xup  = gcurrentHist->GetXaxis()->GetBinUpEdge(gcurrentHist->GetXaxis()->GetLast());
         gcurrentHist->Unbin(2);
         gcurrentHist->GetXaxis()->SetRangeUser(xlow,xup);
+        JournalRecord("hist.unbin",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"factor","2"},
+          {"xlow",JournalNumber(xlow)},
+          {"xhigh",JournalNumber(xup)}
+        });
       }        
       //gPad->Modified();
       info.modified = true;
@@ -813,6 +934,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       if(currentHist->InheritsFrom(GH1D::Class())) {
         GH1D *gcurrentHist = dynamic_cast<GH1D*>(currentHist);
         gcurrentHist->ShowPeaks();
+        JournalRecord("peaks.show",info,{
+          {"hist",JournalHistName(currentHist)}
+        });
         //gPad->Modified();
         info.modified = true;
       }
@@ -826,6 +950,12 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         px->SetBit(GH1D::kProjectionX,1);
         GCanvas *canvas = new GCanvas;
         px->Draw();
+        JournalRecord("projection.create",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"projection",px->GetName()},
+          {"axis","x"},
+          {"scope","full"}
+        });
         RequestCurrentPad(canvas);
       }
       break;
@@ -833,6 +963,9 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
       if(currentHist->InheritsFrom(TH2::Class())) {
         TH2* temp = static_cast<TH2*>(currentHist);
         temp->SetShowProjectionX(1);   
+        JournalRecord("projection.show_x",info,{
+          {"hist",JournalHistName(currentHist)}
+        });
       }
       break; 
     case kKey_y:
@@ -844,6 +977,12 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
         py->SetBit(GH1D::kProjectionX,0);
         GCanvas *canvas = new GCanvas;
         py->Draw();
+        JournalRecord("projection.create",info,{
+          {"hist",JournalHistName(currentHist)},
+          {"projection",py->GetName()},
+          {"axis","y"},
+          {"scope","full"}
+        });
         RequestCurrentPad(canvas);
       }
       break;
@@ -870,6 +1009,12 @@ bool GRootInteractHistKeyPress(TH1 *currentHist,GInteractionInfo &info) {
           info.pad->SetLogy(1);
         }
       }
+      JournalRecord(currentHist->GetDimension()==2 ? "pad.logz.toggle" : "pad.logy.toggle",info,{
+        {"hist",JournalHistName(currentHist)},
+        {"enabled",currentHist->GetDimension()==2 ?
+                   (info.pad->GetLogz() ? "true" : "false") :
+                   (info.pad->GetLogy() ? "true" : "false")}
+      });
       info.modified = true;
       //gPad->Modified();
     default:

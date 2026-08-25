@@ -14,6 +14,7 @@ add_library(GROOTLIB SHARED
   GGlobals.cxx 
   GROI.cxx
   GCalibrator.cxx
+  GGuiHistory.cxx
 )
 
 target_include_directories(GROOTLIB PUBLIC
@@ -35,6 +36,7 @@ root_generate_dictionary(G__GROOTLIB
   GGlobals.h 
   GROI.h 
   GCalibrator.h
+  GGuiHistory.h
   MODULE GROOTLIB 
   LINKDEF LinkDef.h
 )
@@ -46,4 +48,3 @@ target_link_libraries(GROOTLIB PUBLIC
   ROOT::Spectrum
   GTOOLS
 )
-

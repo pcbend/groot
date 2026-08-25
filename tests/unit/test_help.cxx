@@ -50,5 +50,15 @@ int main() {
   std::ostringstream root;
   GHelp::Print("help root", root);
   requireContains(root.str(), "AddExec", "root help should mention TExec attachment");
+
+  std::ostringstream roi;
+  GHelp::Print("help roi", roi);
+  requireContains(roi.str(), "not as a", "roi help should describe current status");
+  requireContains(roi.str(), "GROI::CreateFromMarkers", "roi help should mention API");
+
+  std::ostringstream journal;
+  GHelp::Print("help journal", journal);
+  requireContains(journal.str(), ".gui_history", "journal help should mention file");
+  requireContains(journal.str(), "GGuiHistory::SetEnabled", "journal help should mention controls");
   return 0;
 }
