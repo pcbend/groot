@@ -29,6 +29,8 @@ class GCanvas : public TCanvas {
     //bool HandleArrowPress_2d(EEventType event, int px, int py,int mask);
 
     void UpdateAllPads();
+    static void PrepareForShutdown();
+    static bool IsShuttingDown();
 
     void SetLockPads(bool flag=true) { fLockPads = flag; }
     bool GetLockPads() const { return fLockPads; }
@@ -51,6 +53,7 @@ class GCanvas : public TCanvas {
     void UpdateCursorForSelected(EEventType event);
 
     static Event_t fCurrentEvent;
+    static bool    fShuttingDown;
 
     EEventType fEvent;
     int        fEventX;

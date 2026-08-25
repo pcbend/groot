@@ -7,4 +7,4 @@ target_include_directories(GAPP PUBLIC
 )
 
 root_generate_dictionary(G__GAPP Gint.h MODULE GAPP LINKDEF Linkdef.h)
-target_link_libraries(GAPP PUBLIC ${ROOT_LIBRARIES} GCORE GUI)
+target_link_libraries(GAPP PUBLIC ${ROOT_LIBRARIES} GCORE GUI GROOTLIB)

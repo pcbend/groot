@@ -24,6 +24,7 @@
 
 #include <globals.h>
 #include <GGlobals.h>
+#include <GCanvas.h>
 
 Gint *Gint::fGint = 0;
 
@@ -79,6 +80,7 @@ Gint::~Gint() {
 
 void Gint::Terminate(int status) {
   StopLiveConnections();
+  GCanvas::PrepareForShutdown();
   printf("\nbye,bye\n\n");
   SetPrompt("");
   TRint::Terminate(status);

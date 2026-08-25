@@ -9,6 +9,7 @@
 #include<TF1.h>
 #include<THStack.h>
 #include<KeySymbols.h>
+#include<TCanvas.h>
 #include<TFile.h>
 #include <TCutG.h>
 #include<TPad.h>
@@ -101,6 +102,27 @@ void JournalRecord(const std::string& action,
   if(info.targetName.empty() && info.target)
     info.targetName = info.target->GetName();
   GGuiHistory::Record(action,info,fields);
+}
+
+bool PadCanUpdate(TVirtualPad* pad) {
+  if(!pad || pad->TestBit(TObject::kInvalidObject))
+    return false;
+
+  auto* canvas = pad->GetCanvas();
+  if(!canvas || canvas->TestBit(TObject::kInvalidObject))
+    return false;
+
+  if(canvas->IsBatch() || canvas->IsWeb())
+    return true;
+
+  if(canvas->GetCanvasID() < 0)
+    return false;
+
+  if(gROOT && gROOT->GetListOfCanvases() &&
+     !gROOT->GetListOfCanvases()->FindObject(canvas))
+    return false;
+
+  return true;
 }
 }
 
@@ -465,6 +487,9 @@ const GInteractionInfo& GetLastInteractionInfo() {
 // also passed to subpads using the GCanvas::Divide Method.
 // need to be void to prevent useless printing.  
 void GRootInteract() {
+  if(GCanvas::IsShuttingDown()) {
+    return;
+  }
 
   TVirtualPad* eventPad = gPad;
   if(eventPad && eventPad->GetSelectedPad())
@@ -479,7 +504,7 @@ void GRootInteract() {
 
   DispatchInteraction(info);
 
-  if(info.modified && info.pad) {
+  if(info.modified && PadCanUpdate(info.pad)) {
     info.pad->Modified();
     info.pad->Update();
   }

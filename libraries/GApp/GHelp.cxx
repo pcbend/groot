@@ -191,7 +191,7 @@ void PrintJournal(std::ostream& out) {
   out
     << "groot GUI history help\n"
     << "\n"
-    << "Semantic GUI actions are appended to .gui_history by default. This is\n"
+    << "Semantic GUI actions are appended to .gui_history as JSON Lines by default. This is\n"
     << "separate from .gint_history, which records prompt input.\n"
     << "\n"
     << "Useful controls:\n"

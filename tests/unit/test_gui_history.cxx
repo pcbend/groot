@@ -66,10 +66,18 @@ int main() {
   });
 
   std::string text = ReadFile(path);
-  requireContains(text, "action=fit.gaus", "direct action");
-  requireContains(text, "target=h", "direct target");
-  requireContains(text, "key=", "direct key");
-  requireContains(text, "xlow=1", "direct field");
+  requireContains(text, "\"action\":\"fit.gaus\"", "direct action");
+  requireContains(text, "\"object\":", "direct object section");
+  requireContains(text, "\"event\":", "direct event section");
+  requireContains(text, "\"range\":", "direct range section");
+  requireContains(text, "\"projection\":", "direct projection section");
+  requireContains(text, "\"fit\":", "direct fit section");
+  requireContains(text, "\"marker\":", "direct marker section");
+  requireContains(text, "\"display\":", "direct display section");
+  requireContains(text, "\"extra\":", "direct extra section");
+  requireContains(text, "\"name\":\"h\"", "direct target");
+  requireContains(text, "\"key\":\"g\"", "direct key");
+  requireContains(text, "\"xlow\":1", "direct field");
 
   GH1D hist("h", "h", 10, 0.0, 10.0);
   hist.SetDirectory(nullptr);
@@ -85,10 +93,10 @@ int main() {
   require(GRootInteractHistKeyPress(&hist, zoom), "zoom dispatch");
 
   text = ReadFile(path);
-  requireContains(text, "action=hist.zoom", "zoom action");
-  requireContains(text, "hist=h", "zoom hist field");
-  requireContains(text, "xlow=2", "zoom low field");
-  requireContains(text, "xhigh=6", "zoom high field");
+  requireContains(text, "\"action\":\"hist.zoom\"", "zoom action");
+  requireContains(text, "\"name\":\"h\"", "zoom hist field");
+  requireContains(text, "\"xlow\":2", "zoom low field");
+  requireContains(text, "\"xhigh\":6", "zoom high field");
 
   GGuiHistory::SetEnabled(false);
   GGuiHistory::Record("disabled.action");
@@ -103,10 +111,10 @@ int main() {
   GGuiHistory::Record("history.three");
 
   text = ReadFile(path);
-  require(text.find("action=history.one") == std::string::npos,
+  require(text.find("\"action\":\"history.one\"") == std::string::npos,
           "Gui.HistSize should trim oldest line");
-  requireContains(text, "action=history.two", "Gui.HistSize should keep second line");
-  requireContains(text, "action=history.three", "Gui.HistSize should keep newest line");
+  requireContains(text, "\"action\":\"history.two\"", "Gui.HistSize should keep second line");
+  requireContains(text, "\"action\":\"history.three\"", "Gui.HistSize should keep newest line");
 
   std::remove(path.c_str());
   return 0;

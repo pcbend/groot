@@ -40,6 +40,7 @@
 int GCanvas::fCanvasNumber = 0;
 
 Event_t GCanvas::fCurrentEvent;
+bool GCanvas::fShuttingDown = false;
 
 namespace {
 
@@ -132,6 +133,27 @@ void DisconnectCanvasEvents(GCanvas *canvas) {
   }
 }
 
+bool CanvasCanUpdate(TCanvas *canvas) {
+  if(!canvas || canvas->TestBit(TObject::kInvalidObject)) {
+    return false;
+  }
+
+  if(canvas->IsBatch() || canvas->IsWeb()) {
+    return true;
+  }
+
+  if(canvas->GetCanvasID() < 0) {
+    return false;
+  }
+
+  if(gROOT && gROOT->GetListOfCanvases() &&
+     !gROOT->GetListOfCanvases()->FindObject(canvas)) {
+    return false;
+  }
+
+  return true;
+}
+
 }
 
 GCanvas::GCanvas(bool build) : 
@@ -158,6 +180,25 @@ GCanvas::~GCanvas() {
 void GCanvas::Close(Option_t *opt) {
   DisconnectCanvasEvents(this);
   TCanvas::Close(opt);
+}
+
+void GCanvas::PrepareForShutdown() {
+  fShuttingDown = true;
+
+  if(!gROOT || !gROOT->GetListOfCanvases()) {
+    return;
+  }
+
+  TIter iter(gROOT->GetListOfCanvases());
+  while(auto *obj = iter.Next()) {
+    if(auto *canvas = dynamic_cast<GCanvas*>(obj)) {
+      DisconnectCanvasEvents(canvas);
+    }
+  }
+}
+
+bool GCanvas::IsShuttingDown() {
+  return fShuttingDown;
 }
 
 void GCanvas::Init(const char* name, const char* title) {
@@ -231,7 +272,7 @@ void GCanvas::EventProcessed(Event_t *event) {
   printf("\n");
   */
 
-  if(!event) {
+  if(fShuttingDown || !event) {
     return;
   }
 
@@ -259,7 +300,7 @@ void GCanvas::EventProcessed(Event_t *event) {
   */
 
   if(!event->fWindow) return;
-  if(!this->GetCanvasID()) return;
+  if(this->GetCanvasID() <= 0) return;
   if(!gVirtualX->GetWindowID(this->GetCanvasID())) return;
 
   if(static_cast<unsigned long>(event->fWindow) != 
@@ -292,6 +333,10 @@ void GCanvas::EventProcessed(Event_t *event) {
 
 void GCanvas::HandleInput(EEventType event, int px, int py) {
   bool handled = false;
+
+  if(fShuttingDown) {
+    return;
+  }
 
   if(event==kKeyPress && px==kKey_Space) {
     if(GetSelectedPad()) {
@@ -537,6 +582,10 @@ TVirtualPad* GCanvas::GetSelectedPad() const {
 
 
 void GCanvas::UpdateAllPads() {
+  if(fShuttingDown) {
+    return;
+  }
+
   //TIter iter(this->GetListOfPrimitives());
   //while(TObject *obj = iter()) printf("\t\t%s\n",obj->GetName());  
   /*
@@ -558,6 +607,9 @@ void GCanvas::UpdateAllPads() {
   //this->Modified();
   TIter iter(gROOT->GetListOfCanvases());
   while(TCanvas *c = (TCanvas*)iter.Next()) {
+    if(!CanvasCanUpdate(c)) {
+      continue;
+    }
     c->Modified();
     c->Update();
   }
