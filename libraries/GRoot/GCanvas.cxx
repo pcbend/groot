@@ -5,10 +5,12 @@
 #include <string>
 #include <regex>
 #include <cmath>
+#include <sstream>
 
 #include <globals.h>
 #include <GCommands.h>
 #include <GMarker.h>
+#include <GGuiHistory.h>
 #include <GROI.h>
 #include <GH1D.h>
 #include <GH2D.h>
@@ -154,6 +156,41 @@ bool CanvasCanUpdate(TCanvas *canvas) {
   return true;
 }
 
+std::string NumberString(double value) {
+  std::ostringstream out;
+  out << value;
+  return out.str();
+}
+
+void RecordCanvasAction(const char* action,GCanvas* canvas) {
+  if(!canvas) {
+    return;
+  }
+
+  GGuiHistory::Record(action,{
+    {"canvas",canvas->GetName()}
+  });
+}
+
+void RecordArrowAction(const char* action,
+                       GCanvas* canvas,
+                       TVirtualPad* pad,
+                       TH1* hist,
+                       int key,
+                       const std::vector<GGuiHistory::Field>& fields) {
+  GInteractionInfo info;
+  info.pad = pad;
+  info.selected = canvas ? canvas->GetSelected() : nullptr;
+  info.target = hist;
+  if(info.selected)
+    info.selectedName = info.selected->GetName();
+  if(info.target)
+    info.targetName = info.target->GetName();
+  info.event = kArrowKeyPress;
+  info.py = key;
+  GGuiHistory::Record(action,info,fields);
+}
+
 }
 
 GCanvas::GCanvas(bool build) : 
@@ -178,6 +215,9 @@ GCanvas::~GCanvas() {
 
 
 void GCanvas::Close(Option_t *opt) {
+  if(!fShuttingDown) {
+    RecordCanvasAction("canvas.close",this);
+  }
   DisconnectCanvasEvents(this);
   TCanvas::Close(opt);
 }
@@ -215,6 +255,7 @@ void GCanvas::Init(const char* name, const char* title) {
 
   this->AddExec("groot_interact","GRootInteract()");
   ApplyRootCanvasTheme(this);
+  RecordCanvasAction("canvas.open",this);
 
 
   gClient->Connect("ProcessedEvent(Event_t *,Window_t)","GCanvas",this,"EventProcessed(Event_t*)");
@@ -509,6 +550,14 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         }
         //gPad->Modified();
         doUpdate = true;
+        RecordArrowAction("hist.pan",this,gPad,currentHist,px,{
+          {"hist",currentHist->GetName()},
+          {"direction","left"},
+          {"xlow",NumberString(currentHist->GetXaxis()->GetBinLowEdge(currentHist->GetXaxis()->GetFirst()))},
+          {"xhigh",NumberString(currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast()))},
+          {"shift",(mask&kKeyShiftMask) ? "true" : "false"},
+          {"locked",fLockPads ? "true" : "false"}
+        });
       } 
       break;
     case kKey_Up:
@@ -522,6 +571,11 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
               hnext->Draw();
               //gPad->Modified();
               doUpdate = true;
+              RecordArrowAction("projection.navigate",this,gPad,hnext,px,{
+                {"hist",currentHist->GetName()},
+                {"projection",hnext->GetName()},
+                {"direction","next"}
+              });
             }
           }
         }
@@ -541,6 +595,14 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
         }
         //gPad->Modified();
         doUpdate = true;
+        RecordArrowAction("hist.pan",this,gPad,currentHist,px,{
+          {"hist",currentHist->GetName()},
+          {"direction","right"},
+          {"xlow",NumberString(currentHist->GetXaxis()->GetBinLowEdge(currentHist->GetXaxis()->GetFirst()))},
+          {"xhigh",NumberString(currentHist->GetXaxis()->GetBinUpEdge(currentHist->GetXaxis()->GetLast()))},
+          {"shift",(mask&kKeyShiftMask) ? "true" : "false"},
+          {"locked",fLockPads ? "true" : "false"}
+        });
       } 
       break;
     case kKey_Down:
@@ -554,6 +616,11 @@ bool GCanvas::HandleArrowPress(EEventType event, int px, int py,int mask) {
               hprev->Draw();
               //gPad->Modified();
               doUpdate = true;
+              RecordArrowAction("projection.navigate",this,gPad,hprev,px,{
+                {"hist",currentHist->GetName()},
+                {"projection",hprev->GetName()},
+                {"direction","previous"}
+              });
             }
           }
         }

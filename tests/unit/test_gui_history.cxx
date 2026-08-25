@@ -61,12 +61,15 @@ int main() {
   direct.py = kKey_g;
   GGuiHistory::Record("fit.gaus", direct, {
     {"hist", "h"},
+    {"canvas", "c1"},
+    {"pad", "p1"},
     {"xlow", "1"},
     {"xhigh", "3"}
   });
 
   std::string text = ReadFile(path);
   requireContains(text, "\"action\":\"fit.gaus\"", "direct action");
+  requireContains(text, "\"context\":", "direct context section");
   requireContains(text, "\"object\":", "direct object section");
   requireContains(text, "\"event\":", "direct event section");
   requireContains(text, "\"range\":", "direct range section");
@@ -76,8 +79,24 @@ int main() {
   requireContains(text, "\"display\":", "direct display section");
   requireContains(text, "\"extra\":", "direct extra section");
   requireContains(text, "\"name\":\"h\"", "direct target");
+  requireContains(text, "\"canvas\":\"c1\"", "direct canvas");
+  requireContains(text, "\"pad\":\"p1\"", "direct pad");
   requireContains(text, "\"key\":\"g\"", "direct key");
   requireContains(text, "\"xlow\":1", "direct field");
+
+  const auto rawRecent = GGuiHistory::Recent(1);
+  require(rawRecent.size() == 1, "Recent should return requested raw line count");
+  requireContains(rawRecent.front(), "\"action\":\"fit.gaus\"", "Recent should include newest line");
+
+  const auto summary = GGuiHistory::Summary(1);
+  require(summary.size() == 1, "Summary should return requested summary count");
+  requireContains(summary.front(), "fit.gaus", "Summary should include action");
+  requireContains(summary.front(), "object=h", "Summary should include object");
+  requireContains(summary.front(), "canvas=c1", "Summary should include canvas");
+
+  std::ostringstream printed;
+  GGuiHistory::Print(printed, 1, "fit");
+  requireContains(printed.str(), "fit.gaus", "Print should include filtered action");
 
   GH1D hist("h", "h", 10, 0.0, 10.0);
   hist.SetDirectory(nullptr);

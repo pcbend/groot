@@ -8,6 +8,9 @@
 #include <TFile.h>
 #include <TH1.h>
 #include <TObject.h>
+#include <TCanvas.h>
+#include <TNamed.h>
+#include <TVirtualPad.h>
 
 #include <algorithm>
 #include <cctype>
@@ -16,6 +19,7 @@
 #include <ctime>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
@@ -39,6 +43,11 @@ struct EventInfo {
   int keyCode = 0;
   std::string key;
   std::string selected;
+};
+
+struct ContextInfo {
+  std::string canvas;
+  std::string pad;
 };
 
 struct RangeInfo {
@@ -101,6 +110,7 @@ struct DisplayInfo {
 struct HistoryRecord {
   std::string time;
   std::string action;
+  ContextInfo context;
   EventInfo event;
   ObjectInfo object;
   ObjectInfo parent;
@@ -173,6 +183,13 @@ bool ToBool(const std::string& value,bool& output) {
   return false;
 }
 
+std::string SourceFromRootPath(const std::string& rootPath) {
+  const std::size_t separator = rootPath.find(':');
+  if(separator == std::string::npos || separator == 0)
+    return "";
+  return rootPath.substr(0,separator);
+}
+
 std::string JsonEscape(const std::string& value) {
   std::ostringstream out;
   for(char ch : value) {
@@ -197,6 +214,31 @@ std::string JsonEscape(const std::string& value) {
     }
   }
   return out.str();
+}
+
+std::string JsonUnescape(const std::string& value) {
+  std::string out;
+  out.reserve(value.size());
+  for(std::size_t i = 0; i < value.size(); ++i) {
+    if(value[i] != '\\' || i + 1 >= value.size()) {
+      out.push_back(value[i]);
+      continue;
+    }
+
+    const char escaped = value[++i];
+    switch(escaped) {
+      case '"': out.push_back('"'); break;
+      case '\\': out.push_back('\\'); break;
+      case '/': out.push_back('/'); break;
+      case 'b': out.push_back('\b'); break;
+      case 'f': out.push_back('\f'); break;
+      case 'n': out.push_back('\n'); break;
+      case 'r': out.push_back('\r'); break;
+      case 't': out.push_back('\t'); break;
+      default: out.push_back(escaped); break;
+    }
+  }
+  return out;
 }
 
 void StringValue(std::ostringstream& out,const std::string& value) {
@@ -267,6 +309,19 @@ ObjectInfo BuildObjectInfo(TObject* object,const std::string& fallbackName = "")
         info.rootPath += '/';
       info.rootPath += info.name;
     }
+    if(info.file.empty())
+      info.file = SourceFromRootPath(info.rootPath);
+
+    if(info.file.empty() && std::string(directory->GetName()) == "GObjectManager") {
+      if(auto* named = dynamic_cast<TNamed*>(object)) {
+        const std::string title = named->GetTitle();
+        const std::size_t separator = title.find(':');
+        if(separator != std::string::npos && separator > 0) {
+          info.file = title.substr(0,separator);
+          info.rootPath = title;
+        }
+      }
+    }
   }
 
   return info;
@@ -288,6 +343,10 @@ void ApplyField(HistoryRecord& record,const std::string& key,const std::string& 
   if(key == "hist") {
     if(record.object.name.empty())
       record.object.name = value;
+  } else if(key == "canvas") {
+    record.context.canvas = value;
+  } else if(key == "pad") {
+    record.context.pad = value;
   } else if(key == "x" && ToDouble(value,number)) {
     record.marker.hasX = true;
     record.marker.x = number;
@@ -370,6 +429,11 @@ HistoryRecord BuildRecord(const std::string& action,
   record.action = action;
 
   if(info) {
+    if(info->pad) {
+      record.context.pad = info->pad->GetName();
+      if(auto* canvas = info->pad->GetCanvas())
+        record.context.canvas = canvas->GetName();
+    }
     record.event.rootEvent = info->event;
     record.event.keyCode = info->py;
     record.event.key = KeyName(info->py);
@@ -402,6 +466,13 @@ void WriteEvent(std::ostringstream& out,const EventInfo& event) {
   AppendIntField(out,"key_code",event.keyCode);
   AppendStringField(out,"key",event.key);
   AppendStringField(out,"selected",event.selected);
+  out << '}';
+}
+
+void WriteContext(std::ostringstream& out,const ContextInfo& context) {
+  out << '{';
+  AppendStringField(out,"canvas",context.canvas,false);
+  AppendStringField(out,"pad",context.pad);
   out << '}';
 }
 
@@ -474,6 +545,8 @@ std::string ToJsonLine(const HistoryRecord& record) {
   StringValue(out,record.time);
   AppendStringField(out,"action",record.action);
 
+  out << ",\"context\":";
+  WriteContext(out,record.context);
   out << ",\"event\":";
   WriteEvent(out,record.event);
   out << ",\"object\":";
@@ -532,6 +605,150 @@ void AppendLine(const std::string& line) {
   TrimHistoryFile(path);
 }
 
+std::vector<std::string> ReadMatchingLines(std::size_t count,
+                                           const std::string& actionFilter) {
+  std::ifstream input(GGuiHistory::Path());
+  std::vector<std::string> lines;
+  std::string line;
+  while(std::getline(input,line)) {
+    if(line.empty())
+      continue;
+    if(!actionFilter.empty() &&
+       line.find("\"action\":\"" + actionFilter) == std::string::npos &&
+       line.find(actionFilter) == std::string::npos) {
+      continue;
+    }
+    lines.push_back(line);
+  }
+
+  if(count > 0 && lines.size() > count)
+    lines.erase(lines.begin(), lines.end() - count);
+  return lines;
+}
+
+std::string ExtractStringAfter(const std::string& text,std::size_t start,const std::string& key) {
+  const std::string needle = "\"" + key + "\":";
+  std::size_t pos = text.find(needle,start);
+  if(pos == std::string::npos)
+    return "";
+  pos += needle.size();
+  if(pos >= text.size() || text[pos] != '"')
+    return "";
+  ++pos;
+
+  std::string value;
+  bool escaped = false;
+  for(; pos < text.size(); ++pos) {
+    const char ch = text[pos];
+    if(escaped) {
+      value.push_back('\\');
+      value.push_back(ch);
+      escaped = false;
+      continue;
+    }
+    if(ch == '\\') {
+      escaped = true;
+      continue;
+    }
+    if(ch == '"')
+      break;
+    value.push_back(ch);
+  }
+  return JsonUnescape(value);
+}
+
+std::string ExtractPrimitiveAfter(const std::string& text,std::size_t start,const std::string& key) {
+  const std::string needle = "\"" + key + "\":";
+  std::size_t pos = text.find(needle,start);
+  if(pos == std::string::npos)
+    return "";
+  pos += needle.size();
+  std::size_t end = text.find_first_of(",}",pos);
+  if(end == std::string::npos)
+    return "";
+  std::string value = text.substr(pos,end-pos);
+  value.erase(std::remove_if(value.begin(),value.end(),
+                            [](unsigned char c) { return std::isspace(c); }),
+              value.end());
+  return value == "null" ? "" : value;
+}
+
+std::size_t SectionStart(const std::string& text,const std::string& key) {
+  const std::string needle = "\"" + key + "\":{";
+  const std::size_t pos = text.find(needle);
+  return pos == std::string::npos ? pos : pos + needle.size();
+}
+
+std::string SummarizeLine(const std::string& line) {
+  const std::string time = ExtractStringAfter(line,0,"time");
+  const std::string action = ExtractStringAfter(line,0,"action");
+  const std::size_t objectStart = SectionStart(line,"object");
+  const std::size_t eventStart = SectionStart(line,"event");
+  const std::size_t contextStart = SectionStart(line,"context");
+  const std::size_t rangeStart = SectionStart(line,"range");
+  const std::size_t projectionStart = SectionStart(line,"projection");
+  const std::size_t fitStart = SectionStart(line,"fit");
+  const std::size_t markerStart = SectionStart(line,"marker");
+
+  std::ostringstream out;
+  out << (time.empty() ? "unknown-time" : time)
+      << "  "
+      << (action.empty() ? "unknown.action" : action);
+
+  const std::string object = objectStart == std::string::npos ? "" :
+                             ExtractStringAfter(line,objectStart,"name");
+  if(!object.empty())
+    out << "  object=" << object;
+
+  const std::string canvas = contextStart == std::string::npos ? "" :
+                             ExtractStringAfter(line,contextStart,"canvas");
+  const std::string pad = contextStart == std::string::npos ? "" :
+                          ExtractStringAfter(line,contextStart,"pad");
+  if(!canvas.empty())
+    out << "  canvas=" << canvas;
+  if(!pad.empty() && pad != canvas)
+    out << "  pad=" << pad;
+
+  const std::string key = eventStart == std::string::npos ? "" :
+                          ExtractStringAfter(line,eventStart,"key");
+  if(!key.empty())
+    out << "  key=" << key;
+
+  const std::string x = markerStart == std::string::npos ? "" :
+                        ExtractPrimitiveAfter(line,markerStart,"x");
+  const std::string y = markerStart == std::string::npos ? "" :
+                        ExtractPrimitiveAfter(line,markerStart,"y");
+  if(!x.empty()) {
+    out << "  marker=(" << x;
+    if(!y.empty())
+      out << "," << y;
+    out << ")";
+  }
+
+  const std::string xlow = rangeStart == std::string::npos ? "" :
+                           ExtractPrimitiveAfter(line,rangeStart,"xlow");
+  const std::string xhigh = rangeStart == std::string::npos ? "" :
+                            ExtractPrimitiveAfter(line,rangeStart,"xhigh");
+  if(!xlow.empty() || !xhigh.empty())
+    out << "  x=[" << xlow << "," << xhigh << "]";
+
+  const std::string projection = projectionStart == std::string::npos ? "" :
+                                 ExtractStringAfter(line,projectionStart,"output");
+  const std::string axis = projectionStart == std::string::npos ? "" :
+                           ExtractStringAfter(line,projectionStart,"axis");
+  if(!projection.empty())
+    out << "  projection=" << projection;
+  if(!axis.empty())
+    out << "  axis=" << axis;
+
+  const std::string model = fitStart == std::string::npos ? "" :
+                            ExtractStringAfter(line,fitStart,"model");
+  if(!model.empty())
+    out << "  fit=" << model;
+
+  return out.str();
+}
+
 } // namespace
 
 namespace GGuiHistory {
@@ -562,6 +779,26 @@ void Clear() {
   std::ofstream output(Path(),std::ios::trunc);
 }
 
+std::vector<std::string> Recent(std::size_t count,const std::string& actionFilter) {
+  return ReadMatchingLines(count,actionFilter);
+}
+
+std::vector<std::string> Summary(std::size_t count,const std::string& actionFilter) {
+  std::vector<std::string> summaries;
+  for(const auto& line : Recent(count,actionFilter))
+    summaries.push_back(SummarizeLine(line));
+  return summaries;
+}
+
+void Print(std::ostream& out,std::size_t count,const std::string& actionFilter) {
+  for(const auto& line : Summary(count,actionFilter))
+    out << line << '\n';
+}
+
+void Print(std::size_t count,const std::string& actionFilter) {
+  Print(std::cout,count,actionFilter);
+}
+
 std::string FormatLine(const std::string& action,
                        const GInteractionInfo* info,
                        const std::vector<Field>& fields) {
@@ -583,3 +820,11 @@ void Record(const std::string& action,
 }
 
 } // namespace GGuiHistory
+
+void gui_history(int count,const char* actionFilter) {
+  GGuiHistory::Print(count,actionFilter ? actionFilter : "");
+}
+
+void gui_history(const char* actionFilter) {
+  GGuiHistory::Print(20,actionFilter ? actionFilter : "");
+}

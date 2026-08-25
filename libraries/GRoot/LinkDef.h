@@ -36,6 +36,10 @@
 #pragma link C++ function GGuiHistory::Path;
 #pragma link C++ function GGuiHistory::SetPath;
 #pragma link C++ function GGuiHistory::Clear;
+#pragma link C++ function GGuiHistory::Recent;
+#pragma link C++ function GGuiHistory::Summary;
+#pragma link C++ function GGuiHistory::Print;
+#pragma link C++ function gui_history;
 
 #pragma link C++ class GCanvas+;
 #pragma link C++ class GMarker+;

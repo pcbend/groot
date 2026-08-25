@@ -25,6 +25,7 @@
 #include <globals.h>
 #include <GGlobals.h>
 #include <GCanvas.h>
+#include <GGuiHistory.h>
 
 Gint *Gint::fGint = 0;
 
@@ -449,6 +450,9 @@ long Gint::ProcessLine(const char* line, bool sync, int* error) {
 
   if(GHelp::IsHelpCommand(sline.Data())) {
     GHelp::Print(sline.Data());
+    GGuiHistory::Record("prompt.help",{
+      {"command",sline.Data()}
+    });
     return 0;
   }
 

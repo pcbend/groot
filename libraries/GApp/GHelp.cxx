@@ -199,6 +199,8 @@ void PrintJournal(std::ostream& out) {
     << "  GGuiHistory::SetEnabled(true)\n"
     << "  GGuiHistory::SetPath(\"my.gui_history\")\n"
     << "  GGuiHistory::Clear()\n"
+    << "  GGuiHistory::Print(20)\n"
+    << "  gui_history(\"fit\")\n"
     << "\n"
     << "Configuration keys:\n"
     << "  Gui.HistSize: 10000\n"
